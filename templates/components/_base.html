@@ -8,6 +8,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Custom class to apply mx-auto only on screens larger than 576px */
+        @media (min-width: 576px) {
+            .mx-sm-auto {
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -15,12 +24,12 @@
         <div class="row">
             <!-- NAVBAR -->
             <div class="col-sm-auto bg-light sticky-top">
-                <div class="d-flex flex-sm-column flex-row flex-nowrap bg-light align-items-center sticky-top">
+                <div class="d-flex flex-sm-column flex-row flex-nowrap bg-light sticky-top">
                     <a href="{{ url_for('web.index') }}" class="d-block p-3 link-dark text-decoration-none" title="" data-bs-toggle="tooltip"
                         data-bs-placement="right" data-bs-original-title="Icon-only">
                         <i class="bi bi-app fs-2"></i>
                     </a>
-                    <ul class="nav nav-pills nav-flush flex-sm-column flex-row flex-nowrap mb-auto mx-auto text-center align-items-center">
+                    <ul class="nav nav-pills nav-flush flex-sm-column flex-row flex-nowrap mb-auto mx-sm-auto">
                         <li class="nav-item">
                             <a href="{{ url_for('web.items') }}" class="nav-link py-3 px-2" title="" data-bs-toggle="tooltip"
                                 data-bs-placement="right" data-bs-original-title="Items">
@@ -35,7 +44,7 @@
                         </li>
                     </ul>
                 </div>
-            </div>
+            </div>            
             <!-- CONTENT -->
             <div class="col-sm p-3 min-vh-100">
                 {% block content %}{% endblock %}
