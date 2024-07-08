@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template
+from modules import wynn_api
 
 
 web_bp = Blueprint('web', __name__)
@@ -10,7 +11,8 @@ def index():
 
 @web_bp.route("/items")
 def items():
-    return render_template("index.html")
+    items = wynn_api.get_item_database()
+    return render_template("items.html", items=items)
 
 @web_bp.route("/players")
 def players():
