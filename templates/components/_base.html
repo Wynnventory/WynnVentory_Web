@@ -13,43 +13,44 @@
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- NAVBAR -->
-            <div class="col-sm-auto bg-light sticky-top">
-                <div class="d-flex flex-sm-column flex-row flex-nowrap bg-light align-items-center sticky-top">
-                    <a href="{{ url_for('web.index') }}" class="d-block p-3 link-dark text-decoration-none" title=""
-                        data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Icon-only">
-                        <i class="icon-minecraft icon-minecraft-written-book"></i>
+    <div class="container-fluid overflow-hidden">
+        <div class="row vh-100 overflow-auto">
+            <div class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 bg-dark d-flex sticky-top">
+                <div
+                    class="d-flex flex-sm-column flex-row flex-grow-1 align-items-center align-items-sm-start px-3 pt-2 text-white">
+                    <a href="{{ url_for('web.index') }}"
+                        class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                        <span class="fs-5">W<span class="d-none d-sm-inline">ynnVentory</span></span>
                     </a>
-                    <ul
-                        class="nav nav-pills nav-flush flex-sm-column flex-row flex-nowrap mb-auto mx-auto text-center align-items-center">
+                    <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start"
+                        id="menu">
                         <li class="nav-item">
-                            <a href="{{ url_for('web.items') }}" class="nav-link py-3 px-2" title=""
-                                data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Items">
-                                <i class="icon-minecraft icon-minecraft-iron-sword"></i>
+                            <a href="{{ url_for('web.items') }}" class="nav-link px-sm-0 px-2">
+                                <i class="icon-minecraft icon-minecraft-iron-sword"></i><span
+                                    class="ms-1 d-none d-sm-inline">Items</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('web.lootpool') }}" class="nav-link py-3 px-2" title=""
-                                data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Lootpool">
-                                <i class="icon-minecraft icon-minecraft-chest"></i>
-                            </a>
+                            <a href="{{ url_for('web.lootpool') }}" data-bs-toggle="collapse"
+                                class="nav-link px-sm-0 px-2">
+                                <i class="icon-minecraft icon-minecraft-chest"></i><span
+                                    class="ms-1 d-none d-sm-inline">Lootpool</span> </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('web.players') }}" class="nav-link py-3 px-2" title=""
-                                data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Players">
-                                <i class="icon-minecraft icon-minecraft-player-head"></i>
-                            </a>
+                            <a href="{{ url_for('web.players') }}" class="nav-link px-sm-0 px-2">
+                                <i class="icon-minecraft icon-minecraft-player-head"></i></i><span
+                                    class="ms-1 d-none d-sm-inline">Players</span></a>
                         </li>
                     </ul>
-                    <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
-                    <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
+                    <div class="py-sm-4 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
+                        <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
+                        <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
+                    </div>
                 </div>
             </div>
 
             <!-- CONTENT -->
-            <div class="col p-3 min-vh-100">
+            <div class="col d-flex flex-column h-sm-100">
                 {% block content %}{% endblock %}
             </div>
         </div>
