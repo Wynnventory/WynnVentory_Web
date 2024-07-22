@@ -16,25 +16,23 @@
     <div class="container-fluid">
         <div class="row">
             <!-- NAVBAR -->
-            <div class="col-sm-auto sticky-top sidebar">
-                <div class="d-flex flex-sm-column flex-row flex-nowrap sidebar sticky-top">
-                    <ul class="nav nav-pills nav-flush flex-sm-column flex-row flex-nowrap mb-auto mx-sm-auto">
-                        <li class="nav-item" style="margin-bottom: 2rem;">
-                            <a href="{{ url_for('web.index') }}" class="nav-link py-3 px-2"
-                                title="" data-bs-toggle="tooltip" data-bs-placement="right"
-                                data-bs-original-title="Icon-only">
-                                <i class="icon-minecraft icon-minecraft-written-book"></i>
-                            </a>
-                        </li>
+            <div class="col-sm-auto bg-light sticky-top">
+                <div class="d-flex flex-sm-column flex-row flex-nowrap bg-light align-items-center sticky-top">
+                    <a href="{{ url_for('web.index') }}" class="d-block p-3 link-dark text-decoration-none" title=""
+                        data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Icon-only">
+                        <i class="icon-minecraft icon-minecraft-written-book"></i>
+                    </a>
+                    <ul
+                        class="nav nav-pills nav-flush flex-sm-column flex-row flex-nowrap mb-auto mx-auto text-center align-items-center">
                         <li class="nav-item">
                             <a href="{{ url_for('web.items') }}" class="nav-link py-3 px-2" title=""
                                 data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Items">
                                 <i class="icon-minecraft icon-minecraft-iron-sword"></i>
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li>
                             <a href="{{ url_for('web.lootpool') }}" class="nav-link py-3 px-2" title=""
-                                data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Items">
+                                data-bs-toggle="tooltip" data-bs-placement="right" data-bs-original-title="Lootpool">
                                 <i class="icon-minecraft icon-minecraft-chest"></i>
                             </a>
                         </li>
@@ -45,7 +43,6 @@
                             </a>
                         </li>
                     </ul>
-                    <!-- Bootstrap 5 Theme switch -->
                     <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
                     <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
                 </div>
