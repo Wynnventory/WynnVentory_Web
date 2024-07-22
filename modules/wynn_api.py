@@ -1,13 +1,65 @@
 import requests
 
-BASE_URL = "https://api.wynncraft.com/v3"
+from modules.utils import map_local_icons
+
+
+BASE_URL = "https://api.wynncraft.com/v3/"
 def get_item_database():
-    url = f"{BASE_URL}/item/database?fullResult"
+    url = f"{BASE_URL}item/database?fullResult"
     try:
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
         if isinstance(data, dict):
+            return data
+        else:
+            print("Unexpected data format received:", type(data))
+            return None
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except Exception as err:
+        print(f"Other error occurred: {err}")
+        return None
+    
+def search_item(query, item_type=[], tier=[], attack_speed=[], level_range=[], professions=[], identifications=[], major_ids=[]):
+    url = f"{BASE_URL}item/search"
+    payload = {
+        "query": query,
+        "type": item_type,
+        "tier": tier,
+        "attackSpeed": attack_speed,
+        "levelRange": level_range,
+        "professions": professions,
+        "identifications": identifications,
+        "majorIds": major_ids
+    }
+    print(payload)
+    try:
+        response = requests.post(url, json=payload)
+        response.raise_for_status()
+        return response.json()["results"]
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+        return None
+    except Exception as err:
+        print(f"Other error occurred: {err}")
+        return None
+    
+def get_lootpool():
+    url = "https://nori.fish/api/lootpool"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        if isinstance(data, dict):
+            for item, icon in data["Icon"].items():
+                print(item)
+                if not str(icon).startswith("http"):
+                    data["Icon"][item] = map_local_icons(icon)
+                if "Simulator" in item:
+                    data["Icon"][item] = "icons/simulator.webp"
+                elif "Insulator" in item:
+                    data["Icon"][item] = "icons/insulator.webp"
             return data
         else:
             print("Unexpected data format received:", type(data))

@@ -1,0 +1,58 @@
+/* Custom class to apply mx-auto only on screens larger than 576px */
+@media (min-width: 576px) {
+    .mx-sm-auto {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+}
+
+h1 {
+    margin-bottom: 2rem;
+}
+
+img {
+    height: 32px !important;
+    image-rendering: pixelated;
+}
+
+/* Theme */
+[data-bs-theme="light"] {
+    --bs-body-bg: #f8f9fa;
+    /* --sidebar-color: RGB(248,249,250); */
+}
+[data-bs-theme="dark"] {
+    --bs-body-bg: #212529;
+    /* --sidebar-color: RGB(0,0,0); */
+}
+
+.sidebar {
+    /* display: flex; */
+    /* flex-direction: column; */
+    background-color: rgba(var(--bs-light-rgb), 1.0) !important;
+}
+
+/* Wynncraft Style */
+.mythic,
+.Mythic {
+    color: rgb(164, 57, 192);
+}
+
+.fabled,
+.Fabled {
+    color: rgb(246, 62, 62);
+}
+
+.legendary,
+.Legendary {
+    color: rgb(80, 253, 255);
+}
+
+.rare,
+.Rare {
+    color: rgb(255, 80, 232);
+}
+
+.unique,
+.Unique {
+    color: rgb(252, 252, 84);
+}

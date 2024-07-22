@@ -1,0 +1,43 @@
+{% extends 'components/_base.html' %}
+{% block title %}Items{% endblock %}
+{% block content %}
+
+<div class="container">
+    <h1>Wynncraft Lootpool</h1>
+    <div class="row">
+        {% for region, details in loot_items.Loot.items() %}
+        <div class="col-12 col-md-6 col-lg-3 mb-3">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h5">{{ region }}</h2>
+                </div>
+                <div class="card-body">
+                    {% for rarity, items in details.items() %}
+                    {% if rarity == 'Shiny' %}
+                    <h3 class="h6"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}"/>{{ rarity }}</h3>
+                    {% if items.Item in loot_items.Icon %}
+                    <img src="{{ loot_items.Icon[items.Item] }}" alt="{{ item }}" class="img-fluid">
+                    {% endif %}
+                    {{ items.Item }}
+                    <p><strong>Tracker:</strong> {{ items.Tracker }}</p>
+                    {% else %}
+                    <h3 class="h6">{{ rarity }}</h3>
+                    <ul class="list-unstyled">
+                        {% for item in items %}
+                        <li class="{{rarity}}">
+                            {% if item in loot_items.Icon %}
+                            <img src="{{ loot_items.Icon[item] }}" alt="{{ item }}" class="img-fluid">
+                            {% endif %}
+                            {{ item }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
