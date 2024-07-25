@@ -1,34 +1,70 @@
-/* Custom class to apply mx-auto only on screens larger than 576px */
-@media (min-width: 576px) {
-    .mx-sm-auto {
-        margin-left: auto !important;
-        margin-right: auto !important;
+/* Theme */
+:root {
+    --bs-body-bg: #2b2e33;
+    --footer-bg: #212529;
+    --sidebar-color: #212529;
+    --text-color: #e0e0e0;
+}
+
+[data-bs-theme="light"] {
+    --bs-body-bg: #ffffff;
+    --footer-bg: #ececec;
+    --sidebar-color: #ececec;
+    --text-color: #212529;
+}
+
+[data-bs-theme="dark"] {
+    --bs-body-bg: #2b2e33;
+    --footer-bg: #2b2e33;
+    --sidebar-color: #212529;
+    --text-color: #e0e0e0;
+}
+
+@media (min-width: 576px) { /* Big screens only */
+    .h-sm-100 {
+        height: 100%;
+    }
+}
+@media (max-width: 576px) { /* Mobile only */
+    [data-bs-theme="dark"] {
+        --footer-bg: #212529;
+    }
+    .sidebar {
+        padding-bottom: 1.5rem;
     }
 }
 
+body {
+    background-color: var(--bs-body-bg);
+    color: var(--text-color);
+}
 h1 {
     margin-bottom: 2rem;
 }
-
 img {
     height: 32px !important;
     image-rendering: pixelated;
 }
-
-/* Theme */
-[data-bs-theme="light"] {
-    --bs-body-bg: #f8f9fa;
-    /* --sidebar-color: RGB(248,249,250); */
+a {
+    color: var(--text-color);
 }
-[data-bs-theme="dark"] {
-    --bs-body-bg: #212529;
-    /* --sidebar-color: RGB(0,0,0); */
+a:hover {
+    color: var(--text-color);
+    opacity: 0.8;
 }
 
+.footer {
+    background-color: var(--footer-bg) !important;
+}
 .sidebar {
-    /* display: flex; */
-    /* flex-direction: column; */
-    background-color: rgba(var(--bs-light-rgb), 1.0) !important;
+    background-color: var(--sidebar-color);
+}
+.content {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.content::-webkit-scrollbar {
+    display: none;
 }
 
 /* Wynncraft Style */

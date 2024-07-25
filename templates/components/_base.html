@@ -15,11 +15,12 @@
 <body>
     <div class="container-fluid overflow-hidden">
         <div class="row vh-100 overflow-auto">
-            <div class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 bg-dark d-flex sticky-top">
+            <!-- NAVBAR -->
+            <div class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 sidebar d-flex sticky-top">
                 <div
-                    class="d-flex flex-sm-column flex-row flex-grow-1 align-items-center align-items-sm-start px-3 pt-2 text-white">
+                    class="d-flex flex-sm-column flex-row flex-grow-1 align-items-center align-items-sm-start px-3 pt-4">
                     <a href="{{ url_for('web.index') }}"
-                        class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-white text-decoration-none">
+                        class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-decoration-none">
                         <span class="fs-5">W<span class="d-none d-sm-inline">ynnVentory</span></span>
                     </a>
                     <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start"
@@ -49,8 +50,13 @@
             </div>
 
             <!-- CONTENT -->
-            <div class="col d-flex flex-column h-sm-100">
-                {% block content %}{% endblock %}
+            <div class="col d-flex flex-column h-sm-100 p-4">
+                <main class="row overflow-auto content">
+                    {% block content %}{% endblock %}
+                </main>
+                <!-- <footer class="row py-4 mt-auto">
+                    <div class="col"><p>&copy; 2024 WynnVentory. All rights reserved. Developed by Aruloci.</p></div>
+                </footer> -->
             </div>
         </div>
     </div>
