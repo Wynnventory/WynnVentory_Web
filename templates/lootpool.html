@@ -4,41 +4,44 @@
 
 <h1>Wynncraft Lootpool</h1>
 <div class="row">
-    <h4 id="time"></div>
-    {% for region, details in loot_items.Loot.items() %}
-    <div class="col-12 col-md-6 col-lg-3 mb-3">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="h5">{{ region }}</h2>
-            </div>
-            <div class="card-body">
-                {% for rarity, items in details.items() %}
-                {% if rarity == 'Shiny' %}
-                <h3 class="h6"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />{{ rarity }}</h3>
+    <h4 id="time"></h4>
+</div>
+{% for region, details in loot_items.Loot.items() %}
+<div class="col-12 col-md-6 col-lg-3 mb-3">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="h5">{{ region }}</h2>
+        </div>
+        <div class="card-body">
+            {% for rarity, items in details.items() %}
+            {% if rarity == 'Shiny' %}
+            <h3 class="h6"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />{{ rarity }}</h3>
+            <div onmouseover="displayItem(event, '{{items.Item}}')" onmouseout="hideTooltip()">
                 {% if items.Item in loot_items.Icon %}
                 <img src="{{ loot_items.Icon[items.Item] }}" alt="{{ item }}" class="img-fluid">
                 {% endif %}
                 {{ items.Item }}
                 <p><strong>Tracker:</strong> {{ items.Tracker }}</p>
-                {% else %}
-                <h3 class="h6">{{ rarity }}</h3>
-                <ul class="list-unstyled">
-                    {% for item in items %}
-                    <li class="{{rarity}}">
-                        {% if item in loot_items.Icon %}
-                        <img src="{{ loot_items.Icon[item] }}" alt="{{ item }}" class="img-fluid">
-                        {% endif %}
-                        {{ item }}
-                    </li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-                {% endfor %}
             </div>
+            {% else %}
+            <h3 class="h6">{{ rarity }}</h3>
+            <ul class="list-unstyled">
+                {% for item in items %}
+                <li class="{{rarity}} d-block" onmouseover="displayItem(event, '{{item}}')" onmouseout="hideTooltip()">
+                    {% if item in loot_items.Icon %}
+                    <img src="{{ loot_items.Icon[item] }}" alt="{{ item }}" class="img-fluid">
+                    {% endif %}
+                    {{ item }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% endfor %}
         </div>
     </div>
-    {% endfor %}
 </div>
+{% endfor %}
+<div id="item-stats-tooltip" class="item-stats-tooltip"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', (event) => {
@@ -75,5 +78,122 @@
 
         updateCountdown();
     });
+
+    function displayItem(event, itemName) {
+        fetchItemStats(itemName).then(data => {
+            if (data) {
+                console.log('Item stats:', data);
+                showTooltip(event, data[itemName]);
+            } else {
+                console.error('No stats available for this item');
+            }
+        }).catch(error => {
+            console.error('Error fetching item stats:', error);
+        });
+    }
+
+    async function fetchItemStats(itemName) {
+        const response = await fetch(`/api/item/${itemName}`);
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        } else {
+            console.error('Failed to fetch item stats');
+            return null;
+        }
+    }
+
+    function showTooltip(event, itemStats) {
+        const tooltip = document.getElementById('item-stats-tooltip');
+        const { base, identifications, requirements, powderSlots, tier, type, attackSpeed } = itemStats;
+        let classReq = "";
+
+        //Requirements
+        type === 'wand' ? classReq = "Mage/Dark Wizard" : '';
+        type === 'relik' ? classReq = "Shaman/Skyseer" : '';
+        type === 'dagger' ? classReq = "Assassin/Ninja" : '';
+        type === 'spear' ? classReq = "Warrior/Knight" : '';
+        type === 'bow' ? classReq = "Archer/Hunter" : '';
+        let requirementsHTML = `<div>Class Req: ${classReq}<br>Combat Lv. Min: ${requirements.level}<br>`;
+        for (const [key, value] of Object.entries(requirements)) {
+            if (key !== 'level') {
+                requirementsHTML += `${capitalizeFirstLetter(key)} Min: ${value}<br>`;
+            }
+        }
+        requirementsHTML += '</div>';
+
+        //Identifications
+        let rawIdentificationsHTML = '';
+        let otherIdentificationsHTML = '';
+
+        for (const [key, value] of Object.entries(identifications)) {
+            const minValue = value.min !== undefined ? value.min : value;
+            const maxValue = value.max !== undefined ? value.max : value;
+            const rawValue = value.raw !== undefined ? value.raw : value;
+            const colorClass = rawValue >= 0 ? 'positive' : 'negative';
+            const toColorClass = rawValue >= 0 ? 'positive-to' : 'negative-to';
+
+            const identificationHTML = value.min !== undefined && value.max !== undefined
+                ? `
+                <span class="${colorClass}">${minValue}</span>
+                <span class="${toColorClass}"> to </span>
+                <span class="${colorClass}">${maxValue}</span>
+                <span class="stat-name"> ${capitalizeFirstLetter(key)}</span><br>
+            `
+                : `
+                <span class="${colorClass}">${rawValue}</span>
+                <span class="stat-name"> ${capitalizeFirstLetter(key)}</span><br>
+            `;
+
+            if (key.startsWith('raw')) {
+                rawIdentificationsHTML += identificationHTML;
+            } else {
+                otherIdentificationsHTML += identificationHTML;
+            }
+        }
+
+        //Build item tooltip
+        tooltip.innerHTML = `
+        <div class="item-header">
+            <h5 class="${tier}">${itemStats.internalName}</h5>
+            <span class="attack-speed item-text">${attackSpeed} Attack Speed</span>
+        </div>
+        <div class="item-infobox item-text">
+            ${base.airDamage ? `Air Damage: ${base.airDamage.min}-${base.airDamage.max}<br>` : ''}
+            ${base.earthDamage ? `Earth Damage: ${base.earthDamage.min}-${base.earthDamage.max}<br>` : ''}
+            ${base.fireDamage ? `Fire Damage: ${base.fireDamage.min}-${base.fireDamage.max}<br>` : ''}
+            ${base.thunderDamage ? `Thunder Damage: ${base.thunderDamage.min}-${base.thunderDamage.max}<br>` : ''}
+            ${base.waterDamage ? `Water Damage: ${base.waterDamage.min}-${base.waterDamage.max}<br>` : ''}
+            <span class="item-text-dark">Average DPS: ${base.averageDPS}</span>
+        </div>
+        <div class="item-infobox item-text">
+            ${requirementsHTML}
+        </div>
+        <div class="item-infobox item-text">
+            ${rawIdentificationsHTML}
+        </div>
+        <div class="item-infobox item-text">
+            ${otherIdentificationsHTML}
+        </div>
+        <div class="item-infobox item-text">
+            [0/${powderSlots}] Powder Slots
+        </div>
+        <div class="${tier}">
+            ${capitalizeFirstLetter(tier)} Item
+        </div>
+    `;
+        tooltip.style.display = 'block';
+        tooltip.style.top = `${event.pageY - 100}px`;
+        tooltip.style.left = `${event.pageX + 25}px`;
+    }
+
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+
+    function hideTooltip() {
+        const tooltip = document.getElementById('item-stats-tooltip');
+        tooltip.style.display = 'none';
+    }
 </script>
 {% endblock %}

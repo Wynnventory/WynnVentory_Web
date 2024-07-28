@@ -66,29 +66,69 @@ a:hover {
 .content::-webkit-scrollbar {
     display: none;
 }
+.item-stats-tooltip {
+    display: none;
+    position: absolute;
+    background-color: rgba(21, 10, 24, 0.95);
+    border: 2px solid rgb(164, 57, 192);
+    border-radius: 5px;
+    padding: 10px;
+    width: 300px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 0;
+}
+.item-header h5 {
+    font-size: 1.1em;
+    text-align: center;
+    /* padding-bottom: 0.5rem; */
+}
+.item-infobox {
+    padding-top: 1rem;
+}
+.item-stats-tooltip .item-header .attack-speed {
+    
+}
 
 /* Wynncraft Style */
 .mythic,
 .Mythic {
-    color: rgb(164, 57, 192);
+    color: rgb(162, 0, 162);
 }
-
 .fabled,
 .Fabled {
     color: rgb(246, 62, 62);
 }
-
 .legendary,
 .Legendary {
     color: rgb(80, 253, 255);
 }
-
 .rare,
 .Rare {
     color: rgb(255, 80, 232);
 }
-
 .unique,
 .Unique {
     color: rgb(252, 252, 84);
+}
+.item-text {
+    color: #B8B9B8;
+}
+.item-text-dark {
+    color: #4D4A4D;
+}
+.positive::before {
+    content: '+';
+    color: #56FE56;
+}
+.positive {
+    color: #56FE56;
+}
+.negative {
+    color: #F85252;
+}
+.positive-to {
+    color: #00A800;
+}
+.negative-to {
+    color: #940000;
 }

@@ -45,6 +45,19 @@ def search_item(query, item_type=[], tier=[], attack_speed=[], level_range=[], p
         print(f"Other error occurred: {err}")
         return None
     
+def quick_search_item(item_name):
+    url = f"{BASE_URL}item/search"
+    try:
+        response = requests.get(f"{url}/{item_name}")
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+        return None
+    except Exception as err:
+        print(f"Other error occurred: {err}")
+        return None
+    
 def get_lootpool():
     url = "https://nori.fish/api/lootpool"
     try:
