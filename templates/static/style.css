@@ -73,7 +73,7 @@ a:hover {
     border: 2px solid rgb(164, 57, 192);
     border-radius: 5px;
     padding: 10px;
-    width: 300px;
+    width: 350px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     z-index: 0;
 }
@@ -85,8 +85,8 @@ a:hover {
 .item-infobox {
     padding-top: 1rem;
 }
-.item-stats-tooltip .item-header .attack-speed {
-    
+.lootpool-card-item {
+    cursor: pointer;
 }
 
 /* Wynncraft Style */
@@ -94,27 +94,59 @@ a:hover {
 .Mythic {
     color: rgb(162, 0, 162);
 }
+li .mythic:hover,
+li .Mythic:hover {
+    color: rgb(255, 0, 255);
+    text-decoration: underline;
+}
 .fabled,
 .Fabled {
     color: rgb(246, 62, 62);
+}
+li .fabled:hover,
+li .Fabled:hover {
+    color: rgb(255, 0, 0);
+    text-decoration: underline;
 }
 .legendary,
 .Legendary {
     color: rgb(80, 253, 255);
 }
+li .legendary:hover,
+li .Legendary:hover {
+    color: rgb(0, 255, 255);
+    text-decoration: underline;
+}
 .rare,
 .Rare {
     color: rgb(255, 80, 232);
+}
+li .rare:hover,
+li .Rare:hover {
+    color: rgb(255, 0, 255);
+    text-decoration: underline;
 }
 .unique,
 .Unique {
     color: rgb(252, 252, 84);
 }
+li .unique:hover,
+li .Unique:hover {
+    color: rgb(255, 255, 0);
+    text-decoration: underline;
+}
 .item-text {
-    color: #B8B9B8;
+    color: #B8B9B8 !important;
+}
+.item-infobox>.item-text::before {
+    color: #B8B9B8 !important;
 }
 .item-text-dark {
     color: #4D4A4D;
+}
+.item-health,
+.item-health::before {
+    color: #A80000 !important;
 }
 .positive::before {
     content: '+';

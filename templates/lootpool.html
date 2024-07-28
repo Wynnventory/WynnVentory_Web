@@ -16,9 +16,9 @@
             {% for rarity, items in details.items() %}
             {% if rarity == 'Shiny' %}
             <h3 class="h6"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />{{ rarity }}</h3>
-            <div onmouseover="displayItem(event, '{{items.Item}}')" onmouseout="hideTooltip()">
+            <div onclick="displayItem(event, '{{items.Item | urlencode }}')">
                 {% if items.Item in loot_items.Icon %}
-                <img src="{{ loot_items.Icon[items.Item] }}" alt="{{ item }}" class="img-fluid">
+                <img src="{{ loot_items.Icon[items.Item] }}" alt="{{ items.Item }}" class="img-fluid">
                 {% endif %}
                 {{ items.Item }}
                 <p><strong>Tracker:</strong> {{ items.Tracker }}</p>
@@ -27,11 +27,11 @@
             <h3 class="h6">{{ rarity }}</h3>
             <ul class="list-unstyled">
                 {% for item in items %}
-                <li class="{{rarity}} d-block" onmouseover="displayItem(event, '{{item}}')" onmouseout="hideTooltip()">
+                <li class="lootpool-card-item" onclick="displayItem(event, '{{ item | urlencode }}')">
                     {% if item in loot_items.Icon %}
                     <img src="{{ loot_items.Icon[item] }}" alt="{{ item }}" class="img-fluid">
                     {% endif %}
-                    {{ item }}
+                    <span class="{{rarity}}">{{ item }}</span>
                 </li>
                 {% endfor %}
             </ul>
@@ -79,11 +79,11 @@
         updateCountdown();
     });
 
-    function displayItem(event, itemName) {
+    function displayItem(event, encodedItemName) {
+        const itemName = decodeURIComponent(encodedItemName);
         fetchItemStats(itemName).then(data => {
             if (data) {
-                console.log('Item stats:', data);
-                showTooltip(event, data[itemName]);
+                showTooltip(event, data);
             } else {
                 console.error('No stats available for this item');
             }
@@ -93,7 +93,7 @@
     }
 
     async function fetchItemStats(itemName) {
-        const response = await fetch(`/api/item/${itemName}`);
+        const response = await fetch(`/api/item/${encodeURIComponent(itemName)}`);
         if (response.ok) {
             const data = await response.json();
             return data;
@@ -105,45 +105,50 @@
 
     function showTooltip(event, itemStats) {
         const tooltip = document.getElementById('item-stats-tooltip');
-        const { base, identifications, requirements, powderSlots, tier, type, attackSpeed } = itemStats;
-        let classReq = "";
+        const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req } = itemStats;
 
-        //Requirements
-        type === 'wand' ? classReq = "Mage/Dark Wizard" : '';
-        type === 'relik' ? classReq = "Shaman/Skyseer" : '';
-        type === 'dagger' ? classReq = "Assassin/Ninja" : '';
-        type === 'spear' ? classReq = "Warrior/Knight" : '';
-        type === 'bow' ? classReq = "Archer/Hunter" : '';
-        let requirementsHTML = `<div>Class Req: ${classReq}<br>Combat Lv. Min: ${requirements.level}<br>`;
-        for (const [key, value] of Object.entries(requirements)) {
-            if (key !== 'level') {
-                requirementsHTML += `${capitalizeFirstLetter(key)} Min: ${value}<br>`;
+        // Requirements
+        let requirementsHTML = '';
+        if (item_type === 'weapon') {
+            requirementsHTML = `<div>Class Req: ${class_req}<br>Combat Lv. Min: ${requirements.Level}<br>`;
+            for (const [key, value] of Object.entries(requirements)) {
+                if (key !== 'Level') {
+                    requirementsHTML += `${key} Min: ${value}<br>`;
+                }
             }
+            requirementsHTML += '</div>';
+        } else {
+            requirementsHTML = `<div>Combat Lv. Min: ${requirements.Level}<br>`;
+            for (const [key, value] of Object.entries(requirements)) {
+                if (key !== 'Level') {
+                    requirementsHTML += `${key} Min: ${value}<br>`;
+                }
+            }
+            requirementsHTML += '</div>';
         }
-        requirementsHTML += '</div>';
 
-        //Identifications
+        // Identifications
         let rawIdentificationsHTML = '';
         let otherIdentificationsHTML = '';
 
         for (const [key, value] of Object.entries(identifications)) {
-            const minValue = value.min !== undefined ? value.min : value;
-            const maxValue = value.max !== undefined ? value.max : value;
-            const rawValue = value.raw !== undefined ? value.raw : value;
-            const colorClass = rawValue >= 0 ? 'positive' : 'negative';
-            const toColorClass = rawValue >= 0 ? 'positive-to' : 'negative-to';
+            const minValue = value.min_value !== undefined ? value.min_value : value;
+            const maxValue = value.max_value !== undefined ? value.max_value_readable : value;
+            const rawValue = value.raw !== undefined ? value.raw_readable : value;
+            const colorClass = value.raw >= 0 ? 'positive' : 'negative';
+            const toColorClass = value.raw >= 0 ? 'positive-to' : 'negative-to';
 
-            const identificationHTML = value.min !== undefined && value.max !== undefined
+            const identificationHTML = minValue !== null && maxValue !== null
                 ? `
-                <span class="${colorClass}">${minValue}</span>
-                <span class="${toColorClass}"> to </span>
-                <span class="${colorClass}">${maxValue}</span>
-                <span class="stat-name"> ${capitalizeFirstLetter(key)}</span><br>
-            `
+            <span class="${colorClass}">${minValue}</span>
+            <span class="${toColorClass}"> to </span>
+            <span class="${colorClass}">${maxValue}</span>
+            <span class="stat-name"> ${value.readable_name}</span><br>
+        `
                 : `
-                <span class="${colorClass}">${rawValue}</span>
-                <span class="stat-name"> ${capitalizeFirstLetter(key)}</span><br>
-            `;
+            <span class="${colorClass}">${rawValue}</span>
+            <span class="stat-name"> ${value.readable_name}</span><br>
+        `;
 
             if (key.startsWith('raw')) {
                 rawIdentificationsHTML += identificationHTML;
@@ -152,48 +157,87 @@
             }
         }
 
-        //Build item tooltip
+        // Build item tooltip
         tooltip.innerHTML = `
-        <div class="item-header">
-            <h5 class="${tier}">${itemStats.internalName}</h5>
-            <span class="attack-speed item-text">${attackSpeed} Attack Speed</span>
-        </div>
-        <div class="item-infobox item-text">
-            ${base.airDamage ? `Air Damage: ${base.airDamage.min}-${base.airDamage.max}<br>` : ''}
-            ${base.earthDamage ? `Earth Damage: ${base.earthDamage.min}-${base.earthDamage.max}<br>` : ''}
-            ${base.fireDamage ? `Fire Damage: ${base.fireDamage.min}-${base.fireDamage.max}<br>` : ''}
-            ${base.thunderDamage ? `Thunder Damage: ${base.thunderDamage.min}-${base.thunderDamage.max}<br>` : ''}
-            ${base.waterDamage ? `Water Damage: ${base.waterDamage.min}-${base.waterDamage.max}<br>` : ''}
-            <span class="item-text-dark">Average DPS: ${base.averageDPS}</span>
-        </div>
-        <div class="item-infobox item-text">
-            ${requirementsHTML}
-        </div>
-        <div class="item-infobox item-text">
-            ${rawIdentificationsHTML}
-        </div>
-        <div class="item-infobox item-text">
-            ${otherIdentificationsHTML}
-        </div>
-        <div class="item-infobox item-text">
-            [0/${powderSlots}] Powder Slots
-        </div>
-        <div class="${tier}">
-            ${capitalizeFirstLetter(tier)} Item
-        </div>
-    `;
-        tooltip.style.display = 'block';
-        tooltip.style.top = `${event.pageY - 100}px`;
-        tooltip.style.left = `${event.pageX + 25}px`;
-    }
+            <div class="item-header">
+                <h5 class="${rarity}">${itemStats.name}</h5>
+                ${item_type === 'weapon' ? `<span class="attack-speed item-text">${attack_speed} Attack Speed</span>` : ''}
+            </div>
+            <div class="item-infobox item-text">
+                ${item_type === 'weapon' ? `
+                    ${base.damage ? `Neutral Damage: ${base.damage.min}-${base.damage.max}<br>` : ''}
+                    ${base.air_damage ? `Air Damage: ${base.air_damage.min}-${base.air_damage.max}<br>` : ''}
+                    ${base.earth_damage ? `Earth Damage: ${base.earth_damage.min}-${base.earth_damage.max}<br>` : ''}
+                    ${base.fire_damage ? `Fire Damage: ${base.fire_damage.min}-${base.fire_damage.max}<br>` : ''}
+                    ${base.thunder_damage ? `Thunder Damage: ${base.thunder_damage.min}-${base.thunder_damage.max}<br>` : ''}
+                    ${base.water_damage ? `Water Damage: ${base.water_damage.min}-${base.water_damage.max}<br>` : ''}
+                    <span class="item-text-dark">Average DPS: ${base.average_dps}</span>
+                ` : `
+                    ${base.health ? `<span class="item-health ${base.health >= 0 ? 'positive' : 'negative'}">${base.health} Health</span><br>` : ''}
+                    ${base.fire_defence ? `<span class="item-text">Fire Defence: </span><span class="item-text ${base.fire_defence >= 0 ? 'positive' : 'negative'}">${base.fire_defence}</span><br>` : ''}
+                    ${base.water_defence ? `<span class="item-text">Water Defence: </span><span class="item-text ${base.water_defence >= 0 ? 'positive' : 'negative'}">${base.water_defence}</span><br>` : ''}
+                    ${base.air_defence ? `<span class="item-text">Air Defence: </span><span class="item-text ${base.air_defence >= 0 ? 'positive' : 'negative'}">${base.air_defence}</span><br>` : ''}
+                    ${base.thunder_defence ? `<span class="item-text">Thunder Defence: </span><span class="item-text ${base.thunder_defence >= 0 ? 'positive' : 'negative'}">${base.thunder_defence}</span><br>` : ''}
+                    ${base.earth_defence ? `<span class="item-text">Earth Defence: </span><span class="item-text ${base.earth_defence >= 0 ? 'positive' : 'negative'}">${base.earth_defence}</span><br>` : ''}
+                `}
+            </div>
+            <div class="item-infobox item-text">
+                ${requirementsHTML}
+            </div>
+            <div class="item-infobox item-text">
+                ${rawIdentificationsHTML}
+            </div>
+            <div class="item-infobox item-text">
+                ${otherIdentificationsHTML}
+            </div>
+            ${item_type === 'accessory' ? `
+            <div class="item-infobox ${rarity}">
+                ${rarity} Item
+            </div>
+            ` : `
+            <div class="item-infobox item-text">
+                [0/${powder_slots}] Powder Slots
+            </div>
+            <div class="${rarity}">
+                ${rarity} Item
+            </div>
+            `}
+        `;
 
-    function capitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
+        tooltip.style.display = 'block';
+
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+
+        let top = event.pageY - 100;
+        let left = event.pageX + 25;
+
+        if (top + tooltipRect.height > viewportHeight) {
+            top = viewportHeight - tooltipRect.height - 10;
+        }
+
+        if (left + tooltipRect.width > viewportWidth) {
+            left = viewportWidth - tooltipRect.width - 10;
+        }
+
+        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${left}px`;
+
+        document.addEventListener('click', hideTooltipOnClickOutside);
     }
 
     function hideTooltip() {
         const tooltip = document.getElementById('item-stats-tooltip');
         tooltip.style.display = 'none';
+        document.removeEventListener('click', hideTooltipOnClickOutside);
+    }
+
+    function hideTooltipOnClickOutside(event) {
+        const tooltip = document.getElementById('item-stats-tooltip');
+        if (!tooltip.contains(event.target)) {
+            hideTooltip();
+        }
     }
 </script>
 {% endblock %}

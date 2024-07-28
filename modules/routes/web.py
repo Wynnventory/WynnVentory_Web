@@ -26,4 +26,4 @@ def lootpool():
 
 @web_bp.route("/players")
 def players():
-    return render_template("index.html")
+    return lootpool()
