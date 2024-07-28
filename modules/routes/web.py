@@ -7,7 +7,7 @@ web_bp = Blueprint('web', __name__)
 @web_bp.route("/")
 @web_bp.route("/index")
 def index():
-    return render_template("items.html")
+    return lootpool()
 
 @web_bp.route("/items")
 def items():
