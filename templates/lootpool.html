@@ -4,6 +4,7 @@
 
 <h1>Wynncraft Lootpool</h1>
 <div class="row">
+    <h4 id="time"></div>
     {% for region, details in loot_items.Loot.items() %}
     <div class="col-12 col-md-6 col-lg-3 mb-3">
         <div class="card">
@@ -38,4 +39,41 @@
     </div>
     {% endfor %}
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // Lootpool reset time
+        function getNextResetTime() {
+            const now = new Date();
+            const nextFriday = new Date();
+
+            nextFriday.setUTCDate(now.getUTCDate() + ((5 - now.getUTCDay() + 7) % 7));
+            nextFriday.setUTCHours(18, 0, 0, 0); // 8 PM UTC
+
+            // If today is Friday and past 8 PM UTC, set to next week
+            if (now.getUTCDay() === 5 && now.getUTCHours() >= 20) {
+                nextFriday.setUTCDate(nextFriday.getUTCDate() + 7);
+            }
+
+            return nextFriday;
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const nextResetTime = getNextResetTime();
+            const timeDiff = nextResetTime - now;
+
+            const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+            document.getElementById('time').innerHTML = `New items in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+            setTimeout(updateCountdown, 1000);
+        }
+
+        updateCountdown();
+    });
+</script>
 {% endblock %}
