@@ -21,23 +21,13 @@ def get_item_database():
         print(f"Other error occurred: {err}")
         return None
     
-def search_item(query, item_type=[], tier=[], attack_speed=[], level_range=[], professions=[], identifications=[], major_ids=[]):
-    url = f"{BASE_URL}item/search"
-    payload = {
-        "query": query,
-        "type": item_type,
-        "tier": tier,
-        "attackSpeed": attack_speed,
-        "levelRange": level_range,
-        "professions": professions,
-        "identifications": identifications,
-        "majorIds": major_ids
-    }
-    print(payload)
+
+def search_item(payload, page=1):
+    url = f"{BASE_URL}item/search?page={page}"
     try:
         response = requests.post(url, json=payload)
         response.raise_for_status()
-        return response.json()["results"]
+        return response.json()
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred: {http_err}")
         return None

@@ -78,6 +78,11 @@ a:hover {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     z-index: 0;
 }
+#items-container>div>.item-stats-tooltip {
+    display: block;
+    position: relative;
+    margin: .5em;
+}
 .item-header h5 {
     font-size: 1.1em;
     text-align: center;
@@ -98,22 +103,17 @@ a:hover {
     background-color: var(--sidebar-color);
     overflow: hidden;
 }
-
 #filter-sidebar.collapsed {
     width: 0;
     opacity: 0;
 }
-
 #items-container {
     margin-right: 310px;
     transition: margin-right 0.3s;
 }
-
 #items-container.expanded {
     margin-right: 0;
 }
-
-/* Collapse button styling */
 #collapse-button {
     display: inline-block;
     position: fixed;
@@ -124,12 +124,10 @@ a:hover {
     padding: 5px 10px;
     width: auto;
 }
-
 #filter-sidebar.collapsed + #collapse-button {
     right: 10px;
 }
-
-@media (max-width: 991.98px) {
+@media (max-width: 992px) {
     #filter-sidebar {
         width: 100%;
         height: auto;
@@ -152,7 +150,6 @@ a:hover {
         top: 60px; 
     }
 }
-
 @media (min-width: 576px) {
     #filter-sidebar {
         width: 300px;
@@ -165,8 +162,7 @@ a:hover {
         right: 310px;
     }
 }
-
-@media (max-width: 575.98px) {
+@media (max-width: 576) {
     #filter-sidebar {
         width: 100%;
         height: auto;
@@ -178,6 +174,11 @@ a:hover {
         right: 10px;
         top: 60px; 
     }
+}
+.item-card {
+    display: flex;
+    flex-direction: column;
+    height: auto; /* Ensure auto height */
 }
 
 
@@ -234,6 +235,39 @@ li .Rare:hover {
 li .unique:hover,
 li .Unique:hover {
     color: rgb(255, 255, 0);
+    text-decoration: underline;
+    cursor: pointer;
+}
+.common,
+.Common {
+    color: rgb(255, 255, 255);
+    --tooltip-border-color: rgb(255, 255, 255);
+}
+li .common:hover,
+li .Common:hover {
+    color: rgb(255, 255, 255);
+    text-decoration: underline;
+    cursor: pointer;
+}
+.common,
+.Common {
+    color: rgb(255, 255, 255);
+    --tooltip-border-color: rgb(255, 255, 255);
+}
+li .common:hover,
+li .Common:hover {
+    color: rgb(255, 255, 255);
+    text-decoration: underline;
+    cursor: pointer;
+}
+.set,
+.Set {
+    color: rgb(90, 255, 90);
+    --tooltip-border-color: rgb(90, 255, 90);
+}
+li .set:hover,
+li .Set:hover {
+    color: rgb(90, 255, 90);
     text-decoration: underline;
     cursor: pointer;
 }
