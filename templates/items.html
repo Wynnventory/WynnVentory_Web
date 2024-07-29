@@ -2,76 +2,57 @@
 {% block title %}Items{% endblock %}
 {% block content %}
 
-<div class="container">
-    <h1>Wynncraft Items</h1>
-    <ul class="list-group">
-        {% for item_name, item_details in items.items() %}
-            <li class="list-group-item">
-                <h2>{{ item_name }}</h2>
-                <p><strong>Material:</strong> {{ item_details.material }}</p>
-                <p><strong>Tier:</strong> {{ item_details.tier }}</p>
-                <p><strong>Identified:</strong> {{ item_details.identified }}</p>
-                <p><strong>Drop Restriction:</strong> {{ item_details.dropRestriction }}</p>
-                <p><strong>Restrictions:</strong> {{ item_details.restrictions }}</p>
-                <p><strong>Accessory Type:</strong> {{ item_details.accessoryType }}</p>
-                <p><strong>Internal Name:</strong> {{ item_details.internalName }}</p>
-                <p><strong>Requirements:</strong>
-                    <ul>
-                        {% for req, value in item_details.requirements.items() %}
-                            <li>{{ req }}: {{ value }}</li>
-                        {% endfor %}
-                    </ul>
-                </p>
-                {% if item_details.identifications is defined and item_details.identifications %}
-                <p><strong>Identifications:</strong>
-                    <ul>
-                        {% for id, details in item_details.identifications.items() %}
-                            <li>
-                                {{ id }}:
-                                {% if details is mapping %}
-                                    <ul>
-                                        {% for key, value in details.items() %}
-                                            <li>{{ key }}: {{ value }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                {% else %}
-                                    {{ details }}
-                                {% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </p>
-                {% endif %}
-                {% if item_details.type %}
-                    <p><strong>Type:</strong> {{ item_details.type }}</p>
-                {% endif %}
-                {% if item_details.lore %}
-                    <p><strong>Lore:</strong> {{ item_details.lore }}</p>
-                {% endif %}
-                {% if item_details.attackSpeed %}
-                    <p><strong>Attack Speed:</strong> {{ item_details.attackSpeed }}</p>
-                {% endif %}
-                {% if item_details.dropMeta %}
-                    <p><strong>Drop Meta:</strong>
-                        <ul>
-                            {% for meta, value in item_details.dropMeta.items() %}
-                                <li>{{ meta }}: {{ value }}</li>
-                            {% endfor %}
-                        </ul>
-                    </p>
-                {% endif %}
-                {% if item_details.base %}
-                    <p><strong>Base:</strong>
-                        <ul>
-                            {% for base_key, base_value in item_details.base.items() %}
-                                <li>{{ base_key }}: {{ base_value }}</li>
-                            {% endfor %}
-                        </ul>
-                    </p>
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
-    <a href="/" class="btn btn-primary mt-3">Back to Home</a>
+<div class="container-fluid h-100">
+    <div class="row h-100">
+        <div id="items-container" class="col-12 col-lg-9 order-2 order-lg-1">
+            <h1>Wynncraft Items</h1>
+            <!-- Rendered items will be placed here -->
+        </div>
+        <!-- Filter navbar -->
+        <div id="filter-sidebar"
+            class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 sidebar d-flex sticky-top order-1 order-lg-2">
+            <div class="d-flex flex-sm-column flex-row flex-grow-1 align-items-center align-items-sm-start px-3 pt-4">
+                <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start"
+                    id="menu">
+                    <li class="nav-item w-100">
+                        <label for="search-query" class="form-label">Search Query</label>
+                        <input type="text" id="search-query" class="form-control" placeholder="Enter item name">
+                    </li>
+                    <li class="nav-item w-100">
+                        <label for="item-type" class="form-label">Item Type</label>
+                        <select id="item-type" class="form-control">
+                            <option value="">All</option>
+                            <option value="weapon">Weapon</option>
+                            <option value="armor">Armor</option>
+                            <option value="accessory">Accessory</option>
+                        </select>
+                    </li>
+                    <li class="nav-item w-100 mt-3">
+                        <button id="search-button" class="btn btn-primary w-100">Search</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <button id="collapse-button" class="btn btn-outline-secondary"><i class="bi bi-chevron-right"></i></button>
+    </div>
 </div>
+
+<script>
+    document.getElementById('search-button').addEventListener('click', function () {
+        // Implement your search functionality here
+    });
+
+    document.getElementById('collapse-button').addEventListener('click', function () {
+        const sidebar = document.getElementById('filter-sidebar');
+        sidebar.classList.toggle('collapsed');
+
+        if (sidebar.classList.contains('collapsed')) {
+            this.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        } else {
+            this.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        }
+    });
+
+</script>
+
 {% endblock %}
