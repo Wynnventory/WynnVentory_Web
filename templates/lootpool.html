@@ -16,22 +16,22 @@
             {% for rarity, items in details.items() %}
             {% if rarity == 'Shiny' %}
             <h3 class="h6"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />{{ rarity }}</h3>
-            <div onclick="displayItem(event, '{{items.Item | urlencode }}')">
+            <div>
                 {% if items.Item in loot_items.Icon %}
-                <img src="{{ loot_items.Icon[items.Item] }}" alt="{{ items.Item }}" class="img-fluid">
+                <img src="{{ loot_items.Icon[items.Item] }}" alt="{{ items.Item }}" class="img-fluid shiny" onclick="displayItem(event, '{{items.Item | urlencode }}')">
                 {% endif %}
-                {{ items.Item }}
+                <span class="{{rarity}}" onclick="displayItem(event, '{{items.Item | urlencode }}')">{{ items.Item }}</span>
                 <p><strong>Tracker:</strong> {{ items.Tracker }}</p>
             </div>
             {% else %}
             <h3 class="h6">{{ rarity }}</h3>
             <ul class="list-unstyled">
                 {% for item in items %}
-                <li class="lootpool-card-item" onclick="displayItem(event, '{{ item | urlencode }}')">
+                <li class="lootpool-card-item">
                     {% if item in loot_items.Icon %}
-                    <img src="{{ loot_items.Icon[item] }}" alt="{{ item }}" class="img-fluid">
+                    <img src="{{ loot_items.Icon[item] }}" alt="{{ item }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item | urlencode }}')">
                     {% endif %}
-                    <span class="{{rarity}}">{{ item }}</span>
+                    <span class="{{rarity}}" onclick="displayItem(event, '{{ item | urlencode }}')">{{ item }}</span>
                 </li>
                 {% endfor %}
             </ul>
@@ -122,9 +122,11 @@
         } else {
             requirementsHTML = `<div>Combat Lv. Min: ${requirements.Level}<br>`;
             for (const [key, value] of Object.entries(requirements)) {
-                if (key !== 'Level') {
+                if (key === 'class_req') {
+                    requirementsHTML += `Class Req: ${value}<br>`;
+                } else if (key !== 'Level') {
                     requirementsHTML += `${key} Min: ${value}<br>`;
-                }
+                } 
             }
             requirementsHTML += '</div>';
         }

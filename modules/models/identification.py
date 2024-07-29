@@ -87,9 +87,18 @@ class Identification:
             "waterSpellDamage": "Water Spell Damage",
             "thunderSpellDamage": "Thunder Spell Damage",
             "lootBonus": "Loot Bonus",
+            "slowEnemy": "Slow Enemy",
+            "sprintRegen": "Sprint Regen",
+            "exploding": "Exploding",
+            "reflection": "Reflection",
+            "thorns": "Thorns",
+            "poison": "Poison",
+            "stealing": "Stealing",
+            "sprint": "Sprint",
         }
         readable_name = mapping.get(name, name)
-        return ' '.join(word.capitalize() for word in readable_name.split())
+        # return ' '.join(word.capitalize() for word in readable_name.split())
+        return readable_name
 
     def format_value(self, value):
         suffixes = {

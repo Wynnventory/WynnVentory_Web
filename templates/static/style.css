@@ -86,9 +86,6 @@ a:hover {
 .item-infobox {
     padding-top: 1rem;
 }
-.lootpool-card-item {
-    cursor: pointer;
-}
 
 /* Wynncraft Style */
 .mythic,
@@ -100,6 +97,7 @@ li .mythic:hover,
 li .Mythic:hover {
     color: rgb(255, 0, 255);
     text-decoration: underline;
+    cursor: pointer;
 }
 .fabled,
 .Fabled {
@@ -110,6 +108,7 @@ li .fabled:hover,
 li .Fabled:hover {
     color: rgb(255, 0, 0);
     text-decoration: underline;
+    cursor: pointer;
 }
 .legendary,
 .Legendary {
@@ -120,6 +119,7 @@ li .legendary:hover,
 li .Legendary:hover {
     color: rgb(0, 255, 255);
     text-decoration: underline;
+    cursor: pointer;
 }
 .rare,
 .Rare {
@@ -130,6 +130,7 @@ li .rare:hover,
 li .Rare:hover {
     color: rgb(255, 0, 255);
     text-decoration: underline;
+    cursor: pointer;
 }
 .unique,
 .Unique {
@@ -140,6 +141,12 @@ li .unique:hover,
 li .Unique:hover {
     color: rgb(255, 255, 0);
     text-decoration: underline;
+    cursor: pointer;
+}
+.shiny:hover,
+.Shiny:hover {
+    text-decoration: underline;
+    cursor: pointer;
 }
 .neutral::before {
     content: '✤' ' ';
