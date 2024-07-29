@@ -4,6 +4,7 @@
     --footer-bg: #212529;
     --sidebar-color: #212529;
     --text-color: #e0e0e0;
+    --tooltip-border-color: #000000;
 }
 
 [data-bs-theme="light"] {
@@ -70,10 +71,10 @@ a:hover {
     display: none;
     position: absolute;
     background-color: rgba(21, 10, 24, 0.95);
-    border: 2px solid rgb(164, 57, 192);
+    border: 2px solid var(--tooltip-border-color);
     border-radius: 5px;
     padding: 10px;
-    width: 350px;
+    width: 375px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     z-index: 0;
 }
@@ -93,6 +94,7 @@ a:hover {
 .mythic,
 .Mythic {
     color: rgb(162, 0, 162);
+    --tooltip-border-color: rgb(162, 0, 162);
 }
 li .mythic:hover,
 li .Mythic:hover {
@@ -102,6 +104,7 @@ li .Mythic:hover {
 .fabled,
 .Fabled {
     color: rgb(246, 62, 62);
+    --tooltip-border-color: rgb(246, 62, 62);
 }
 li .fabled:hover,
 li .Fabled:hover {
@@ -111,6 +114,7 @@ li .Fabled:hover {
 .legendary,
 .Legendary {
     color: rgb(80, 253, 255);
+    --tooltip-border-color: rgb(80, 253, 255);
 }
 li .legendary:hover,
 li .Legendary:hover {
@@ -120,6 +124,7 @@ li .Legendary:hover {
 .rare,
 .Rare {
     color: rgb(255, 80, 232);
+    --tooltip-border-color: rgb(255, 80, 232);
 }
 li .rare:hover,
 li .Rare:hover {
@@ -129,23 +134,62 @@ li .Rare:hover {
 .unique,
 .Unique {
     color: rgb(252, 252, 84);
+    --tooltip-border-color: rgb(252, 252, 84);
 }
 li .unique:hover,
 li .Unique:hover {
     color: rgb(255, 255, 0);
     text-decoration: underline;
 }
-.item-text {
-    color: #B8B9B8 !important;
+.air::before {
+    content: '❋' ' ';
+    color: rgb(255, 255, 255);
 }
-.item-infobox>.item-text::before {
-    color: #B8B9B8 !important;
+.air span:first-child {
+    color: rgb(255, 255, 255); 
+}
+.thunder::before {
+    content: '✦' ' ';
+    color: rgb(252, 252, 84);
+}
+.thunder span:first-child {
+    color: rgb(252, 252, 84);
+}
+.fire::before {
+    content: '✹' ' ';
+    color: rgb(254, 84, 84);
+}
+.fire span:first-child {
+    color: rgb(254, 84, 84);
+}
+.water::before {
+    content: '❉' ' ';
+    color: rgb(89, 255, 255);
+}
+.water span:first-child {
+    color: rgb(89, 255, 255);
+}
+.earth::before {
+    content: '✤' ' ';
+    color: rgb(0, 175, 0);
+}
+.earth span:first-child {
+    color: rgb(0, 175, 0);
+}
+.item-text {
+    color: #B8B9B8;
 }
 .item-text-dark {
     color: #4D4A4D;
+    padding-left: 25px;
 }
 .item-health,
 .item-health::before {
+    color: #A80000 !important;
+    content: '\2764' ' '!important;
+}
+.item-health>span,
+.item-health>span::before {
     color: #A80000 !important;
 }
 .positive::before {
@@ -155,8 +199,16 @@ li .Unique:hover {
 .positive {
     color: #56FE56;
 }
+.defence > .positive,
+.defence > .positive::before {
+    color: #B8B9B8 ;
+}
 .negative {
     color: #F85252;
+}
+.defence > .negative,
+.defence > .negative::before {
+    color: #B8B9B8;
 }
 .positive-to {
     color: #00A800;

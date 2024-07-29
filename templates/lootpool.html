@@ -106,6 +106,8 @@
     function showTooltip(event, itemStats) {
         const tooltip = document.getElementById('item-stats-tooltip');
         const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req } = itemStats;
+        tooltip.classList.remove('Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
+        tooltip.classList.add(rarity);
 
         // Requirements
         let requirementsHTML = '';
@@ -163,22 +165,22 @@
                 <h5 class="${rarity}">${itemStats.name}</h5>
                 ${item_type === 'weapon' ? `<span class="attack-speed item-text">${attack_speed} Attack Speed</span>` : ''}
             </div>
-            <div class="item-infobox item-text">
+            <div class="item-infobox defence item-text">
                 ${item_type === 'weapon' ? `
                     ${base.damage ? `Neutral Damage: ${base.damage.min}-${base.damage.max}<br>` : ''}
-                    ${base.air_damage ? `Air Damage: ${base.air_damage.min}-${base.air_damage.max}<br>` : ''}
-                    ${base.earth_damage ? `Earth Damage: ${base.earth_damage.min}-${base.earth_damage.max}<br>` : ''}
-                    ${base.fire_damage ? `Fire Damage: ${base.fire_damage.min}-${base.fire_damage.max}<br>` : ''}
-                    ${base.thunder_damage ? `Thunder Damage: ${base.thunder_damage.min}-${base.thunder_damage.max}<br>` : ''}
-                    ${base.water_damage ? `Water Damage: ${base.water_damage.min}-${base.water_damage.max}<br>` : ''}
-                    <span class="item-text-dark">Average DPS: ${base.average_dps}</span>
+                    ${base.air_damage ? `<span class="item-text air"><span>Air</span> Damage: </span><span class="${base.air_damage >= 0 ? 'positive' : 'negative'}">${base.air_damage.min}-${base.air_damage.max}</span><br>` : ''}
+                    ${base.earth_damage ? `<span class="item-text earth"><span>Earth</span> Damage: </span><span class="${base.earth_damage >= 0 ? 'positive' : 'negative'}">${base.earth_damage.min}-${base.earth_damage.max}</span><br>` : ''}
+                    ${base.fire_damage ? `<span class="item-text fire"><span>Fire</span> Damage: </span><span class="${base.fire_damage >= 0 ? 'positive' : 'negative'}">${base.fire_damage.min}-${base.fire_damage.max}</span><br>` : ''}
+                    ${base.thunder_damage ? `<span class="item-text thunder"><span>Thunder</span> Damage: </span><span class="${base.thunder_damage >= 0 ? 'positive' : 'negative'}">${base.thunder_damage.min}-${base.thunder_damage.max}</span><br>` : ''}
+                    ${base.water_damage ? `<span class="item-text water"><span>Water</span> Damage: </span><span class="${base.water_damage >= 0 ? 'positive' : 'negative'}">${base.water_damage.min}-${base.water_damage.max}</span><br>` : ''}
+                    <span class="item-text-dark">Average DPS: <span class="item-text">${base.average_dps}</span></span>
                 ` : `
-                    ${base.health ? `<span class="item-health ${base.health >= 0 ? 'positive' : 'negative'}">${base.health} Health</span><br>` : ''}
-                    ${base.fire_defence ? `<span class="item-text">Fire Defence: </span><span class="item-text ${base.fire_defence >= 0 ? 'positive' : 'negative'}">${base.fire_defence}</span><br>` : ''}
-                    ${base.water_defence ? `<span class="item-text">Water Defence: </span><span class="item-text ${base.water_defence >= 0 ? 'positive' : 'negative'}">${base.water_defence}</span><br>` : ''}
-                    ${base.air_defence ? `<span class="item-text">Air Defence: </span><span class="item-text ${base.air_defence >= 0 ? 'positive' : 'negative'}">${base.air_defence}</span><br>` : ''}
-                    ${base.thunder_defence ? `<span class="item-text">Thunder Defence: </span><span class="item-text ${base.thunder_defence >= 0 ? 'positive' : 'negative'}">${base.thunder_defence}</span><br>` : ''}
-                    ${base.earth_defence ? `<span class="item-text">Earth Defence: </span><span class="item-text ${base.earth_defence >= 0 ? 'positive' : 'negative'}">${base.earth_defence}</span><br>` : ''}
+                    ${base.health ? `<span class="item-health">Health: <span class="${base.health >= 0 ? 'positive' : 'negative'}">${base.health} </span></span><br>` : ''}
+                    ${base.fire_defence ? `<span class="item-text fire"><span>Fire</span> Defence: </span><span class="item-text ${base.fire_defence >= 0 ? 'positive' : 'negative'}">${base.fire_defence}</span><br>` : ''}
+                    ${base.water_defence ? `<span class="item-text water"><span>Water</span> Defence: </span><span class="item-text ${base.water_defence >= 0 ? 'positive' : 'negative'}">${base.water_defence}</span><br>` : ''}
+                    ${base.air_defence ? `<span class="item-text air"><span>Air</span> Defence: </span><span class="item-text ${base.air_defence >= 0 ? 'positive' : 'negative'}">${base.air_defence}</span><br>` : ''}
+                    ${base.thunder_defence ? `<span class="item-text thunder"><span>Thunder</span> Defence: </span><span class="item-text ${base.thunder_defence >= 0 ? 'positive' : 'negative'}">${base.thunder_defence}</span><br>` : ''}
+                    ${base.earth_defence ? `<span class="item-text earth"><span>Earth</span> Defence: </span><span class="item-text ${base.earth_defence >= 0 ? 'positive' : 'negative'}">${base.earth_defence}</span><br>` : ''}
                 `}
             </div>
             <div class="item-infobox item-text">

@@ -86,6 +86,7 @@ class Identification:
             "earthSpellDamage": "Earth Spell Damage",
             "waterSpellDamage": "Water Spell Damage",
             "thunderSpellDamage": "Thunder Spell Damage",
+            "lootBonus": "Loot Bonus",
         }
         readable_name = mapping.get(name, name)
         return ' '.join(word.capitalize() for word in readable_name.split())
@@ -106,7 +107,7 @@ class Identification:
             "raw4thSpellCost": "",
             "rawSpellDamage": "",
             "lifeSteal": "/3s",
-            "rawAttackSpeed": " Tier",
+            "rawAttackSpeed": " tier",
             "rawMainAttackDamage": "",
             "rawThunderSpellDamage": "",
             "rawWaterSpellDamage": "",
