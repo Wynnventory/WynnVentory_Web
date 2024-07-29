@@ -167,7 +167,7 @@
             </div>
             <div class="item-infobox defence item-text">
                 ${item_type === 'weapon' ? `
-                    ${base.damage ? `Neutral Damage: ${base.damage.min}-${base.damage.max}<br>` : ''}
+                    ${base.damage ? `<span class="item-text neutral"><span>Neutral</span> Damage: </span><span class="${base.damage >= 0 ? 'positive' : 'negative'}">${base.damage.min}-${base.damage.max}</span><br>` : ''}
                     ${base.air_damage ? `<span class="item-text air"><span>Air</span> Damage: </span><span class="${base.air_damage >= 0 ? 'positive' : 'negative'}">${base.air_damage.min}-${base.air_damage.max}</span><br>` : ''}
                     ${base.earth_damage ? `<span class="item-text earth"><span>Earth</span> Damage: </span><span class="${base.earth_damage >= 0 ? 'positive' : 'negative'}">${base.earth_damage.min}-${base.earth_damage.max}</span><br>` : ''}
                     ${base.fire_damage ? `<span class="item-text fire"><span>Fire</span> Damage: </span><span class="${base.fire_damage >= 0 ? 'positive' : 'negative'}">${base.fire_damage.min}-${base.fire_damage.max}</span><br>` : ''}

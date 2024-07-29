@@ -141,6 +141,13 @@ li .Unique:hover {
     color: rgb(255, 255, 0);
     text-decoration: underline;
 }
+.neutral::before {
+    content: '✤' ' ';
+    color: rgb(230, 153, 0);
+}
+.neutral span:first-child {
+    color: rgb(230, 153, 0); 
+}
 .air::before {
     content: '❋' ' ';
     color: rgb(255, 255, 255);
