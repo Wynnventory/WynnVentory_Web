@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify
+from flask import request
 
 from modules import wynn_api
-from modules.models import Weapon, Armor, Accessory
+from modules.models import Weapon, Armor, Accessory, Item
 from modules.models.item_types import WeaponType, ArmorType, AccessoryType
 
 
@@ -12,6 +13,47 @@ def get_item_stats(item_name):
     item_data = wynn_api.quick_search_item(item_name)
     processed_data = process_item_data(item_data.get(item_name))
     return jsonify(processed_data)
+
+@api_bp.route("/api/items", methods=['POST'])
+def get_items():
+    payload = request.json
+    query = payload.get('query', '')
+    item_type = payload.get('type', [])
+    tier = payload.get('tier', [])
+    attack_speed = payload.get('attackSpeed', [])
+    level_range = payload.get('levelRange', [0, 110])
+    professions = payload.get('professions', [])
+    identifications = payload.get('identifications', [])
+    major_ids = payload.get('majorIds', [])
+    page = payload.get('page', 1)
+
+    payload = {
+        "query": query if query else None,
+        "type": item_type if item_type else None,
+        "tier": tier if tier else None,
+        "attackSpeed": attack_speed if attack_speed else None,
+        "levelRange": level_range if level_range != [0, 110] else None,
+        "professions": professions if professions else None,
+        "identifications": identifications if identifications else None,
+        "majorIds": major_ids if major_ids else None
+    }
+
+    # Remove keys with None values
+    payload = {k: v for k, v in payload.items() if v is not None}
+
+    items_response = wynn_api.search_item(payload, page)
+
+    if items_response is None:
+        return jsonify([])
+
+    items_data = items_response.get("results", {})
+    processed_items = [process_item_data(item_data) for item_data in items_data.values()]
+
+    return jsonify({
+        "items": processed_items,
+        "next_page": items_response["controller"]["links"]["next"]
+    })
+
 
 def process_item_data(item_data):
     item_subtype = item_data.get('type', item_data.get('accessoryType', 'Unknown Subtype'))
