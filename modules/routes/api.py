@@ -103,6 +103,7 @@ def format_item_for_db(item):
         "shiny_stat": item_data.get('shinyStat'),
         "perfect": item_data.get('perfect'),
         "defective": item_data.get('defective'),
+        "amount": item_data.get('amount'),
         "overall_percentage": item_data.get('overallPercentage'),
         "listing_price": item.get('listingPrice'),
         "timestamp": datetime.utcnow(),

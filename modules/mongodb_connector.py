@@ -31,6 +31,7 @@ def save_trade_market_item(item):
         "shiny_stat": item.get("shiny_stat"),
         "perfect": item.get("perfect"),
         "defective": item.get("defective"),
+        "amount": item.get("amount"),
         "overall_percentage": item.get("overall_percentage"),
         "listing_price": item.get("listing_price"),
         "actual_stats_with_percentage": item.get("actual_stats_with_percentage")
