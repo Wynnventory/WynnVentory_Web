@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify
 from flask import request
+from datetime import datetime
 
 from modules import wynn_api
 from modules.models import Weapon, Armor, Accessory, Item
@@ -57,14 +58,22 @@ def get_items():
 
 @api_bp.route("/api/trademarket/items", methods=['POST'])
 def save_trade_market_items():
-    payload = request.json
-    items = payload.get('items', '')
-    if not items:
-        return {"message": "No items provided"}, 400
-    else:
-        print(items)
-        mongodb_connector.save_trade_market_items(items)
-    return {"message": "Items saved successfully"}, 200
+    try: 
+        data = request.get_json()
+        if not data:
+            return {"message": "No items provided"}, 400
+        
+        items = data if isinstance(data, list) else [data]
+        
+        # saved_items = []
+        for item in items:
+            formatted_item = format_item_for_db(item)
+            mongodb_connector.save_trade_market_item(formatted_item)
+            # saved_items.append(formatted_item)
+
+        return jsonify({"message": "Items saved successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Helper function to process item data
 def process_item_data(item_data):
@@ -79,3 +88,30 @@ def process_item_data(item_data):
     else:
         raise ValueError(f"Unsupported item subtype: {item_subtype}")
     return item.to_dict()
+
+# Format trade market item data for database insertion
+def format_item_for_db(item):
+    item_data = item.get('item', {})
+    formatted_item = {
+        "name": item_data.get('name'),
+        "level": item_data.get('level'),
+        "powder_slots": item_data.get('powderSlots'),
+        "rerolls": item_data.get('rerollCount'),
+        "required_class": item_data.get('requiredClass'),
+        "unidentified": item_data.get('unidentified'),
+        "shiny_stat": item_data.get('shinyStat'),
+        "perfect": item_data.get('perfect'),
+        "defective": item_data.get('defective'),
+        "overall_percentage": item_data.get('overallPercentage'),
+        "listing_price": item.get('listingPrice'),
+        "timestamp": datetime.utcnow(),
+        "actual_stats_with_percentage": [
+            {
+                "value": stat.get('value'),
+                "actual_roll_percentage": stat.get('actualRollPercentage'),
+                "stat_name": stat.get('statName'),
+                "range": stat.get('range', {})
+            } for stat in item_data.get('actualStatsWithPercentage', [])
+        ]
+    }
+    return formatted_item
