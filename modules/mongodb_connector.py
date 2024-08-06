@@ -1,11 +1,12 @@
 from datetime import datetime
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+import ssl
 
 uri = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 
 # Create a new client and connect to the server with SSL settings
-client = MongoClient(uri, server_api=ServerApi('1'), ssl=True, ssl_cert_reqs=False)
+client = MongoClient(uri, server_api=ServerApi('1'), ssl=True, ssl_cert_reqs=ssl.CERT_NONE)
 db = client["wynnventory"]
 
 # Send a ping to confirm a successful connection
