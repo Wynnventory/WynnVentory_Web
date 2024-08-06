@@ -23,6 +23,7 @@ def save_trade_market_item(item):
     item_check = {
         "name": item.get("name"),
         "level": item.get("level"),
+        "rarity": item.get("rarity"),
         "powder_slots": item.get("powder_slots"),
         "rerolls": item.get("rerolls"),
         "required_class": item.get("required_class"),

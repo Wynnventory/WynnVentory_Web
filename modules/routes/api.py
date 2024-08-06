@@ -95,6 +95,7 @@ def format_item_for_db(item):
     formatted_item = {
         "name": item_data.get('name'),
         "level": item_data.get('level'),
+        "rarity": item_data.get('rarity'),
         "powder_slots": item_data.get('powderSlots'),
         "rerolls": item_data.get('rerollCount'),
         "required_class": item_data.get('requiredClass'),
