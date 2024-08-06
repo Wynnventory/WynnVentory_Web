@@ -4,6 +4,7 @@ from flask import request
 from modules import wynn_api
 from modules.models import Weapon, Armor, Accessory, Item
 from modules.models.item_types import WeaponType, ArmorType, AccessoryType
+from modules import mongodb_connector
 
 
 api_bp = Blueprint('api', __name__)
@@ -54,7 +55,18 @@ def get_items():
         "next_page": items_response["controller"]["links"]["next"]
     })
 
+@api_bp.route("/api/trademarket/items", methods=['POST'])
+def save_trade_market_items():
+    payload = request.json
+    items = payload.get('items', '')
+    if not items:
+        return {"message": "No items provided"}, 400
+    else:
+        print(items)
+        mongodb_connector.save_trade_market_items(items)
+    return {"message": "Items saved successfully"}, 200
 
+# Helper function to process item data
 def process_item_data(item_data):
     item_subtype = item_data.get('type', item_data.get('accessoryType', 'Unknown Subtype'))
 
@@ -66,5 +78,4 @@ def process_item_data(item_data):
         item = Accessory.from_dict(item_data)
     else:
         raise ValueError(f"Unsupported item subtype: {item_subtype}")
-
     return item.to_dict()
