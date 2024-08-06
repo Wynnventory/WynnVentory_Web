@@ -60,6 +60,7 @@ def get_items():
 def save_trade_market_items():
     try: 
         data = request.get_json()
+        print(data)
         if not data:
             return {"message": "No items provided"}, 400
         
