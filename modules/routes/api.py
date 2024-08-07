@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify
 from flask import request
 import threading
-import queue
+from queue import Queue
+import atexit
 
 from modules import wynn_api
 from modules.models import Weapon, Armor, Accessory, Item
@@ -10,7 +11,7 @@ from modules import mongodb_connector
 
 
 api_bp = Blueprint('api', __name__)
-request_queue = queue.Queue()
+request_queue = Queue()
 
 
 @api_bp.route("/api/item/<item_name>", methods=['GET'])
@@ -123,7 +124,7 @@ def process_queue():
         item = request_queue.get()
         if item is None:
             break
-        
+        print(f"Processing item: {item.get('name')}")
         mongodb_connector.save_trade_market_item(item)
         request_queue.task_done()
 
@@ -133,7 +134,8 @@ worker_thread.daemon = True
 worker_thread.start()
 
 # Shutdown the background thread when the app exits
-@api_bp.teardown_app_request
-def shutdown_worker(exception=None):
+def shutdown_worker():
     request_queue.put(None)
     worker_thread.join()
+
+atexit.register(shutdown_worker)
