@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 from flask import request
-from datetime import datetime
+import threading
+import queue
 
 from modules import wynn_api
 from modules.models import Weapon, Armor, Accessory, Item
@@ -9,6 +10,8 @@ from modules import mongodb_connector
 
 
 api_bp = Blueprint('api', __name__)
+request_queue = queue.Queue()
+
 
 @api_bp.route("/api/item/<item_name>", methods=['GET'])
 def get_item_stats(item_name):
@@ -65,13 +68,11 @@ def save_trade_market_items():
         
         items = data if isinstance(data, list) else [data]
         
-        # saved_items = []
         for item in items:
             formatted_item = format_item_for_db(item)
-            mongodb_connector.save_trade_market_item(formatted_item)
-            # saved_items.append(formatted_item)
+            request_queue.put(formatted_item)
 
-        return jsonify({"message": "Items saved successfully"}), 200
+        return jsonify({"message": "Items received successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -106,7 +107,6 @@ def format_item_for_db(item):
         "amount": item.get('amount'),
         "overall_percentage": item_data.get('overallPercentage'),
         "listing_price": item.get('listingPrice'),
-        "timestamp": datetime.utcnow(),
         "actual_stats_with_percentage": [
             {
                 "value": stat.get('value'),
@@ -117,3 +117,23 @@ def format_item_for_db(item):
         ]
     }
     return formatted_item
+
+def process_queue():
+    while True:
+        item = request_queue.get()
+        if item is None:
+            break
+        
+        mongodb_connector.save_trade_market_item(item)
+        request_queue.task_done()
+
+# Start a worker thread to process the queue
+worker_thread = threading.Thread(target=process_queue)
+worker_thread.daemon = True
+worker_thread.start()
+
+# Shutdown the background thread when the app exits
+@api_bp.teardown_app_request
+def shutdown_worker(exception=None):
+    request_queue.put(None)
+    worker_thread.join()
