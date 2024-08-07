@@ -15,3 +15,6 @@ Explore and interact with the API using the detailed documentation provided by P
 ## 🌐 Heroku
 Visit the live site to see WynnVentory in action:
 [wynnventory.com](https://www.wynnventory.com/)
+
+## Wynnventory Mod
+https://github.com/Aruloci/WynnVentory_Mod
