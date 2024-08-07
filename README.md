@@ -1,4 +1,17 @@
-# WynnVentory
+# WynnVentory 🎒
+Welcome to WynnVentory, your ultimate tool for managing and keeping track of your Wynncraft items! Below you'll find the necessary setup steps, links, and API documentation to get you started.
 
-## Heroku
-https://wynn-ventory-bdad0506aba4.herokuapp.com/
+## 🗄️ MongoDB
+To interact with the database, you'll need MongoDB Compass. Follow the steps below:
+
+1. Download [MongoDB Compass](https://www.mongodb.com/products/tools/compass)
+2. Connect to the database using the following URI:
+`mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/`
+
+## 🔗 API Endpoints
+Explore and interact with our API using the detailed documentation provided by Postman:
+[API Endpoints](https://documenter.getpostman.com/view/36821464/2sA3rzKY4o)
+
+## 🌐 Heroku
+Visit the live site to see WynnVentory in action:
+[wynnventory.com](https://www.wynnventory.com/)
