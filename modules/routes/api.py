@@ -77,6 +77,13 @@ def save_trade_market_items():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@api_bp.route("/api/trademarket/item/<item_name>", methods=['GET'])
+def get_market_item_info(item_name):
+    if not item_name:
+        return jsonify({"message": "No item name provided"}), 400
+    result = mongodb_connector.get_trade_market_item(item_name)
+    return jsonify(result), 200
+
 # Helper function to process item data
 def process_item_data(item_data):
     item_subtype = item_data.get('type', item_data.get('accessoryType', 'Unknown Subtype'))
