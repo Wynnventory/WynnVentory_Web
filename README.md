@@ -9,7 +9,7 @@ To interact with the database, you'll need MongoDB Compass. Follow the steps bel
 `mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/`
 
 ## 🔗 API Endpoints
-Explore and interact with our API using the detailed documentation provided by Postman:
+Explore and interact with the API using the detailed documentation provided by Postman:
 [API Endpoints](https://documenter.getpostman.com/view/36821464/2sA3rzKY4o)
 
 ## 🌐 Heroku
