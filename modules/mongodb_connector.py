@@ -52,7 +52,20 @@ def save_trade_market_item(item):
 
 
 def get_trade_market_item(item_name):
-    """ Retrieve items from the trademarket collection
+    """ Retrieve items from the trademarket collection by name
+    """
+    collection = db["trademarket_TEST"]
+
+    result = collection.find(
+        filter={'name': item_name},
+        projection={'_id': 0}
+    )
+
+    return check_results(result, custom_message="No items found with that name")
+
+
+def get_trade_market_item_price(item_name):
+    """ Retrieve price of item from the trademarket collection
     """
     collection = db["trademarket_TEST"]
 
@@ -90,4 +103,14 @@ def get_trade_market_item(item_name):
             }
         }
     ])
-    return list(result)
+
+    return check_results(result)
+
+
+def check_results(result, custom_message="No items found"):
+    """ Check if the result is empty and return a custom message
+    """
+    result = list(result)
+    if result == []:
+        return {"message": custom_message}, 404
+    return result

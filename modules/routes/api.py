@@ -22,6 +22,7 @@ def get_item_stats(item_name):
     processed_data = process_item_data(item_data.get(item_name))
     return jsonify(processed_data)
 
+
 @api_bp.route("/api/items", methods=['POST'])
 def get_items():
     """ Search items on the Wynn API based on the provided query parameters
@@ -57,24 +58,26 @@ def get_items():
         return jsonify([])
 
     items_data = items_response.get("results", {})
-    processed_items = [process_item_data(item_data) for item_data in items_data.values()]
+    processed_items = [process_item_data(item_data)
+                       for item_data in items_data.values()]
 
     return jsonify({
         "items": processed_items,
         "next_page": items_response["controller"]["links"]["next"]
     })
 
+
 @api_bp.route("/api/trademarket/items", methods=['POST'])
 def save_trade_market_items():
     """ Save items to the trademarket collection
     """
-    try: 
+    try:
         data = request.get_json()
         if not data:
             return {"message": "No items provided"}, 400
-        
+
         items = data if isinstance(data, list) else [data]
-        
+
         for item in items:
             formatted_item = format_item_for_db(item)
             request_queue.put(formatted_item)
@@ -83,19 +86,32 @@ def save_trade_market_items():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @api_bp.route("/api/trademarket/item/<item_name>", methods=['GET'])
 def get_market_item_info(item_name):
-    """ Retrieve items from the trademarket collection
+    """ Retrieve items from the trademarket collection by name
     """
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
     result = mongodb_connector.get_trade_market_item(item_name)
     return jsonify(result), 200
 
+
+@api_bp.route("/api/trademarket/item/<item_name>/price", methods=['GET'])
+def get_market_item_price_info(item_name):
+    """ Retrieve price information of items from the trademarket collection by name
+    """
+    if not item_name:
+        return jsonify({"message": "No item name provided"}), 400
+    result = mongodb_connector.get_trade_market_item_price(item_name)
+    return jsonify(result), 200
+
+
 def process_item_data(item_data):
     """ Process item data from the Wynn API
     """
-    item_subtype = item_data.get('type', item_data.get('accessoryType', 'Unknown Subtype'))
+    item_subtype = item_data.get('type', item_data.get(
+        'accessoryType', 'Unknown Subtype'))
 
     if item_subtype in [wt.value for wt in WeaponType]:
         item = Weapon.from_dict(item_data)
@@ -107,8 +123,10 @@ def process_item_data(item_data):
         raise ValueError(f"Unsupported item subtype: {item_subtype}")
     return item.to_dict()
 
-# Format trade market item data for database insertion
+
 def format_item_for_db(item):
+    """ Format item data for database insertion
+    """
     item_data = item.get('item', {})
     formatted_item = {
         "name": item_data.get('name'),
@@ -135,7 +153,10 @@ def format_item_for_db(item):
     }
     return formatted_item
 
+
 def process_queue():
+    """ Process the queue of items to save to the database
+    """
     while True:
         item = request_queue.get()
         if item is None:
@@ -144,14 +165,17 @@ def process_queue():
         mongodb_connector.save_trade_market_item(item)
         request_queue.task_done()
 
+
+def shutdown_worker():
+    """ Shutdown the worker thread
+    """
+    request_queue.put(None)
+    worker_thread.join()
+
+
 # Start a worker thread to process the queue
 worker_thread = threading.Thread(target=process_queue)
 worker_thread.daemon = True
 worker_thread.start()
-
-# Shutdown the background thread when the app exits
-def shutdown_worker():
-    request_queue.put(None)
-    worker_thread.join()
 
 atexit.register(shutdown_worker)
