@@ -41,8 +41,9 @@ def save_trade_market_item(item):
     }
 
     # Check for duplicate items
+    print(f"Attempting to save item: {item_check}")
     duplicate_item = collection.find_one(item_check)
-
+    print(f"Duplicate item found: {duplicate_item}")
     if duplicate_item:
         return {"message": "Duplicate item found, skipping insertion"}, 200
 
