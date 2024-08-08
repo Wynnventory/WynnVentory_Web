@@ -77,7 +77,6 @@ def save_trade_market_items():
         
         for item in items:
             formatted_item = format_item_for_db(item)
-            print(f"Adding item to queue: {formatted_item.get('name')}")
             request_queue.put(formatted_item)
 
         return jsonify({"message": "Items received successfully"}), 200
