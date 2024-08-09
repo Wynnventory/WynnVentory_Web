@@ -1,6 +1,7 @@
 from datetime import datetime
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
+from flask import jsonify
 
 uri = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 
@@ -112,5 +113,5 @@ def check_results(result, custom_message="No items found"):
     """
     result = list(result)
     if result == []:
-        return {"message": custom_message}, 404
-    return result
+        return jsonify({"message": custom_message}), 204
+    return jsonify(result), 200

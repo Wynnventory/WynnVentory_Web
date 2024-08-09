@@ -94,7 +94,7 @@ def get_market_item_info(item_name):
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
     result = mongodb_connector.get_trade_market_item(item_name)
-    return jsonify(result), 200
+    return result
 
 
 @api_bp.route("/api/trademarket/item/<item_name>/price", methods=['GET'])
@@ -104,7 +104,7 @@ def get_market_item_price_info(item_name):
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
     result = mongodb_connector.get_trade_market_item_price(item_name)
-    return jsonify(result), 200
+    return result
 
 
 def process_item_data(item_data):
