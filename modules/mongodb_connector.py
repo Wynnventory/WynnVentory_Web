@@ -70,41 +70,67 @@ def get_trade_market_item_price(item_name):
     """
     collection = db["trademarket_TEST"]
 
-    result = collection.aggregate([
-        {
-            "$match": {
-                "name": item_name
-            }
-        },
-        {
-            "$group": {
-                "_id": "$name",
-                "lowest_price": {"$min": "$listing_price"},
-                "highest_price": {"$max": "$listing_price"},
-                "average_price": {"$avg": "$listing_price"},
-                "unidentified_average_price": {
-                    "$avg": {
-                        "$cond": [
-                            {"$eq": ["$unidentified", True]},
-                            "$listing_price",
-                            None
-                        ]
-                    }
+    result = collection.aggregate(
+        [
+            {
+                "$facet": {
+                    "identified_prices": [
+                        {
+                            "$match": {
+                                "name": item_name,
+                                "unidentified": False,
+                                "shiny_stat": {"$eq": None}
+                            }
+                        },
+                        {
+                            "$group": {
+                                "_id": None,
+                                "minPrice": {"$min": "$listing_price"},
+                                "maxPrice": {"$max": "$listing_price"},
+                                "avgPrice": {"$avg": "$listing_price"}
+                            }
+                        },
+                        {
+                            "$project": {
+                                "_id": 0,
+                                "minPrice": {"$round": ["$minPrice", 2]},
+                                "maxPrice": {"$round": ["$maxPrice", 2]},
+                                "avgPrice": {"$round": ["$avgPrice", 2]}
+                            }
+                        }
+                    ],
+                    "unidentified_avg_price": [
+                        {
+                            "$match": {
+                                "name": item_name,
+                                "unidentified": True
+                            }
+                        },
+                        {
+                            "$group": {
+                                "_id": None,
+                                "avgUnidentifiedPrice": {"$avg": "$listing_price"}
+                            }
+                        },
+                        {
+                            "$project": {
+                                "_id": 0,
+                                "avgUnidentifiedPrice": {"$round": ["$avgUnidentifiedPrice", 2]}
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "$project": {
+                    "lowest_price": {"$arrayElemAt": ["$identified_prices.minPrice", 0]},
+                    "highest_price": {"$arrayElemAt": ["$identified_prices.maxPrice", 0]},
+                    "average_price": {"$arrayElemAt": ["$identified_prices.avgPrice", 0]},
+                    "unidentified_average_price": {"$arrayElemAt": ["$unidentified_avg_price.avgUnidentifiedPrice", 0]}
                 }
             }
-        },
-        {
-            "$project": {
-                "_id": 0,
-                "name": item_name,
-                "lowest_price": {"$round": ["$lowest_price", 2]},
-                "highest_price": {"$round": ["$highest_price", 2]},
-                "average_price": {"$round": ["$average_price", 2]},
-                "unidentified_average_price": {"$round": ["$unidentified_average_price", 2]}
-            }
-        }
-    ])
-
+        ]
+    )
     return check_results(result)
 
 
@@ -112,6 +138,6 @@ def check_results(result, custom_message="No items found"):
     """ Check if the result is empty and return a custom message
     """
     result = list(result)
-    if result == []:
-        return jsonify({"message": custom_message}), 204
+    if result == [] or result == [{}]:
+        return jsonify({"message": custom_message}), 404
     return jsonify(result), 200
