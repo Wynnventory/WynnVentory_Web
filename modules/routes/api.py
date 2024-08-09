@@ -77,6 +77,7 @@ def save_trade_market_items():
             return {"message": "No items provided"}, 400
 
         items = data if isinstance(data, list) else [data]
+        print(f"Received {len(items)} items to save to the database")
 
         for item in items:
             formatted_item = format_item_for_db(item)
@@ -161,7 +162,6 @@ def process_queue():
         item = request_queue.get()
         if item is None:
             break
-        print(f"Processing item: {item.get('name')}")
         mongodb_connector.save_trade_market_item(item)
         request_queue.task_done()
 
