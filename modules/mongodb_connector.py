@@ -96,7 +96,7 @@ def get_trade_market_item_price(item_name):
         {
             "$project": {
                 "_id": 0,
-                "name": "Idol",
+                "name": item_name,
                 "lowest_price": {"$round": ["$lowest_price", 2]},
                 "highest_price": {"$round": ["$highest_price", 2]},
                 "average_price": {"$round": ["$average_price", 2]},
