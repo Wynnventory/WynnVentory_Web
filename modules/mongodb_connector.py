@@ -139,5 +139,5 @@ def check_results(result, custom_message="No items found"):
     """
     result = list(result)
     if result == [] or result == [{}]:
-        return jsonify({"message": custom_message}), 404
+        return jsonify({"message": custom_message}), 204
     return jsonify(result), 200
