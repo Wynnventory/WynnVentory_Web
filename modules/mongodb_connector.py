@@ -21,7 +21,7 @@ except Exception as e:
 def save_trade_market_item(item):
     """ Save items to the trademarket collection
     """
-    collection = db["trademarket_TEST"]
+    collection = db["trademarket_items_PROD"]
 
     # Extract relevant fields to check for duplicates (excluding timestamp)
     item_check = {
