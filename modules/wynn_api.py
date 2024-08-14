@@ -3,7 +3,7 @@ import requests
 from modules.utils import map_local_icons
 
 
-BASE_URL = "https://api.wynncraft.com/v3/"
+BASE_URL = "https://beta-api.wynncraft.com/v3/"
 def get_item_database():
     url = f"{BASE_URL}item/database?fullResult"
     try:
