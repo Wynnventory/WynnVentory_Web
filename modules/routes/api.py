@@ -79,11 +79,21 @@ def save_trade_market_items():
         items = data if isinstance(data, list) else [data]
         print(f"Received {len(items)} items to save to the database")
 
-        for item in items:
-            formatted_item = format_item_for_db(item)
-            request_queue.put(formatted_item)
+        env = request.args.get('env')
+        if not env:
+            for item in items:
+                formatted_item = format_item_for_db(item)
+                request_queue.put((formatted_item, "prod"))
 
-        return jsonify({"message": "Items received successfully"}), 200
+            return jsonify({"message": "Items received successfully"}), 200
+        elif env == 'dev':
+            for item in items:
+                formatted_item = format_item_for_db(item)
+                request_queue.put((formatted_item, "dev"))
+
+            return jsonify({"message": "Items saved to dev collection"}), 200
+        else:
+            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -159,10 +169,10 @@ def process_queue():
     """ Process the queue of items to save to the database
     """
     while True:
-        item = request_queue.get()
+        item, env = request_queue.get()
         if item is None:
             break
-        mongodb_connector.save_trade_market_item(item)
+        mongodb_connector.save_trade_market_item(item, env)
         request_queue.task_done()
 
 

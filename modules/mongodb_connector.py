@@ -18,10 +18,10 @@ except Exception as e:
     print("Could not connect to MongoDB!", e)
 
 
-def save_trade_market_item(item):
+def save_trade_market_item(item, environment="prod"):
     """ Save items to the trademarket collection
     """
-    collection = db["trademarket_items_PROD"]
+    collection = get_collection(environment)
 
     # Extract relevant fields to check for duplicates (excluding timestamp)
     item_check = {
@@ -141,3 +141,13 @@ def check_results(result, custom_message="No items found"):
     if result == [] or result == [{}]:
         return jsonify({"message": custom_message}), 404
     return jsonify(result), 200
+
+def get_collection(environment="prod"):
+    """ Get the trademarket collection based on the environment
+    """
+    if environment == "prod":
+        return db["trademarket_items_PROD"]
+    elif environment == "dev":
+        return db["trademarket_items_DEV"]
+    else:
+        raise ValueError("Invalid environment specified. Only 'prod' and 'dev' are allowed.")
