@@ -17,4 +17,4 @@ Visit the live site to see WynnVentory in action:
 [wynnventory.com](https://www.wynnventory.com/)
 
 ## Wynnventory Mod
-https://github.com/Aruloci/WynnVentory_Mod
+https://github.com/Aruloci/WynnVentory
