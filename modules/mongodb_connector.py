@@ -4,6 +4,8 @@ from pymongo.server_api import ServerApi
 from flask import jsonify
 
 uri = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
+PROD_DB = "trademarket_items_PROD"
+DEV_DB = "trademarket_items_DEV"
 
 # Create a new client and connect to the server with SSL settings
 client = MongoClient(uri, server_api=ServerApi(
@@ -55,7 +57,7 @@ def save_trade_market_item(item, environment="prod"):
 def get_trade_market_item(item_name):
     """ Retrieve items from the trademarket collection by name
     """
-    collection = db["trademarket_TEST"]
+    collection = db[PROD_DB]
 
     result = collection.find(
         filter={'name': item_name},
@@ -68,7 +70,7 @@ def get_trade_market_item(item_name):
 def get_trade_market_item_price(item_name):
     """ Retrieve price of item from the trademarket collection
     """
-    collection = db["trademarket_TEST"]
+    collection = db[PROD_DB]
 
     result = collection.aggregate(
         [
@@ -146,8 +148,8 @@ def get_collection(environment="prod"):
     """ Get the trademarket collection based on the environment
     """
     if environment == "prod":
-        return db["trademarket_items_PROD"]
+        return db[PROD_DB]
     elif environment == "dev":
-        return db["trademarket_items_DEV"]
+        return db[DEV_DB]
     else:
         raise ValueError("Invalid environment specified. Only 'prod' and 'dev' are allowed.")
