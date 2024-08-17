@@ -153,6 +153,7 @@ def format_item_for_db(item):
         "amount": item.get('amount'),
         "overall_percentage": item_data.get('overallPercentage'),
         "listing_price": item.get('listingPrice'),
+        "player_name": item.get('playerName'),
         "actual_stats_with_percentage": [
             {
                 "value": stat.get('value'),
