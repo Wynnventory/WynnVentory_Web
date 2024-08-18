@@ -80,13 +80,13 @@ def save_trade_market_items():
         print(f"Received {len(items)} items to save to the database")
 
         env = request.args.get('env')
-        if not env:
+        if not env or env == 'dev':
             for item in items:
                 formatted_item = format_item_for_db(item)
                 request_queue.put((formatted_item, "prod"))
 
             return jsonify({"message": "Items received successfully"}), 200
-        elif env == 'dev':
+        elif env == 'dev2':
             for item in items:
                 formatted_item = format_item_for_db(item)
                 request_queue.put((formatted_item, "dev"))
