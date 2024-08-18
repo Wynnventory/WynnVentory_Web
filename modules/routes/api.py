@@ -5,7 +5,7 @@ from queue import Queue
 import atexit
 
 from modules import wynn_api
-from modules.models import Weapon, Armor, Accessory, Item
+from modules.models import Weapon, Armour, Accessory, Item
 from modules.models.item_types import WeaponType, ArmorType, AccessoryType
 from modules import mongodb_connector
 
@@ -19,7 +19,7 @@ def get_item_stats(item_name):
     """ Retrieve item stats from the Wynn API by item name
     """
     item_data = wynn_api.quick_search_item(item_name)
-    processed_data = process_item_data(item_data.get(item_name))
+    processed_data = process_item_data(item_data)
     return jsonify(processed_data)
 
 
@@ -121,18 +121,34 @@ def get_market_item_price_info(item_name):
 def process_item_data(item_data):
     """ Process item data from the Wynn API
     """
-    item_subtype = item_data.get('type', item_data.get(
-        'accessoryType', 'Unknown Subtype'))
+def process_item_data(item_data):
+    """Process item data from the Wynn API and store it in the appropriate model class."""
+    item_type = item_data.get('type', 'Unknown Type')
+    item_subtype = item_data.get('weaponType', 
+                                 item_data.get('armourType', 
+                                               item_data.get('accessoryType', 
+                                                             'Unknown Subtype')))
 
-    if item_subtype in [wt.value for wt in WeaponType]:
-        item = Weapon.from_dict(item_data)
-    elif item_subtype in [at.value for at in ArmorType]:
-        item = Armor.from_dict(item_data)
-    elif item_subtype in [act.value for act in AccessoryType]:
-        item = Accessory.from_dict(item_data)
+    if item_type == 'weapon':
+        if item_subtype in [wt.value for wt in WeaponType]:
+            item = Weapon.from_dict(item_data)
+        else:
+            raise ValueError(f"Unsupported weapon subtype: {item_subtype}")
+    elif item_type == 'armour':
+        if item_subtype in [at.value for at in ArmorType]:
+            item = Armour.from_dict(item_data)
+        else:
+            raise ValueError(f"Unsupported armor subtype: {item_subtype}")
+    elif item_type == 'accessory':
+        if item_subtype in [act.value for act in AccessoryType]:
+            item = Accessory.from_dict(item_data)
+        else:
+            raise ValueError(f"Unsupported accessory subtype: {item_subtype}")
     else:
-        raise ValueError(f"Unsupported item subtype: {item_subtype}")
+        raise ValueError(f"Unsupported item type: {item_type}")
+
     return item.to_dict()
+
 
 
 def format_item_for_db(item):
