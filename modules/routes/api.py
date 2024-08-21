@@ -83,13 +83,13 @@ def save_trade_market_items():
         if not env or env == 'dev':
             for item in items:
                 formatted_item = format_item_for_db(item)
-                request_queue.put((formatted_item, "prod"))
+                request_queue.put(("trademarket", formatted_item, "prod"))
 
             return jsonify({"message": "Items received successfully"}), 200
         elif env == 'dev2':
             for item in items:
                 formatted_item = format_item_for_db(item)
-                request_queue.put((formatted_item, "dev"))
+                request_queue.put(("trademarket", formatted_item, "dev"))
 
             return jsonify({"message": "Items saved to dev collection"}), 200
         else:
@@ -115,6 +115,43 @@ def get_market_item_price_info(item_name):
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
     result = mongodb_connector.get_trade_market_item_price(item_name)
+    return result
+
+
+@api_bp.route("/api/lootpool/items", methods=['POST'])
+def save_lootpool_items():
+    """ Save items to the lootpool collection
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return {"message": "No items provided"}, 400
+
+        items = data if isinstance(data, list) else [data]
+
+        env = request.args.get('env')
+        if not env or env == 'dev':
+            for item in items:
+                request_queue.put(("lootpool", item, "prod"))
+
+            return jsonify({"message": "Items received successfully"}), 200
+        elif env == 'dev2':
+            for item in items:
+                request_queue.put(("lootpool", item, "dev"))
+
+            return jsonify({"message": "Items saved to dev collection"}), 200
+        else:
+            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route("/api/lootpool/items/", methods=['GET'])
+def get_lootpool_items():
+    """ Retrieve lootpool items
+    """
+    env = request.args.get('env', 'prod')
+    result = mongodb_connector.get_lootpool_items(environment=env)
     return result
 
 
@@ -170,10 +207,13 @@ def process_queue():
     """ Process the queue of items to save to the database
     """
     while True:
-        item, env = request_queue.get()
+        request, item, env = request_queue.get()
         if item is None:
             break
-        mongodb_connector.save_trade_market_item(item, env)
+        if request == 'trademarket':
+            mongodb_connector.save_trade_market_item(item, env)
+        elif request == 'lootpool':
+            mongodb_connector.save_lootpool_item(item, env)
         request_queue.task_done()
 
 
