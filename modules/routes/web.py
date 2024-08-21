@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template
 from modules import wynn_api
+from modules.routes import api
 
 
 web_bp = Blueprint('web', __name__)
@@ -21,8 +22,10 @@ def item():
 
 @web_bp.route("/lootpool")
 def lootpool():
-    items = wynn_api.get_lootpool()
-    return render_template("lootpool.html", loot_items=items)
+    # items = wynn_api.get_lootpool()
+    loot_items = api.get_lootpool_items()[0].get_json()
+    print(loot_items)
+    return render_template("lootpool.html", loot_items=loot_items)
 
 @web_bp.route("/players")
 def players():

@@ -205,7 +205,7 @@ def get_lootpool_items(environment="prod"):
                             }
                         }
                     },
-                    'items': {
+                    'loot_items': {
                         '$push': {
                             'name': '$name',
                             'type': '$type',
@@ -222,7 +222,7 @@ def get_lootpool_items(environment="prod"):
                     'rarities': {
                         '$push': {
                             'rarity': '$_id.rarity',
-                            'items': '$items'
+                            'loot_items': '$loot_items'
                         }
                     }
                 }

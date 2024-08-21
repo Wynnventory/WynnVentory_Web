@@ -151,6 +151,8 @@ def get_lootpool_items():
     """ Retrieve lootpool items
     """
     env = request.args.get('env', 'prod')
+    if env == "prod": # Test only
+        env = "dev2"
     result = mongodb_connector.get_lootpool_items(environment=env)
     return result
 
