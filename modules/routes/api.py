@@ -5,7 +5,7 @@ from queue import Queue
 import atexit
 
 from modules import wynn_api
-from modules.models import Weapon, Armor, Accessory, Item
+from modules.models import Weapon, Armour, Accessory, Item
 from modules.models.item_types import WeaponType, ArmorType, AccessoryType
 from modules import mongodb_connector
 
@@ -19,7 +19,7 @@ def get_item_stats(item_name):
     """ Retrieve item stats from the Wynn API by item name
     """
     item_data = wynn_api.quick_search_item(item_name)
-    processed_data = process_item_data(item_data.get(item_name))
+    processed_data = process_item_data(item_data)
     return jsonify(processed_data)
 
 
@@ -83,13 +83,13 @@ def save_trade_market_items():
         if not env or env == 'dev':
             for item in items:
                 formatted_item = format_item_for_db(item)
-                request_queue.put((formatted_item, "prod"))
+                request_queue.put(("trademarket", formatted_item, "prod"))
 
             return jsonify({"message": "Items received successfully"}), 200
         elif env == 'dev2':
             for item in items:
                 formatted_item = format_item_for_db(item)
-                request_queue.put((formatted_item, "dev"))
+                request_queue.put(("trademarket", formatted_item, "dev"))
 
             return jsonify({"message": "Items saved to dev collection"}), 200
         else:
@@ -118,20 +118,67 @@ def get_market_item_price_info(item_name):
     return result
 
 
-def process_item_data(item_data):
-    """ Process item data from the Wynn API
+@api_bp.route("/api/lootpool/items", methods=['POST'])
+def save_lootpool_items():
+    """ Save items to the lootpool collection
     """
-    item_subtype = item_data.get('type', item_data.get(
-        'accessoryType', 'Unknown Subtype'))
+    try:
+        data = request.get_json()
+        if not data:
+            return {"message": "No items provided"}, 400
 
-    if item_subtype in [wt.value for wt in WeaponType]:
-        item = Weapon.from_dict(item_data)
-    elif item_subtype in [at.value for at in ArmorType]:
-        item = Armor.from_dict(item_data)
-    elif item_subtype in [act.value for act in AccessoryType]:
-        item = Accessory.from_dict(item_data)
+        items = data if isinstance(data, list) else [data]
+
+        env = request.args.get('env')
+        if not env or env == 'dev':
+            for item in items:
+                request_queue.put(("lootpool", item, "prod"))
+            return jsonify({"message": "Items received successfully"}), 200
+        elif env == 'dev2':
+            for item in items:
+                request_queue.put(("lootpool", item, "dev"))
+            return jsonify({"message": "Items saved to dev collection"}), 200
+        else:
+            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route("/api/lootpool/items/", methods=['GET'])
+def get_lootpool_items():
+    """ Retrieve lootpool items
+    """
+    env = request.args.get('env', 'prod')
+    result = mongodb_connector.get_lootpool_items(environment=env)
+    return result
+
+
+def process_item_data(item_data):
+    """Process item data from the Wynn API and store it in the appropriate model class."""
+    item_type = item_data.get('type', 'Unknown Type')
+    item_subtype = item_data.get('weaponType',
+                                 item_data.get('armourType',
+                                               item_data.get('accessoryType',
+                                                             'Unknown Subtype')))
+
+    if item_type == 'weapon':
+        if item_subtype in [wt.value for wt in WeaponType]:
+            item = Weapon.from_dict(item_data)
+        else:
+            raise ValueError(f"Unsupported weapon subtype: {item_subtype}")
+    elif item_type == 'armour':
+        if item_subtype in [at.value for at in ArmorType]:
+            item = Armour.from_dict(item_data)
+        else:
+            raise ValueError(f"Unsupported armor subtype: {item_subtype}")
+    elif item_type == 'accessory':
+        if item_subtype in [act.value for act in AccessoryType]:
+            item = Accessory.from_dict(item_data)
+        else:
+            raise ValueError(f"Unsupported accessory subtype: {item_subtype}")
     else:
-        raise ValueError(f"Unsupported item subtype: {item_subtype}")
+        raise ValueError(f"Unsupported item type: {item_type}")
+
     return item.to_dict()
 
 
@@ -170,10 +217,13 @@ def process_queue():
     """ Process the queue of items to save to the database
     """
     while True:
-        item, env = request_queue.get()
+        request, item, env = request_queue.get()
         if item is None:
             break
-        mongodb_connector.save_trade_market_item(item, env)
+        if request == 'trademarket':
+            mongodb_connector.save_trade_market_item(item, env)
+        elif request == 'lootpool':
+            mongodb_connector.save_lootpool_item(item, env)
         request_queue.task_done()
 
 

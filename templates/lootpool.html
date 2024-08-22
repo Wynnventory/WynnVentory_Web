@@ -6,32 +6,35 @@
 <div class="row">
     <h4 id="time"></h4>
 </div>
-{% for region, details in loot_items.Loot.items() %}
+
+{% for region_data in loot_items %}
 <div class="col-12 col-md-6 col-lg-3 mb-3">
     <div class="card">
         <div class="card-header">
-            <h2 class="h5">{{ region }}</h2>
+            <h2 class="h5">{{ region_data._id }}</h2>
         </div>
         <div class="card-body">
-            {% for rarity, items in details.items() %}
-            {% if rarity == 'Shiny' %}
-            <h3 class="h6"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />{{ rarity }}</h3>
+            {% for rarity_group in region_data.rarity %}
+            {% if rarity_group.rarity == 'Shiny' %}
+            <h3 class="h6"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />{{ rarity_group.rarity }}</h3>
             <div>
-                {% if items.Item in loot_items.Icon %}
-                <img src="{{ loot_items.Icon[items.Item] }}" alt="{{ items.Item }}" class="img-fluid shiny" onclick="displayItem(event, '{{items.Item | urlencode }}')">
+                {% for item in rarity_group.region_items %}
+                {% if item.name in loot_items.Icon %}
+                <img src="{{ loot_items.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item.name | urlencode }}')">
                 {% endif %}
-                <span class="{{rarity}}" onclick="displayItem(event, '{{items.Item | urlencode }}')">{{ items.Item }}</span>
-                <p><strong>Tracker:</strong> {{ items.Tracker }}</p>
+                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                <p><strong>Tracker:</strong> {{ item.shiny }}</p>
+                {% endfor %}
             </div>
             {% else %}
-            <h3 class="h6">{{ rarity }}</h3>
+            <h3 class="h6">{{ rarity_group.rarity }}</h3>
             <ul class="list-unstyled">
-                {% for item in items %}
+                {% for item in rarity_group.region_items %}
                 <li class="lootpool-card-item">
-                    {% if item in loot_items.Icon %}
-                    <img src="{{ loot_items.Icon[item] }}" alt="{{ item }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item | urlencode }}')">
+                    {% if item.name in loot_items.Icon %}
+                    <img src="{{ loot_items.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item.name | urlencode }}')">
                     {% endif %}
-                    <span class="{{rarity}}" onclick="displayItem(event, '{{ item | urlencode }}')">{{ item }}</span>
+                    <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                 </li>
                 {% endfor %}
             </ul>
@@ -41,6 +44,7 @@
     </div>
 </div>
 {% endfor %}
+
 <div id="item-stats-tooltip" class="item-stats-tooltip"></div>
 
 <script>
@@ -114,7 +118,7 @@
         if (item_type === 'weapon') {
             requirementsHTML = `<div>Class Req: ${class_req}<br>Combat Lv. Min: ${requirements.Level}<br>`;
             for (const [key, value] of Object.entries(requirements)) {
-                if (key !== 'Level') {
+                if (key !== 'Level' && key !== 'Classrequirement') {
                     requirementsHTML += `${key} Min: ${value}<br>`;
                 }
             }
@@ -169,12 +173,12 @@
             </div>
             <div class="item-infobox defence item-text">
                 ${item_type === 'weapon' ? `
-                    ${base.damage ? `<span class="item-text neutral"><span>Neutral</span> Damage: </span><span class="${base.damage >= 0 ? 'positive' : 'negative'}">${base.damage.min}-${base.damage.max}</span><br>` : ''}
-                    ${base.air_damage ? `<span class="item-text air"><span>Air</span> Damage: </span><span class="${base.air_damage >= 0 ? 'positive' : 'negative'}">${base.air_damage.min}-${base.air_damage.max}</span><br>` : ''}
-                    ${base.earth_damage ? `<span class="item-text earth"><span>Earth</span> Damage: </span><span class="${base.earth_damage >= 0 ? 'positive' : 'negative'}">${base.earth_damage.min}-${base.earth_damage.max}</span><br>` : ''}
-                    ${base.fire_damage ? `<span class="item-text fire"><span>Fire</span> Damage: </span><span class="${base.fire_damage >= 0 ? 'positive' : 'negative'}">${base.fire_damage.min}-${base.fire_damage.max}</span><br>` : ''}
-                    ${base.thunder_damage ? `<span class="item-text thunder"><span>Thunder</span> Damage: </span><span class="${base.thunder_damage >= 0 ? 'positive' : 'negative'}">${base.thunder_damage.min}-${base.thunder_damage.max}</span><br>` : ''}
-                    ${base.water_damage ? `<span class="item-text water"><span>Water</span> Damage: </span><span class="${base.water_damage >= 0 ? 'positive' : 'negative'}">${base.water_damage.min}-${base.water_damage.max}</span><br>` : ''}
+                    ${base.damage ? `<span class="item-text neutral"><span>Neutral</span> Damage: </span><span class="${base.damage >= 0 ? 'positive' : 'negative'}">${base.base_damage}</span><br>` : ''}
+                    ${base.air_damage ? `<span class="item-text air"><span>Air</span> Damage: </span><span class="${base.air_damage >= 0 ? 'positive' : 'negative'}">${base.air_damage}</span><br>` : ''}
+                    ${base.earth_damage ? `<span class="item-text earth"><span>Earth</span> Damage: </span><span class="${base.earth_damage >= 0 ? 'positive' : 'negative'}">${base.earth_damage}</span><br>` : ''}
+                    ${base.fire_damage ? `<span class="item-text fire"><span>Fire</span> Damage: </span><span class="${base.fire_damage >= 0 ? 'positive' : 'negative'}">${base.fire_damage}</span><br>` : ''}
+                    ${base.thunder_damage ? `<span class="item-text thunder"><span>Thunder</span> Damage: </span><span class="${base.thunder_damage >= 0 ? 'positive' : 'negative'}">${base.thunder_damage}</span><br>` : ''}
+                    ${base.water_damage ? `<span class="item-text water"><span>Water</span> Damage: </span><span class="${base.water_damage >= 0 ? 'positive' : 'negative'}">${base.water_damage}</span><br>` : ''}
                     <span class="item-text-dark">Average DPS: <span class="item-text">${base.average_dps}</span></span>
                 ` : `
                     ${base.health ? `<span class="item-health">Health: <span class="${base.health >= 0 ? 'positive' : 'negative'}">${base.health} </span></span><br>` : ''}

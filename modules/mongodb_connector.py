@@ -3,9 +3,13 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from flask import jsonify
 
+from modules.utils import get_lootpool_week
+
 uri = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
-PROD_DB = "trademarket_items_PROD"
-DEV_DB = "trademarket_items_DEV"
+PROD_MARKET_DB = "trademarket_items_PROD"
+DEV_MARKET_DB = "trademarket_items_DEV"
+PROD_LOOT_DB = "lootpool_items_PROD"
+DEV_LOOT_DB = "lootpool_items_DEV"
 
 # Create a new client and connect to the server with SSL settings
 client = MongoClient(uri, server_api=ServerApi(
@@ -23,7 +27,7 @@ except Exception as e:
 def save_trade_market_item(item, environment="prod"):
     """ Save items to the trademarket collection
     """
-    collection = get_collection(environment)
+    collection = get_collection("trademarket", environment)
 
     # Extract relevant fields to check for duplicates (excluding timestamp)
     item_check = {
@@ -57,7 +61,7 @@ def save_trade_market_item(item, environment="prod"):
 def get_trade_market_item(item_name):
     """ Retrieve items from the trademarket collection by name
     """
-    collection = db[PROD_DB]
+    collection = db[PROD_MARKET_DB]
 
     result = collection.find(
         filter={'name': item_name},
@@ -70,7 +74,7 @@ def get_trade_market_item(item_name):
 def get_trade_market_item_price(item_name):
     """ Retrieve price of item from the trademarket collection
     """
-    collection = db[PROD_DB]
+    collection = db[PROD_MARKET_DB]
 
     result = collection.aggregate(
         [
@@ -136,6 +140,141 @@ def get_trade_market_item_price(item_name):
     return check_results(result)
 
 
+def save_lootpool_item(item, environment="prod"):
+    """ Save items to the lootpool collection
+    """
+    collection = get_collection("lootpool", environment)
+    if collection is None:
+        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+
+    # Add week and year to the item
+    loot_year, loot_week = get_lootpool_week()
+    item['week'] = loot_week
+    item['year'] = loot_year
+
+    # Extract relevant fields to check for duplicates (excluding timestamp)
+    item_check = {
+        "name": item.get("name"),
+        "rarity": item.get("rarity"),
+        "type": item.get("type"),
+        "shiny": item.get("shiny"),
+        "amount": item.get("amount"),
+        "region": item.get("region"),
+        "week": item.get("week"),
+        "year": item.get("year")
+    }
+
+    # Check for duplicate items
+    duplicate_item = collection.find_one(item_check)
+    if duplicate_item:
+        return {"message": "Duplicate item found, skipping insertion"}, 200
+
+    # Insert the new item if no duplicate is found
+    item['timestamp'] = datetime.utcnow()
+    collection.insert_one(item)
+    return {"message": "Item saved successfully"}, 200
+
+
+def get_lootpool_items(environment="prod"):
+    """ Retrieve items from the trademarket collection by name
+    """
+    collection = get_collection("lootpool", environment)
+    if collection is None:
+        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    loot_year, loot_week = get_lootpool_week()
+
+    result = collection.aggregate([
+        {
+            '$match': {
+                'week': loot_week,
+                'year': loot_year
+            }
+        }, {
+            '$group': {
+                '_id': {
+                    'region': '$region',
+                    'rarity': {
+                        '$cond': {
+                            'if': {
+                                '$not': '$rarity'
+                            },
+                            'then': 'misc',
+                            'else': {
+                                '$cond': {
+                                    'if': {
+                                        '$not': '$shiny'
+                                    },
+                                    'then': '$rarity',
+                                    'else': 'Shiny'
+                                }
+                            }
+                        }
+                    }
+                },
+                'region_items': {
+                    '$push': {
+                        'name': '$name',
+                        'amount': '$amount',
+                        'shiny': '$shiny',
+                        'type': '$type'
+                    }
+                }
+            }
+        }, {
+            '$group': {
+                '_id': '$_id.region',
+                'rarity': {
+                    '$push': {
+                        'rarity': '$_id.rarity',
+                        'region_items': '$region_items'
+                    }
+                }
+            }
+        }, {
+            '$addFields': {
+                'rarity': {
+                    '$map': {
+                        'input': [
+                            'Shiny', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique', 'misc'
+                        ],
+                        'as': 'r',
+                        'in': {
+                            'rarity': '$$r',
+                            'region_items': {
+                                '$reduce': {
+                                    'input': '$rarity',
+                                    'initialValue': [],
+                                    'in': {
+                                        '$cond': {
+                                            'if': {
+                                                '$eq': [
+                                                    '$$this.rarity', '$$r'
+                                                ]
+                                            },
+                                            'then': {
+                                                '$concatArrays': [
+                                                    '$$value', '$$this.region_items'
+                                                ]
+                                            },
+                                            'else': '$$value'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            '$project': {
+                'rarity.rarity': 1,
+                'rarity.region_items': 1
+            }
+        }
+    ])
+    return check_results(result, custom_message="No lootpool items found for this week")
+
+
 def check_results(result, custom_message="No items found"):
     """ Check if the result is empty and return a custom message
     """
@@ -144,12 +283,17 @@ def check_results(result, custom_message="No items found"):
         return jsonify({"message": custom_message}), 404
     return jsonify(result), 200
 
-def get_collection(environment="prod"):
-    """ Get the trademarket collection based on the environment
+
+def get_collection(collection, environment="prod"):
+    """ Get the collection based on the type and environment
     """
-    if environment == "prod":
-        return db[PROD_DB]
-    elif environment == "dev":
-        return db[DEV_DB]
-    else:
-        raise ValueError("Invalid environment specified. Only 'prod' and 'dev' are allowed.")
+    if collection == "trademarket":
+        if environment == "prod":
+            return db[PROD_MARKET_DB]
+        elif environment == "dev" or environment == "dev2":
+            return db[DEV_MARKET_DB]
+    elif collection == "lootpool":
+        if environment == "prod":
+            return db[PROD_LOOT_DB]
+        elif environment == "dev" or environment == "dev2":
+            return db[DEV_LOOT_DB]
