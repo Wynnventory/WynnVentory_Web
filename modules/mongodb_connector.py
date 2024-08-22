@@ -183,59 +183,95 @@ def get_lootpool_items(environment="prod"):
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
     loot_year, loot_week = get_lootpool_week()
 
-    result = collection.aggregate(
-        [
-            {
-                '$match': {
-                    'week': loot_week,
-                    'year': loot_year
-                }
-            }, {
-                '$group': {
-                    '_id': {
-                        'region': '$region',
-                        'rarity': {
-                            '$cond': {
-                                'if': {
-                                    '$eq': [
-                                        '$shiny', None
-                                    ]
-                                },
-                                'then': '$rarity',
-                                'else': 'shiny'
+    result = collection.aggregate([
+        {
+            '$match': {
+                'week': loot_week,
+                'year': loot_year
+            }
+        }, {
+            '$group': {
+                '_id': {
+                    'region': '$region',
+                    'rarity': {
+                        '$cond': {
+                            'if': {
+                                '$not': '$rarity'
+                            },
+                            'then': 'misc',
+                            'else': {
+                                '$cond': {
+                                    'if': {
+                                        '$not': '$shiny'
+                                    },
+                                    'then': '$rarity',
+                                    'else': 'Shiny'
+                                }
                             }
                         }
-                    },
-                    'loot_items': {
-                        '$push': {
-                            'name': '$name',
-                            'type': '$type',
-                            'region': '$region',
-                            'rarity': '$rarity',
-                            'timestamp': '$timestamp',
-                            'shiny': '$shiny'
-                        }
                     }
-                }
-            }, {
-                '$group': {
-                    '_id': '$_id.region',
-                    'rarities': {
-                        '$push': {
-                            'rarity': '$_id.rarity',
-                            'loot_items': '$loot_items'
-                        }
+                },
+                'items': {
+                    '$push': {
+                        'name': '$name',
+                        'amount': '$amount',
+                        'shiny': '$shiny',
+                        'type': '$type'
                     }
-                }
-            }, {
-                '$project': {
-                    '_id': 0,
-                    'region': '$_id',
-                    'rarities': '$rarities'
                 }
             }
-        ]
-    )
+        }, {
+            '$group': {
+                '_id': '$_id.region',
+                'rarity': {
+                    '$push': {
+                        'rarity': '$_id.rarity',
+                        'items': '$items'
+                    }
+                }
+            }
+        }, {
+            '$addFields': {
+                'rarity': {
+                    '$map': {
+                        'input': [
+                            'Shiny', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique', 'misc'
+                        ],
+                        'as': 'r',
+                        'in': {
+                            'rarity': '$$r',
+                            'items': {
+                                '$reduce': {
+                                    'input': '$rarity',
+                                    'initialValue': [],
+                                    'in': {
+                                        '$cond': {
+                                            'if': {
+                                                '$eq': [
+                                                    '$$this.rarity', '$$r'
+                                                ]
+                                            },
+                                            'then': {
+                                                '$concatArrays': [
+                                                    '$$value', '$$this.items'
+                                                ]
+                                            },
+                                            'else': '$$value'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }, {
+            '$project': {
+                'rarity.rarity': 1,
+                'rarity.items': 1
+            }
+        }
+    ])
     return check_results(result, custom_message="No lootpool items found for this week")
 
 
