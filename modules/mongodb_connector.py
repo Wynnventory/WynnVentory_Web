@@ -152,6 +152,8 @@ def save_lootpool_item(item, environment="prod"):
     item['week'] = loot_week
     item['year'] = loot_year
 
+
+    print(f"Comparing orig: {item}")
     # Extract relevant fields to check for duplicates (excluding timestamp)
     item_check = {
         "name": item.get("name"),
@@ -163,11 +165,14 @@ def save_lootpool_item(item, environment="prod"):
         "week": item.get("week"),
         "year": item.get("year")
     }
+    print(f"Comparing check: {item_check}")
 
     # Check for duplicate items
     duplicate_item = collection.find_one(item_check)
     if duplicate_item:
+        print("Duplicate item found, skipping insertion")
         return {"message": "Duplicate item found, skipping insertion"}, 200
+    print("No duplicate found")
 
     # Insert the new item if no duplicate is found
     item['timestamp'] = datetime.utcnow()
