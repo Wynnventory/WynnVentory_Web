@@ -211,7 +211,7 @@ def get_lootpool_items(environment="prod"):
                         }
                     }
                 },
-                'items': {
+                'region_items': {
                     '$push': {
                         'name': '$name',
                         'amount': '$amount',
@@ -226,7 +226,7 @@ def get_lootpool_items(environment="prod"):
                 'rarity': {
                     '$push': {
                         'rarity': '$_id.rarity',
-                        'items': '$items'
+                        'region_items': '$region_items'
                     }
                 }
             }
@@ -240,7 +240,7 @@ def get_lootpool_items(environment="prod"):
                         'as': 'r',
                         'in': {
                             'rarity': '$$r',
-                            'items': {
+                            'region_items': {
                                 '$reduce': {
                                     'input': '$rarity',
                                     'initialValue': [],
@@ -253,7 +253,7 @@ def get_lootpool_items(environment="prod"):
                                             },
                                             'then': {
                                                 '$concatArrays': [
-                                                    '$$value', '$$this.items'
+                                                    '$$value', '$$this.region_items'
                                                 ]
                                             },
                                             'else': '$$value'
@@ -268,7 +268,7 @@ def get_lootpool_items(environment="prod"):
         }, {
             '$project': {
                 'rarity.rarity': 1,
-                'rarity.items': 1
+                'rarity.region_items': 1
             }
         }
     ])

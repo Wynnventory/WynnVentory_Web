@@ -7,28 +7,38 @@
     <h4 id="time"></h4>
 </div>
 
-{% for region_group in loot_items %}
+{% for region_data in loot_items %}
 <div class="col-12 col-md-6 col-lg-3 mb-3">
     <div class="card">
         <div class="card-header">
-            <h2 class="h5">{{ region_group.region }}</h2>
+            <h2 class="h5">{{ region_data._id }}</h2>
         </div>
         <div class="card-body">
-            {% for rarity_group in region_group.rarities %}
+            {% for rarity_group in region_data.rarity %}
+            {% if rarity_group.rarity == 'Shiny' %}
+            <h3 class="h6"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />{{ rarity_group.rarity }}</h3>
+            <div>
+                {% for item in rarity_group.region_items %}
+                {% if item.name in loot_items.Icon %}
+                <img src="{{ loot_items.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                {% endif %}
+                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                <p><strong>Tracker:</strong> {{ item.shiny }}</p>
+                {% endfor %}
+            </div>
+            {% else %}
             <h3 class="h6">{{ rarity_group.rarity }}</h3>
             <ul class="list-unstyled">
-                {% for item in rarity_group.loot_items %}
+                {% for item in rarity_group.region_items %}
                 <li class="lootpool-card-item">
                     {% if item.name in loot_items.Icon %}
                     <img src="{{ loot_items.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item.name | urlencode }}')">
                     {% endif %}
                     <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
-                    {% if item.shiny %}
-                    <p><strong>Tracker:</strong> {{ item.shiny.tracker }}</p>
-                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>
+            {% endif %}
             {% endfor %}
         </div>
     </div>
