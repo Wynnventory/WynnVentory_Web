@@ -77,7 +77,6 @@ def save_trade_market_items():
             return {"message": "No items provided"}, 400
 
         items = data if isinstance(data, list) else [data]
-        print(f"Received {len(items)} items to save to the database")
 
         env = request.args.get('env')
         if not env or env == 'dev':
