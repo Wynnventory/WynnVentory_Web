@@ -67,6 +67,14 @@ a:hover {
 .content::-webkit-scrollbar {
     display: none;
 }
+.collapse {
+    transition: all 0.6s ease !important;
+}
+.rarity-header {
+    border-bottom: 1px solid #424242b3;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
 .item-stats-tooltip {
     display: none;
     position: absolute;
