@@ -133,12 +133,10 @@ def save_lootpool_items():
         if not env or env == 'dev':
             for item in items:
                 request_queue.put(("lootpool", item, "prod"))
-
             return jsonify({"message": "Items received successfully"}), 200
         elif env == 'dev2':
             for item in items:
                 request_queue.put(("lootpool", item, "dev"))
-
             return jsonify({"message": "Items saved to dev collection"}), 200
         else:
             return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
@@ -151,21 +149,16 @@ def get_lootpool_items():
     """ Retrieve lootpool items
     """
     env = request.args.get('env', 'prod')
-    if env == "prod": # Test only
-        env = "dev2"
     result = mongodb_connector.get_lootpool_items(environment=env)
     return result
 
 
 def process_item_data(item_data):
-    """ Process item data from the Wynn API
-    """
-def process_item_data(item_data):
     """Process item data from the Wynn API and store it in the appropriate model class."""
     item_type = item_data.get('type', 'Unknown Type')
-    item_subtype = item_data.get('weaponType', 
-                                 item_data.get('armourType', 
-                                               item_data.get('accessoryType', 
+    item_subtype = item_data.get('weaponType',
+                                 item_data.get('armourType',
+                                               item_data.get('accessoryType',
                                                              'Unknown Subtype')))
 
     if item_type == 'weapon':
@@ -187,7 +180,6 @@ def process_item_data(item_data):
         raise ValueError(f"Unsupported item type: {item_type}")
 
     return item.to_dict()
-
 
 
 def format_item_for_db(item):

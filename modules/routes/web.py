@@ -22,7 +22,6 @@ def item():
 
 @web_bp.route("/lootpool")
 def lootpool():
-    # items = wynn_api.get_lootpool()
     loot_items = api.get_lootpool_items()[0].get_json()
     print(loot_items)
     return render_template("lootpool.html", loot_items=loot_items)
