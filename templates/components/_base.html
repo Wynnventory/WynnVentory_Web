@@ -15,16 +15,16 @@
 
 <body>
     <div class="container-fluid overflow-hidden">
-        <div class="row vh-100 overflow-auto">
+        <div class="row main overflow-hidden">
             <!-- NAVBAR -->
-            <div class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 sidebar d-flex sticky-top">
+            <div class="navbar col-12 col-sm-3 col-xl-2 px-sm-2 px-0 sidebar sticky-top mb-3 mb-sm-0">
                 <div
-                    class="d-flex flex-sm-column flex-row flex-grow-1 align-items-center align-items-sm-start px-3 pt-4">
+                    class="d-flex flex-row flex-sm-column justify-content-between h-100 w-100 align-items-center align-items-sm-start px-3 pt-2 pt-sm-4">
                     <a href="{{ url_for('web.items') }}"
-                        class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-decoration-none">
-                        <span class="fs-5">W<span class="d-none d-sm-inline">ynnVentory</span></span>
+                        class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-decoration-none logo-div">
+                        <span class="fs-logo">W<span class="d-none d-sm-inline">ynnVentory</span></span>
                     </a>
-                    <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start"
+                    <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start nav-div"
                         id="menu">
                         <li class="nav-item">
                             <a href="{{ url_for('web.items') }}" class="nav-link px-sm-0 px-2">
@@ -43,21 +43,22 @@
                                     class="ms-1 d-none d-sm-inline">Players</span></a>
                         </li>
                     </ul>
-                    <div class="py-sm-4 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1">
+                    <div class="py-sm-4 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1 btn-div" >
                         <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
-                        <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
+                        <label class="form-check-label ps-2 fs-mobile fs-desktop" for="darkModeSwitch">Dark Mode</label>
                     </div>
                 </div>
             </div>
 
             <!-- CONTENT -->
-            <div class="col d-flex flex-column h-sm-100 p-4">
-                <main class="row overflow-auto content">
+            <div class="col d-flex flex-column h-sm-100 p-2">
+                <main class="row overflow-auto content px-4">
                     {% block content %}{% endblock %}
                 </main>
             </div>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.js"
         integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
@@ -66,28 +67,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
         crossorigin="anonymous"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const htmlElement = document.documentElement;
-            const switchElement = document.getElementById('darkModeSwitch');
-
-            // Set the default theme to dark if no setting is found in local storage
-            const currentTheme = localStorage.getItem('bsTheme') || 'dark';
-            htmlElement.setAttribute('data-bs-theme', currentTheme);
-            switchElement.checked = currentTheme === 'dark';
-
-            switchElement.addEventListener('change', function () {
-                if (this.checked) {
-                    htmlElement.setAttribute('data-bs-theme', 'dark');
-                    localStorage.setItem('bsTheme', 'dark');
-                } else {
-                    htmlElement.setAttribute('data-bs-theme', 'light');
-                    localStorage.setItem('bsTheme', 'light');
-                }
-            });
-        });
-    </script>
 </body>
 
 </html>

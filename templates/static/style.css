@@ -91,11 +91,15 @@ a:hover {
 .item-infobox {
     padding-top: 1rem;
 }
+/*.bg-nav{
+background-color: var(--bs-body-bg);
+}*/
+
 /* Sidebar */
 #filter-sidebar {
     transition: width 0.3s, opacity 0.3s;
     height: 100vh; 
-    position: fixed;
+    position: absolute;
     top: 0;
     right: 0;
     z-index: 1020;
@@ -108,10 +112,14 @@ a:hover {
     opacity: 0;
 }
 #items-container {
+    width:80%;
     margin-right: 310px;
+    transition: width 0.3s;
     transition: margin-right 0.3s;
 }
 #items-container.expanded {
+    width: 100%;
+    transition: width 0.3s;
     margin-right: 0;
 }
 #collapse-button {
@@ -127,12 +135,83 @@ a:hover {
 #filter-sidebar.collapsed + #collapse-button {
     right: 10px;
 }
+.fs-logo{
+    font-size:18px;
+}
+.fs-mobile {
+     font-size: 9px;
+        }
+.main{
+    height:100%;
+    flex-direction:row ;
+    margin-bottom:30px;
+}
+.navbar{
+    height:82px;
+}
+.logo-div{
+     width:20%;
+     padding-left:15px;
+}
+.nav-div{
+     width:50%;
+}
+.btn-div{
+    display:flex;
+    align-items:end;
+     width:30%;
+}
+.form-check-input{
+    height:12px;
+    width:12px;
+}
+.items-handle{
+    width:250px;
+}
+@media (min-width: 574px) {
+     .fs-desktop {
+        font-size: 14px;
+     }
+    .fs-logo{
+        font-size:20px;
+    }
+    .sidebar{
+        height:100% ;
+        }
+    .main{
+        height:100vh;
+        flex-direction:row ;
+        margin-bottom:0px;
+    }
+    .navbar{
+        height:100%;
+}
+    .logo-div{
+        width:100%;
+        padding-left:0px;
+}
+    .nav-div{
+        width:100%;
+}
+    .btn-div{
+        width:100%;
+}
+    .form-check-input{
+        height:20px;
+        width:20px;
+}
+    .items-handle{
+        width:320px;
+        /* height:; */
+}
+        }
 @media (max-width: 992px) {
     #filter-sidebar {
         width: 100%;
         height: auto;
-        top: 50px; 
-        right: 0;
+        top: 80px;
+        right:0;
+
     }
 
     #filter-sidebar.collapsed {
@@ -140,10 +219,21 @@ a:hover {
         overflow: hidden;
         opacity: 0;
     }
-
     #items-container {
+        width: 100%;
+        margin-top:200px;
+        transition: margin-top 0.3s;
         margin-right: 0;
-    }
+}
+    #items-container.expanded {
+        margin-top:0px;
+        margin-right: 0;
+}
+    #items-container.dtog{
+        margin-top:300px;
+        transition: margin-top 0.3s;
+        margin-right: 0;
+}
     
     #collapse-button {
         right: 10px;
