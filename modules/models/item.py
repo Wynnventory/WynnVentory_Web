@@ -4,9 +4,9 @@ from .item_types import ItemType
 from modules.utils import map_local_icons
 
 class Item:
-    def __init__(self, name, tier, powder_slots, item_type, item_subtype, drop_restriction, base, identifications, requirements, drop_meta=None, lore=None):
+    def __init__(self, name, rarity, powder_slots, item_type, item_subtype, drop_restriction, base, identifications, requirements, drop_meta=None, lore=None):
         self.name = name
-        self.rarity = tier.capitalize()
+        self.rarity = rarity.capitalize() if isinstance(rarity, str) else rarity
         self.powder_slots = powder_slots
         self.item_type = ItemType(item_type) if isinstance(item_type, str) else item_type
         self.item_subtype = item_subtype
@@ -20,18 +20,24 @@ class Item:
     @staticmethod
     def from_dict(data, item_type):
         identifications = {k: Identification.from_dict(k, v) for k, v in data.get('identifications', {}).items()}
-        base = Base.from_dict(data.get('base', {}))
+        base = Base.from_dict(data.get('base', {}), average_dps=data.get('averageDps'))
         name = data.get('internalName', "Unknown Item")
 
         # Capitalize requirements keys
         requirements = {k.capitalize(): v for k, v in data.get('requirements', {}).items()}
 
+        # Determine the correct item subtype from the data
+        item_subtype = data.get('weaponType', 
+                                data.get('armorType', 
+                                        data.get('accessoryType', 
+                                                data.get('type', 'Unknown Subtype'))))
+
         return Item(
             name=name,
-            tier=data.get('tier', 'Unknown Tier'),
+            rarity=data.get('rarity', 'Unknown Tier'),
             powder_slots=data.get('powderSlots', 0),
             item_type=item_type,
-            item_subtype=data.get('type', 'Unknown Subtype'),  # Use the same field for subtype
+            item_subtype=item_subtype,
             drop_restriction=data.get('dropRestriction', 'Unknown'),
             base=base,
             identifications=identifications,
