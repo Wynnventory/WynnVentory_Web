@@ -37,7 +37,11 @@
                     {% if item.name in loot_items.Icon %}
                     <img src="{{ loot_items.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item.name | urlencode }}')">
                     {% endif %}
+                    {% if rarity_group.rarity == 'misc' %}
+                    <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                    {% else %}
                     <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>
