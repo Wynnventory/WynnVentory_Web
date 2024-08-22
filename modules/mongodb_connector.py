@@ -158,6 +158,7 @@ def save_lootpool_item(item, environment="prod"):
         "rarity": item.get("rarity"),
         "type": item.get("type"),
         "shiny": item.get("shiny"),
+        "amount": item.get("amount"),
         "region": item.get("region"),
         "week": item.get("week"),
         "year": item.get("year")
