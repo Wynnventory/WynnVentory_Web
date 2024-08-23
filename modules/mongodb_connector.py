@@ -55,7 +55,6 @@ def save_trade_market_item(item, environment="prod"):
     # Insert the new item if no duplicate is found
     item['timestamp'] = datetime.utcnow()
     collection.insert_one(item)
-    print(f"Item saved: {item}")
     return {"message": "Item saved successfully"}, 200
 
 
@@ -171,13 +170,13 @@ def save_lootpool_item(item, environment="prod"):
     # Check for duplicate items
     duplicate_item = collection.find_one(item_check)
     if duplicate_item:
-        print("Duplicate item found, skipping insertion")
         return {"message": "Duplicate item found, skipping insertion"}, 200
     print("No duplicate found")
 
     # Insert the new item if no duplicate is found
     item['timestamp'] = datetime.utcnow()
     collection.insert_one(item)
+    print(f"Item saved: {item}")
     return {"message": "Item saved successfully"}, 200
 
 

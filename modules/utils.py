@@ -28,7 +28,8 @@ def map_local_icons(icon_name):
 def get_lootpool_week():
     """ Get the current Wynn week number and year. Lootpool resets every Friday at 6 PM Heroku time
     """
-    now = datetime.utcnow() 
+    now = datetime.utcnow()
+    print(f"Server time: {now}")
     reset_day = 4  # Friday
     reset_hour = 18  # 8 PM Switzerland, 6 PM Heroku
 
