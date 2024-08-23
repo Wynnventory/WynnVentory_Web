@@ -55,6 +55,7 @@ def save_trade_market_item(item, environment="prod"):
     # Insert the new item if no duplicate is found
     item['timestamp'] = datetime.utcnow()
     collection.insert_one(item)
+    print(f"Item saved: {item}")
     return {"message": "Item saved successfully"}, 200
 
 
