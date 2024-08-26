@@ -7,7 +7,7 @@ import logging
 MONGO_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 DB_NAME = "wynnventory"
 ORIGINAL_COLLECTION = "trademarket_items_DEV"
-SUMMARY_COLLECTION = "trademarket_items_2024_DEV"
+SUMMARY_COLLECTION = "trademarket_items_2024_DEV2"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
