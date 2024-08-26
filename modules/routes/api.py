@@ -113,7 +113,11 @@ def get_market_item_price_info(item_name):
     """
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
-    result = mongodb_connector.get_trade_market_item_price(item_name)
+    
+    env = request.args.get('env')
+    if env == 'dev2':
+        env = "dev"
+    result = mongodb_connector.get_trade_market_item_price(item_name, env)
     return result
 
 
