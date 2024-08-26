@@ -23,7 +23,6 @@ def item():
 @web_bp.route("/lootpool")
 def lootpool():
     loot_items = api.get_lootpool_items()[0].get_json()
-    print(loot_items)
     return render_template("lootpool.html", loot_items=loot_items)
 
 @web_bp.route("/players")
