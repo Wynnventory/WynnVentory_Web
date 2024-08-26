@@ -152,16 +152,18 @@ def save_lootpool_item(item, environment="prod"):
     item['week'] = loot_week
     item['year'] = loot_year
 
+
     # Extract relevant fields to check for duplicates (excluding timestamp)
     item_check = {
         "name": item.get("name"),
         "rarity": item.get("rarity"),
-        "type": item.get("type"),
+        "itemType": item.get("itemType"),
         "shiny": item.get("shiny"),
         "amount": item.get("amount"),
         "region": item.get("region"),
         "week": item.get("week"),
-        "year": item.get("year")
+        "year": item.get("year"),
+        "type": item.get("type")
     }
 
     # Check for duplicate items
