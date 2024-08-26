@@ -207,7 +207,7 @@ def format_item_for_db(item):
                 "value": stat.get('value'),
                 "actual_roll_percentage": stat.get('actualRollPercentage'),
                 "stat_name": stat.get('statName'),
-                "range": stat.get('range', {})
+                # "range": stat.get('range', {})
             } for stat in item_data.get('actualStatsWithPercentage', [])
         ]
     }
