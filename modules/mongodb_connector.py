@@ -71,10 +71,10 @@ def get_trade_market_item(item_name):
     return check_results(result, custom_message="No items found with that name")
 
 
-def get_trade_market_item_price(item_name):
+def get_trade_market_item_price(item_name, environment="prod"):
     """ Retrieve price of item from the trademarket collection
     """
-    collection = db[PROD_MARKET_DB]
+    collection = get_collection("trademarket", environment)
 
     result = collection.aggregate(
         [

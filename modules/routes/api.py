@@ -113,7 +113,11 @@ def get_market_item_price_info(item_name):
     """
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
-    result = mongodb_connector.get_trade_market_item_price(item_name)
+    
+    env = request.args.get('env')
+    if env == 'dev2':
+        env = "dev"
+    result = mongodb_connector.get_trade_market_item_price(item_name, env)
     return result
 
 
@@ -202,6 +206,7 @@ def format_item_for_db(item):
         "overall_percentage": item_data.get('overallPercentage'),
         "listing_price": item.get('listingPrice'),
         "player_name": item.get('playerName'),
+        "mod_version": item.get('modVersion'),
         "actual_stats_with_percentage": [
             {
                 "value": stat.get('value'),
