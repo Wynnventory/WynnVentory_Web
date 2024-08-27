@@ -206,6 +206,7 @@ def format_item_for_db(item):
         "overall_percentage": item_data.get('overallPercentage'),
         "listing_price": item.get('listingPrice'),
         "player_name": item.get('playerName'),
+        "mod_version": item.get('modVersion'),
         "actual_stats_with_percentage": [
             {
                 "value": stat.get('value'),
