@@ -117,6 +117,8 @@ def get_market_item_price_info(item_name):
     env = request.args.get('env')
     if env == 'dev2':
         env = "dev"
+    else:
+        env = "prod"
     result = mongodb_connector.get_trade_market_item_price(item_name, env)
     return result
 
