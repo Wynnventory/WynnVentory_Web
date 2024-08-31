@@ -1,13 +1,16 @@
 from pymongo import MongoClient
 from datetime import datetime, timedelta
-# import pytz
 import logging
+
+# Archive all items of {ORIGINAL_COLLECTION} older than {DAY_OFFSET} days to {SUMMARY_COLLECTION}.
+# Before deleting the original data, all items are aggregated to get the min, max, avg price of identified items and avg price of unidentified items.
 
 # MongoDB connection settings
 MONGO_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 DB_NAME = "wynnventory"
-ORIGINAL_COLLECTION = "trademarket_items_DEV"
-SUMMARY_COLLECTION = "trademarket_items_2024_DEV2"
+ORIGINAL_COLLECTION = "trademarket_items_PROD"
+SUMMARY_COLLECTION = "tm_items_ARCH_PROD"
+DAY_OFFSET = 7
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -110,38 +113,47 @@ def aggregate_item_data(item_name, collection):
     return list(result)[0]
 
 def archive_and_summarize():
-    # Get the previous day range with timezone
-    today = datetime(2024, 8, 27, 0, 0, 0).replace(second=0, microsecond=0)
-    yesterday = today - timedelta(days=1)
+    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    # today = datetime(2024, 8, 25, 0, 0, 0, 0) # Manual date
+    from_day = today - timedelta(days=DAY_OFFSET)
+    to_day = today - timedelta(days=DAY_OFFSET + 1)
 
-    logging.info(f"Archiving data from {yesterday.isoformat()} to {today.isoformat()}")
+    logging.info(f"Archiving data from {to_day.isoformat()} to {from_day.isoformat()}")
 
-    # Get distinct item names for the previous day
+    # Get distinct item names for the data older than 3 days
     item_names = db[ORIGINAL_COLLECTION].distinct("name", {
-        "timestamp": {"$gte": yesterday, "$lt": today}
+        "timestamp": {"$gte": to_day, "$lt": from_day}
     })
 
     if not item_names:
         logging.info("No data to archive.")
         return
 
-    for item_name in item_names:
-        # logging.info(f"Processing item: {item_name}")
+    summaries = []
+    total_items = len(item_names)
+    logging.info(f"Found {total_items} unique items to archive and summarize.")
+    for i, item_name in enumerate(item_names, start=1):
         summary = aggregate_item_data(item_name, db[ORIGINAL_COLLECTION])
         summary["name"] = item_name
-        summary["date"] = yesterday
+        summary["date"] = from_day
+        summaries.append(summary)
 
-        # logging.info(f"Summary for {item_name}: {summary}")
-        db[SUMMARY_COLLECTION].insert_one(summary)
+        if i % 50 == 0 or i == total_items:
+            logging.info(f"Processed {i}/{total_items} items.")
+    
+    if summaries:
+        db[SUMMARY_COLLECTION].insert_many(summaries)
+
 
     logging.info("Summarization complete. Archiving original data.")
-
-    # Archive or delete the original data if needed
-    # db[ORIGINAL_COLLECTION].delete_many({
-    #     "timestamp": {"$gte": yesterday, "$lt": today}
-    # })
-
-    logging.info("Original data deleted. Archiving process complete.")
+    # Delete the original data older in date range
+    db[ORIGINAL_COLLECTION].delete_many({
+        "timestamp": {
+            "$gte": to_day,
+            "$lt": from_day
+        }
+    })
+    logging.info(f"Original data older than {DAY_OFFSET} days deleted. Archiving process complete.")
 
 if __name__ == "__main__":
     archive_and_summarize()
