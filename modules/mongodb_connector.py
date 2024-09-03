@@ -172,7 +172,7 @@ def get_trade_market_item_price(item_name, environment="prod"):
                     "average_price": {"$arrayElemAt": ["$identified_prices.avgPrice", 0]},
                     "average_mid_80_percent_price": {"$arrayElemAt": ["$identified_prices.average_mid_80_percent_price", 0]},
                     "unidentified_average_price": {"$arrayElemAt": ["$unidentified_avg_price.avgUnidentifiedPrice", 0]},
-                    "unidentified_mid_80_percent_price": {"$arrayElemAt": ["$unidentified_avg_price.average_mid_80_percent_price", 0]}
+                    "unidentified_average_mid_80_percent_price": {"$arrayElemAt": ["$unidentified_avg_price.average_mid_80_percent_price", 0]}
                 }
             }
         ]
