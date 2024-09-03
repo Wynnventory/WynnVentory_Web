@@ -7,13 +7,15 @@
 	background-position: 32px 32px;
 	
 	-ms-interpolation-mode: nearest-neighbor;
-	image-rendering: -moz-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
 	image-rendering: pixelated;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -o-pixelated;
+	image-rendering: crisp-edges;
 }
 .icon-minecraft {
 	width: 32px;
 	height: 32px;
-	margin-right: 10px;
 }
 .icon-minecraft-sm {
 	width: 16px;

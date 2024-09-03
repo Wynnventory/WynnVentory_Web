@@ -79,18 +79,13 @@ def get_trade_market_item_price(item_name, environment="prod"):
     result = collection.aggregate(
         [
             {
-                "$match": {
-                    "name": item_name,
-                    "shiny_stat": {"$eq": None}
-                }
-            },
-            {"$sort": {"listing_price": 1}},
-            {
                 "$facet": {
                     "identified_prices": [
                         {
                             "$match": {
+                                "name": item_name,
                                 "unidentified": False,
+                                "shiny_stat": {"$eq": None}
                             }
                         },
                         {
@@ -98,8 +93,7 @@ def get_trade_market_item_price(item_name, environment="prod"):
                                 "_id": None,
                                 "minPrice": {"$min": "$listing_price"},
                                 "maxPrice": {"$max": "$listing_price"},
-                                "avgPrice": {"$avg": "$listing_price"},
-                                "prices": {"$push": "$listing_price"}
+                                "avgPrice": {"$avg": "$listing_price"}
                             }
                         },
                         {
@@ -107,59 +101,27 @@ def get_trade_market_item_price(item_name, environment="prod"):
                                 "_id": 0,
                                 "minPrice": {"$round": ["$minPrice", 2]},
                                 "maxPrice": {"$round": ["$maxPrice", 2]},
-                                "avgPrice": {"$round": ["$avgPrice", 2]},
-                                "mid_80_percent": {
-                                    "$slice": [
-                                        "$prices",
-                                        { "$ceil": { "$multiply": [{ "$size": "$prices" }, 0.1] } },
-                                        { "$floor": { "$multiply": [{ "$size": "$prices" }, 0.8] } }
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            "$project": {
-                                "minPrice": 1,
-                                "maxPrice": 1,
-                                "avgPrice": 1,
-                                "average_mid_80_percent_price": {
-                                    "$round": [{ "$avg": "$mid_80_percent" }, 2]
-                                }
+                                "avgPrice": {"$round": ["$avgPrice", 2]}
                             }
                         }
                     ],
                     "unidentified_avg_price": [
                         {
                             "$match": {
+                                "name": item_name,
                                 "unidentified": True
                             }
                         },
                         {
                             "$group": {
                                 "_id": None,
-                                "avgUnidentifiedPrice": {"$avg": "$listing_price"},
-                                "prices": {"$push": "$listing_price"}
+                                "avgUnidentifiedPrice": {"$avg": "$listing_price"}
                             }
                         },
                         {
                             "$project": {
                                 "_id": 0,
-                                "avgUnidentifiedPrice": {"$round": ["$avgUnidentifiedPrice", 2]},
-                                "mid_80_percent": {
-                                    "$slice": [
-                                        "$prices",
-                                        { "$ceil": { "$multiply": [{ "$size": "$prices" }, 0.1] } },
-                                        { "$floor": { "$multiply": [{ "$size": "$prices" }, 0.8] } }
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            "$project": {
-                                "avgUnidentifiedPrice": 1,
-                                "average_mid_80_percent_price": {
-                                    "$round": [{ "$avg": "$mid_80_percent" }, 2]
-                                }
+                                "avgUnidentifiedPrice": {"$round": ["$avgUnidentifiedPrice", 2]}
                             }
                         }
                     ]
@@ -170,14 +132,11 @@ def get_trade_market_item_price(item_name, environment="prod"):
                     "lowest_price": {"$arrayElemAt": ["$identified_prices.minPrice", 0]},
                     "highest_price": {"$arrayElemAt": ["$identified_prices.maxPrice", 0]},
                     "average_price": {"$arrayElemAt": ["$identified_prices.avgPrice", 0]},
-                    "average_mid_80_percent_price": {"$arrayElemAt": ["$identified_prices.average_mid_80_percent_price", 0]},
-                    "unidentified_average_price": {"$arrayElemAt": ["$unidentified_avg_price.avgUnidentifiedPrice", 0]},
-                    "unidentified_mid_80_percent_price": {"$arrayElemAt": ["$unidentified_avg_price.average_mid_80_percent_price", 0]}
+                    "unidentified_average_price": {"$arrayElemAt": ["$unidentified_avg_price.avgUnidentifiedPrice", 0]}
                 }
             }
         ]
     )
-
     return check_results(result)
 
 
