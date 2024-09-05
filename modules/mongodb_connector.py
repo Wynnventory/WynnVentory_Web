@@ -109,10 +109,16 @@ def get_trade_market_item_price(item_name, environment="prod"):
                                 "maxPrice": {"$round": ["$maxPrice", 2]},
                                 "avgPrice": {"$round": ["$avgPrice", 2]},
                                 "mid_80_percent": {
-                                    "$slice": [
-                                        "$prices",
-                                        { "$ceil": { "$multiply": [{ "$size": "$prices" }, 0.1] } },
-                                        { "$floor": { "$multiply": [{ "$size": "$prices" }, 0.8] } }
+                                    "$cond": [
+                                        {"$gte": [{"$size": "$prices"}, 2]},
+                                        {
+                                            "$slice": [
+                                                "$prices",
+                                                {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}},
+                                                {"$floor": {"$multiply": [{"$size": "$prices"}, 0.8]}}
+                                            ]
+                                        },
+                                        "$prices"  # Use the full prices array if less than 2 entries
                                     ]
                                 }
                             }
@@ -123,7 +129,7 @@ def get_trade_market_item_price(item_name, environment="prod"):
                                 "maxPrice": 1,
                                 "avgPrice": 1,
                                 "average_mid_80_percent_price": {
-                                    "$round": [{ "$avg": "$mid_80_percent" }, 2]
+                                    "$round": [{"$avg": "$mid_80_percent"}, 2]
                                 }
                             }
                         }
@@ -146,10 +152,16 @@ def get_trade_market_item_price(item_name, environment="prod"):
                                 "_id": 0,
                                 "avgUnidentifiedPrice": {"$round": ["$avgUnidentifiedPrice", 2]},
                                 "mid_80_percent": {
-                                    "$slice": [
-                                        "$prices",
-                                        { "$ceil": { "$multiply": [{ "$size": "$prices" }, 0.1] } },
-                                        { "$floor": { "$multiply": [{ "$size": "$prices" }, 0.8] } }
+                                    "$cond": [
+                                        {"$gte": [{"$size": "$prices"}, 2]},
+                                        {
+                                            "$slice": [
+                                                "$prices",
+                                                {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}},
+                                                {"$floor": {"$multiply": [{"$size": "$prices"}, 0.8]}}
+                                            ]
+                                        },
+                                        "$prices"  # Use the full prices array if less than 2 entries
                                     ]
                                 }
                             }
@@ -158,7 +170,7 @@ def get_trade_market_item_price(item_name, environment="prod"):
                             "$project": {
                                 "avgUnidentifiedPrice": 1,
                                 "average_mid_80_percent_price": {
-                                    "$round": [{ "$avg": "$mid_80_percent" }, 2]
+                                    "$round": [{"$avg": "$mid_80_percent"}, 2]
                                 }
                             }
                         }
