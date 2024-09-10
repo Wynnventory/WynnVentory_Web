@@ -3,9 +3,9 @@ import requests
 from modules.utils import map_local_icons
 
 
-BASE_URL = "https://beta-api.wynncraft.com/v3/"
+BASE_URL = "https://api.wynncraft.com/v3"
 def get_item_database():
-    url = f"{BASE_URL}item/database?fullResult"
+    url = f"{BASE_URL}/item/database?fullResult"
     try:
         response = requests.get(url)
         response.raise_for_status()
@@ -23,7 +23,7 @@ def get_item_database():
     
 
 def search_item(payload, page=1):
-    url = f"{BASE_URL}item/search?page={page}"
+    url = f"{BASE_URL}/item/search?page={page}"
     try:
         response = requests.post(url, json=payload)
         response.raise_for_status()
@@ -37,7 +37,7 @@ def search_item(payload, page=1):
     
 def quick_search_item(item_name):
     # url = f"{BASE_URL}item/search"
-    url = "https://beta-api.wynncraft.com/v3/item/search"
+    url = f"{BASE_URL}/item/search"
     try:
         response = requests.get(f"{url}/{item_name}")
         response.raise_for_status()
