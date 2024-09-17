@@ -462,6 +462,8 @@ def save_raidpool_item(raidpool, environment="prod"):
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
 
+    print(f"Received raidpool with {len(raidpool.get('items'))} items")
+
     # Add week and year to the item
     loot_year, loot_week = get_lootpool_week()
     raidpool['week'] = loot_week
@@ -484,11 +486,16 @@ def save_raidpool_item(raidpool, environment="prod"):
         time_difference = current_time - pool_timestamp
         
         if time_difference > timedelta(hours=1) or len(raidpool.get("items")) > len(duplicate_item['items']):
+            if time_difference > timedelta(hours=1):
+                print("Time difference is greater than 1 hour")
+            elif len(raidpool.get("items")) > len(duplicate_item['items']):
+                print("New raidpool has more items than the existing one")
             collection.delete_one(pool_check)
             collection.insert_one(raidpool)
         else:
             return {"message": "Duplicate item found, skipping insertion"}, 200
     else: # No duplicate found
+        print("No duplicate found")
         collection.insert_one(raidpool)
         
     return {"message": "Item saved successfully"}, 200
