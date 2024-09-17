@@ -163,6 +163,30 @@ def get_lootpool_items():
     result = mongodb_connector.get_lootpool_items(environment=env)
     return result
 
+@api_bp.route("/api/raidpool/items", methods=['POST'])
+def save_raidpool_items():
+    """ Save items to the raidpool collection
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return {"message": "No items provided"}, 400
+
+        items = data if isinstance(data, list) else [data]
+
+        env = request.args.get('env')
+        if not env or env == 'dev':
+            for item in items:
+                request_queue.put(("raidpool", item, "prod"))
+            return jsonify({"message": "Items received successfully"}), 200
+        elif env == 'dev2':
+            for item in items:
+                request_queue.put(("raidpool", item, "dev"))
+            return jsonify({"message": "Items saved to dev collection"}), 200
+        else:
+            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def process_item_data(item_data):
     """Process item data from the Wynn API and store it in the appropriate model class."""
@@ -236,6 +260,8 @@ def process_queue():
             mongodb_connector.save_trade_market_item(item, env)
         elif request == 'lootpool':
             mongodb_connector.save_lootpool_item(item, env)
+        elif request == 'raidpool':
+            mongodb_connector.save_raidpool_item(item, env)
         request_queue.task_done()
 
 

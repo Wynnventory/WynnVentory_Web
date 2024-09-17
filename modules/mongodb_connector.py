@@ -10,6 +10,8 @@ PROD_MARKET_DB = "trademarket_items_PROD"
 DEV_MARKET_DB = "trademarket_items_DEV"
 PROD_LOOT_DB = "lootpool_items_PROD"
 DEV_LOOT_DB = "lootpool_items_DEV"
+PROD_RAID_DB = "raidpool_items_PROD"
+DEV_RAID_DB = "raidpool_items_DEV"
 
 # Create a new client and connect to the server with SSL settings
 client = MongoClient(uri, server_api=ServerApi(
@@ -453,6 +455,43 @@ def get_lootpool_items(environment="prod"):
     )
     return check_results(result, custom_message="No lootpool items found for this week")
 
+def save_raidpool_item(raidpool, environment="prod"):
+    """ Save items to the raidpool collection
+    """
+    collection = get_collection("raidpool", environment)
+    if collection is None:
+        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+
+    # Add week and year to the item
+    loot_year, loot_week = get_lootpool_week()
+    raidpool['week'] = loot_week
+    raidpool['year'] = loot_year
+    raidpool['timestamp'] = datetime.utcnow()
+
+    # Extract relevant fields to check for duplicates (excluding timestamp)
+    pool_check = {
+        "region": raidpool.get("region"),
+        "week": raidpool.get("week"),
+        "year": raidpool.get("year")
+    }
+
+    # Check for duplicate items
+    duplicate_item = collection.find_one(pool_check)
+    
+    if duplicate_item is not None:
+        pool_timestamp = duplicate_item['timestamp'] # Get the timestamp of the existing lootpool
+        current_time = datetime.now()
+        time_difference = current_time - pool_timestamp
+        
+        if time_difference > timedelta(hours=1) or len(raidpool.get("items")) > len(duplicate_item['items']):
+            collection.delete_one(pool_check)
+            collection.insert_one(raidpool)
+        else:
+            return {"message": "Duplicate item found, skipping insertion"}, 200
+    else: # No duplicate found
+        collection.insert_one(raidpool)
+        
+    return {"message": "Item saved successfully"}, 200
 
 def check_results(result, custom_message="No items found"):
     """ Check if the result is empty and return a custom message
@@ -476,3 +515,8 @@ def get_collection(collection, environment="prod"):
             return db[PROD_LOOT_DB]
         elif environment == "dev" or environment == "dev2":
             return db[DEV_LOOT_DB]
+    elif collection == "raidpool":
+        if environment == "prod":
+            return db[PROD_RAID_DB]
+        elif environment == "dev" or environment == "dev2":
+            return db[DEV_RAID_DB]
