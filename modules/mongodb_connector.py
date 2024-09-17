@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from flask import jsonify
@@ -193,7 +193,7 @@ def get_trade_market_item_price(item_name, environment="prod"):
     return check_results(result)
 
 
-def save_lootpool_item(item, environment="prod"):
+def save_lootpool_item(lootpool, environment="prod"):
     """ Save items to the lootpool collection
     """
     collection = get_collection("lootpool", environment)
@@ -202,31 +202,37 @@ def save_lootpool_item(item, environment="prod"):
 
     # Add week and year to the item
     loot_year, loot_week = get_lootpool_week()
-    item['week'] = loot_week
-    item['year'] = loot_year
-
+    lootpool['week'] = loot_week
+    lootpool['year'] = loot_year
+    lootpool['timestamp'] = datetime.utcnow()
 
     # Extract relevant fields to check for duplicates (excluding timestamp)
-    item_check = {
-        "name": item.get("name"),
-        "rarity": item.get("rarity"),
-        "itemType": item.get("itemType"),
-        "shiny": item.get("shiny"),
-        "amount": item.get("amount"),
-        "region": item.get("region"),
-        "week": item.get("week"),
-        "year": item.get("year"),
-        "type": item.get("type")
+    pool_check = {
+        "region": lootpool.get("region"),
+        "week": lootpool.get("week"),
+        "year": lootpool.get("year")
     }
 
     # Check for duplicate items
-    duplicate_item = collection.find_one(item_check)
-    if duplicate_item:
-        return {"message": "Duplicate item found, skipping insertion"}, 200
-
-    # Insert the new item if no duplicate is found
-    item['timestamp'] = datetime.utcnow()
-    collection.insert_one(item)
+    duplicate_item = collection.find_one(pool_check)
+    
+    if duplicate_item is not None:
+        pool_timestamp = duplicate_item['timestamp'] # Get the timestamp of the existing lootpool
+        current_time = datetime.now()
+        time_difference = current_time - pool_timestamp
+        
+        if time_difference > timedelta(hours=1) or len(lootpool.get("items")) > len(duplicate_item['items']):
+            if time_difference > timedelta(hours=1):
+                print("The timestamp is more than 1 hour old.")
+            elif len(lootpool.get("items")) > len(duplicate_item['items']):
+                print("The new lootpool has more items than the existing one.")
+            collection.delete_one(pool_check)
+            collection.insert_one(lootpool)
+        else:
+            return {"message": "Duplicate item found, skipping insertion"}, 200
+    else: # No duplicate found
+        collection.insert_one(lootpool)
+        
     return {"message": "Item saved successfully"}, 200
 
 
