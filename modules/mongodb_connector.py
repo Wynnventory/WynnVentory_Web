@@ -222,10 +222,6 @@ def save_lootpool_item(lootpool, environment="prod"):
         time_difference = current_time - pool_timestamp
         
         if time_difference > timedelta(hours=1) or len(lootpool.get("items")) > len(duplicate_item['items']):
-            if time_difference > timedelta(hours=1):
-                print("The timestamp is more than 1 hour old.")
-            elif len(lootpool.get("items")) > len(duplicate_item['items']):
-                print("The new lootpool has more items than the existing one.")
             collection.delete_one(pool_check)
             collection.insert_one(lootpool)
         else:
