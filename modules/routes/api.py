@@ -138,6 +138,7 @@ def save_lootpool_items():
         if not data:
             return {"message": "No items provided"}, 400
         
+        print(f"Received items: {data}")
         print(f"Received items with mod version: {data['modVersion']}")
         if data['modVersion'] != '0.8.0':
             print("Only mod version 0.8.0 is supported")
