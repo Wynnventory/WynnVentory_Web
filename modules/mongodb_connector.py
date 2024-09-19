@@ -201,6 +201,8 @@ def save_lootpool_item(lootpool, environment="prod"):
     collection = get_collection("lootpool", environment)
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    
+    print(f"Received lootpool with {len(lootpool.get('items'))} items")
 
     # Add week and year to the item
     loot_year, loot_week = get_lootpool_week()
@@ -224,11 +226,14 @@ def save_lootpool_item(lootpool, environment="prod"):
         time_difference = current_time - pool_timestamp
         
         if time_difference > timedelta(hours=1) or len(lootpool.get("items")) > len(duplicate_item['items']):
+            print("Time difference is greater than 1 hour or new lootpool has more items than the existing one")
             collection.delete_one(pool_check)
             collection.insert_one(lootpool)
         else:
+            print("Duplicate item found, skipping insertion")
             return {"message": "Duplicate item found, skipping insertion"}, 200
     else: # No duplicate found
+        print("No duplicate found")
         collection.insert_one(lootpool)
         
     return {"message": "Item saved successfully"}, 200
