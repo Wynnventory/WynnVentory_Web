@@ -138,7 +138,7 @@ def save_lootpool_items():
         if not data:
             return {"message": "No items provided"}, 400
         
-        print(f"Received items with mod version: {data['modVersion']}")
+        # print(f"Received items with mod version: {data['modVersion']}")
         print(f"Data type is {type(data)}")
         if type(data) is list:
             print(f"Data: {data[0]}")
