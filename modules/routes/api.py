@@ -137,6 +137,10 @@ def save_lootpool_items():
         data = request.get_json()
         if not data:
             return {"message": "No items provided"}, 400
+        
+        if data['modVersion'] != '0.8.0':
+            print("Only mod version 0.8.0 is supported")
+            return jsonify({"message": "Only mod version 0.8.0 is supported"}), 400
 
         items = data if isinstance(data, list) else [data]
 
@@ -175,6 +179,10 @@ def save_raidpool_items():
         items = data if isinstance(data, list) else [data]
 
         env = request.args.get('env')
+        
+        print(f"Saving items to {env} collection")
+        print(f"Items: {items}")
+        
         if not env or env == 'dev':
             for item in items:
                 request_queue.put(("raidpool", item, "prod"))
