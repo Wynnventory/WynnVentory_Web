@@ -13,7 +13,7 @@ from modules import mongodb_connector
 api_bp = Blueprint('api', __name__)
 request_queue = Queue()
 
-# WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
+WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
 
 
 @api_bp.route("/api/item/<item_name>", methods=['GET'])
@@ -116,9 +116,9 @@ def get_market_item_price_info(item_name):
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
     
-    # user = request.args.get('playername')
-    # if user not in WHITELISTED_PLAYERS:
-    #     return jsonify({"message": "Unauthorized"}), 401
+    user = request.args.get('playername')
+    if user not in WHITELISTED_PLAYERS:
+        return jsonify({"message": "Unauthorized"}), 401
     
     env = request.args.get('env')
     if env == 'dev2':
