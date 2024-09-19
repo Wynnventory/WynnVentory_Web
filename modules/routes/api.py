@@ -140,7 +140,10 @@ def save_lootpool_items():
         
         print(f"Received items: {data}")
         print(f"Received items with mod version: {data['modVersion']}")
-        if data['modVersion'] != '0.8.0':
+        if type(data) is not list and compare_versions(data['modVersion'], '0.7.0'):
+            print("Only mod version 0.8.0 is supported")
+            return jsonify({"message": "Only mod version 0.8.0 is supported"}), 400
+        elif type(data) is list and compare_versions(data[0]['modVersion'], '0.7.0'):
             print("Only mod version 0.8.0 is supported")
             return jsonify({"message": "Only mod version 0.8.0 is supported"}), 400
 
@@ -280,6 +283,18 @@ def shutdown_worker():
     """
     request_queue.put(None)
     worker_thread.join()
+    
+def compare_versions(version_a: str, version_b: str) -> bool:
+    # Split the versions by dot and convert each part to an integer
+    parts_a = list(map(int, version_a.split('.')))
+    parts_b = list(map(int, version_b.split('.')))
+
+    # Compare each part: major, minor, patch
+    for a, b in zip(parts_a, parts_b):
+        if a > b:
+            return True
+        elif a < b:
+            return False
 
 
 # Start a worker thread to process the queue
