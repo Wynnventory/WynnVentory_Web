@@ -139,10 +139,15 @@ def save_lootpool_items():
             return {"message": "No items provided"}, 400
         
         print(f"Received items with mod version: {data['modVersion']}")
-        if type(data) is not list and compare_versions(data['modVersion'], '0.7.0'):
+        print(f"Data type is {type(data)}")
+        if type(data) is list:
+            print(f"Data: {data[0]}")
+            print(f"Data mod version: {data[0]['modVersion']}") # test only
+            
+        if type(data) is list and not compare_versions(data[0]['modVersion'], '0.7.0'):
             print("Only mod version 0.8.0 is supported")
             return jsonify({"message": "Only mod version 0.8.0 is supported"}), 400
-        elif type(data) is list and compare_versions(data[0]['modVersion'], '0.7.0'):
+        elif type(data) is not list and not compare_versions(data['modVersion'], '0.7.0'):
             print("Only mod version 0.8.0 is supported")
             return jsonify({"message": "Only mod version 0.8.0 is supported"}), 400
 
