@@ -25,7 +25,7 @@
                             {% for item in rarity_group.loot_items %}
                             <li class="lootpool-card-item">
                                 {% if item.type is not none %}
-                                    <img src="{{ url_for('static', filename='icons/' ~ item.type ~ '.webp') }}" alt="{{ item.name }}" class="img-fluid" onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                                    <span class="sprite bg-{{ item.type|lower }}"></span>
                                 {% endif %}
                                 <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                             </li>
@@ -38,7 +38,7 @@
                         {% for item in rarity_group.loot_items %}
                         <li class="lootpool-card-item">
                             {% if item.type is not none %}
-                                <img src="{{ url_for('static', filename='icons/' ~ item.type ~ '.webp') }}" alt="{{ item.name }}" class="img-fluid" onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                                <span class="sprite bg-{{ item.type|lower }}"></span>
                             {% endif %}
                             {% if rarity_group.rarity == 'Misc' %}
                             <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>

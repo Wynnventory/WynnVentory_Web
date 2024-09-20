@@ -278,6 +278,15 @@ background-color: var(--bs-body-bg);
     flex-direction: column;
     height: auto; /* Ensure auto height */
 }
+.lootpool-card-item {
+    display: flex;
+    align-items: center; 
+    text-align: left; 
+    /* padding: 3px 0;  */
+}
+.lootpool-card-item .sprite {
+    margin-right: 15px;
+}
 
 
 /* Wynncraft Style */
@@ -459,4 +468,143 @@ li .Set:hover {
 }
 .negative-to {
     color: #940000;
+}
+
+/* SPRITES */
+.sprite {
+    display: inline-block;
+    background-image: url('/icons/wynn_sprites.png');
+    background-repeat: no-repeat;
+}
+
+.bg-helmet {
+    width: 32px;
+    height: 32px;
+    background-position: -10px -10px;
+}
+
+.bg-insulator {
+    width: 32px;
+    height: 32px;
+    background-position: -62px -10px;
+}
+
+.bg-nii {
+    width: 32px;
+    height: 32px;
+    background-position: -10px -62px;
+}
+
+.bg-leggings {
+    width: 32px;
+    height: 32px;
+    background-position: -62px -62px;
+}
+
+.bg-necklace {
+    width: 32px;
+    height: 32px;
+    background-position: -114px -10px;
+}
+
+.bg-liquid_emerald {
+    width: 32px;
+    height: 32px;
+    background-position: -270px -10px;
+}
+
+.bg-relik {
+    width: 31px;
+    height: 32px;
+    background-position: -218px -62px;
+}
+
+.bg-ring {
+    width: 32px;
+    height: 32px;
+    background-position: -114px -62px;
+}
+
+.bg-az {
+    width: 32px;
+    height: 32px;
+    background-position: -10px -114px;
+}
+
+.bg-boots {
+    width: 32px;
+    height: 32px;
+    background-position: -62px -114px;
+}
+
+.bg-bow {
+    width: 32px;
+    height: 32px;
+    background-position: -114px -114px;
+}
+
+.bg-bracelet {
+    width: 32px;
+    height: 32px;
+    background-position: -166px -10px;
+}
+
+.bg-chestplate {
+    width: 32px;
+    height: 32px;
+    background-position: -166px -62px;
+}
+
+.bg-dagger {
+    width: 32px;
+    height: 32px;
+    background-position: -166px -114px;
+}
+
+.bg-simulator {
+    width: 32px;
+    height: 32px;
+    background-position: -10px -166px;
+}
+
+.bg-spear {
+    width: 32px;
+    height: 32px;
+    background-position: -62px -166px;
+}
+
+.bg-tol {
+    width: 32px;
+    height: 32px;
+    background-position: -114px -166px;
+}
+
+.bg-tome {
+    width: 52px;
+    height: 32px;
+    background-position: -10px -218px;
+}
+
+.bg-uth {
+    width: 32px;
+    height: 32px;
+    background-position: -166px -166px;
+}
+
+.bg-emerald_block {
+    width: 29px;
+    height: 32px;
+    background-position: -218px -114px;
+}
+
+.bg-dungeonkey {
+    width: 42px;
+    height: 32px;
+    background-position: -218px -166px;
+}
+
+.bg-wand {
+    width: 32px;
+    height: 32px;
+    background-position: -218px -10px;
 }
