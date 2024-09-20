@@ -225,7 +225,7 @@ def save_lootpool_item(lootpool, environment="prod"):
         current_time = datetime.now()
         time_difference = current_time - pool_timestamp
         
-        if time_difference > timedelta(hours=1) or len(lootpool.get("items")) > len(duplicate_item['items']):
+        if len(lootpool.get("items")) > len(duplicate_item['items']) or (time_difference > timedelta(hours=1) and len(lootpool.get("items")) >= len(duplicate_item['items'])):
             print("Time difference is greater than 1 hour or new lootpool has more items than the existing one")
             collection.delete_one(pool_check)
             collection.insert_one(lootpool)
@@ -490,7 +490,7 @@ def save_raidpool_item(raidpool, environment="prod"):
         current_time = datetime.now()
         time_difference = current_time - pool_timestamp
         
-        if time_difference > timedelta(hours=1) or len(raidpool.get("items")) > len(duplicate_item['items']):
+        if len(raidpool.get("items")) > len(duplicate_item['items']) or (time_difference > timedelta(hours=1) and len(raidpool.get("items")) >= len(duplicate_item['items'])):
             if time_difference > timedelta(hours=1):
                 print("Time difference is greater than 1 hour")
             elif len(raidpool.get("items")) > len(duplicate_item['items']):
