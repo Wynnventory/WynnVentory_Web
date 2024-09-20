@@ -374,6 +374,10 @@ li .Set:hover {
     text-decoration: underline;
     cursor: pointer;
 }
+.shiny,
+.Shiny {
+    color: rgb(162, 0, 162);
+}
 .neutral::before {
     content: '✤' ' ';
     color: rgb(230, 153, 0);

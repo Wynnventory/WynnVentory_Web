@@ -24,8 +24,8 @@
                         <ul class="list-unstyled">
                             {% for item in rarity_group.loot_items %}
                             <li class="lootpool-card-item">
-                                {% if item.name in loot_data.Icon %}
-                                <img src="{{ loot_data.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                                {% if item.type is not none %}
+                                    <img src="{{ url_for('static', filename='icons/' ~ item.type ~ '.webp') }}" alt="{{ item.name }}" class="img-fluid" onclick="displayItem(event, '{{ item.name | urlencode }}')">
                                 {% endif %}
                                 <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                             </li>
@@ -37,8 +37,8 @@
                     <ul class="list-unstyled">
                         {% for item in rarity_group.loot_items %}
                         <li class="lootpool-card-item">
-                            {% if item.name in loot_data.Icon %}
-                            <img src="{{ loot_data.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid" onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                            {% if item.type is not none %}
+                                <img src="{{ url_for('static', filename='icons/' ~ item.type ~ '.webp') }}" alt="{{ item.name }}" class="img-fluid" onclick="displayItem(event, '{{ item.name | urlencode }}')">
                             {% endif %}
                             {% if rarity_group.rarity == 'Misc' %}
                             <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
