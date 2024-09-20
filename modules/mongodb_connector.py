@@ -116,8 +116,10 @@ def get_trade_market_item_price(item_name, environment="prod"):
                                         {
                                             "$slice": [
                                                 "$prices",
-                                                {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}},
-                                                {"$floor": {"$multiply": [{"$size": "$prices"}, 0.8]}}
+                                                {"$ceil": {"$multiply": [
+                                                    {"$size": "$prices"}, 0.1]}},
+                                                {"$floor": {"$multiply": [
+                                                    {"$size": "$prices"}, 0.8]}}
                                             ]
                                         },
                                         "$prices"  # Use the full prices array if less than 2 entries
@@ -159,8 +161,10 @@ def get_trade_market_item_price(item_name, environment="prod"):
                                         {
                                             "$slice": [
                                                 "$prices",
-                                                {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}},
-                                                {"$floor": {"$multiply": [{"$size": "$prices"}, 0.8]}}
+                                                {"$ceil": {"$multiply": [
+                                                    {"$size": "$prices"}, 0.1]}},
+                                                {"$floor": {"$multiply": [
+                                                    {"$size": "$prices"}, 0.8]}}
                                             ]
                                         },
                                         "$prices"  # Use the full prices array if less than 2 entries
@@ -201,7 +205,7 @@ def save_lootpool_item(lootpool, environment="prod"):
     collection = get_collection("lootpool", environment)
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
-    
+
     print(f"Received lootpool with {len(lootpool.get('items'))} items")
 
     # Add week and year to the item
@@ -219,23 +223,25 @@ def save_lootpool_item(lootpool, environment="prod"):
 
     # Check for duplicate items
     duplicate_item = collection.find_one(pool_check)
-    
+
     if duplicate_item is not None:
-        pool_timestamp = duplicate_item['timestamp'] # Get the timestamp of the existing lootpool
+        # Get the timestamp of the existing lootpool
+        pool_timestamp = duplicate_item['timestamp']
         current_time = datetime.now()
         time_difference = current_time - pool_timestamp
-        
+
         if len(lootpool.get("items")) > len(duplicate_item['items']) or (time_difference > timedelta(hours=1) and len(lootpool.get("items")) >= len(duplicate_item['items'])):
-            print("Time difference is greater than 1 hour or new lootpool has more items than the existing one")
+            print(
+                "Time difference is greater than 1 hour or new lootpool has more items than the existing one")
             collection.delete_one(pool_check)
             collection.insert_one(lootpool)
         else:
             print("Duplicate item found, skipping insertion")
             return {"message": "Duplicate item found, skipping insertion"}, 200
-    else: # No duplicate found
+    else:  # No duplicate found
         print("No duplicate found")
         collection.insert_one(lootpool)
-        
+
     return {"message": "Item saved successfully"}, 200
 
 
@@ -247,218 +253,154 @@ def get_lootpool_items(environment="prod"):
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
     loot_year, loot_week = get_lootpool_week()
 
-    
     result = collection.aggregate([
-    {
-        "$match": {
-        "week": loot_week, 
-        "year": loot_year
-        }
-    },
-    {
-        "$unwind": "$items"
-    },
-    {
-        "$group": {
-        "_id": {
-            "region": "$region", 
-            "rarity": "$items.rarity", 
-            "shiny": "$items.shiny"
-        }, 
-        "itemsList": {
-            "$push": {
-            "itemType": "$items.itemType", 
-            "amount": "$items.amount", 
-            "name": "$items.name", 
-            "type": "$items.type",
-            "rarity": "$items.rarity",  
-            "shiny": "$items.shiny"      
+        {
+            "$match": {
+                "week": loot_week,
+                "year": loot_year
             }
-        }
-        }
-    },
-    {
-        "$group": {
-        "_id": "$_id.region", 
-        "week": {
-            "$first": loot_week
-        }, 
-        "year": {
-            "$first": loot_year
-        }, 
-        "itemsByRarity": {
-            "$push": {
-            "rarity": {
-                "$cond": {
-                "if": {
-                    "$eq": [
-                    "$_id.shiny", True
-                    ]
-                }, 
-                "then": "Shiny", 
-                "else": {
-                    "$cond": {
-                    "if": {
-                        "$eq": ["$_id.rarity", None]
-                    }, 
-                    "then": "Misc", 
-                    "else": {
-                        "$concat": [
-                        {
-                            "$toUpper": {
-                            "$substr": [
-                                "$_id.rarity", 0, 1
-                            ]
+        },
+        {
+            "$unwind": "$items"
+        },
+        {
+            "$group": {
+                "_id": {
+                    "region": "$region",
+                    "rarity": "$items.rarity",
+                    "shiny": "$items.shiny"
+                },
+                "itemsList": {
+                    "$push": {
+                        "itemType": "$items.itemType",
+                        "amount": "$items.amount",
+                        "name": "$items.name",
+                        "type": "$items.type",
+                        "rarity": "$items.rarity",
+                        "shiny": "$items.shiny"
+                    }
+                },
+                "timestamp": {"$first": "$timestamp"}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$_id.region",
+                "week": {"$first": loot_week},
+                "year": {"$first": loot_year},
+                "timestamp": {"$first": "$timestamp"}, 
+                "itemsByRarity": {
+                    "$push": {
+                        "rarity": {
+                            "$cond": {
+                                "if": {"$eq": ["$_id.shiny", True]},
+                                "then": "Shiny",
+                                "else": {
+                                    "$cond": {
+                                        "if": {"$eq": ["$_id.rarity", None]},
+                                        "then": "Misc",
+                                        "else": {
+                                            "$concat": [
+                                                {"$toUpper": {"$substr": [
+                                                    "$_id.rarity", 0, 1]}},
+                                                {"$substr": ["$_id.rarity", 1, {
+                                                    "$strLenCP": "$_id.rarity"}]}
+                                            ]
+                                        }
+                                    }
+                                }
                             }
-                        }, 
-                        {
-                            "$substr": [
-                            "$_id.rarity", 1, {
-                                "$strLenCP": "$_id.rarity"
+                        },
+                        "shiny": "$_id.shiny",
+                        "items": "$itemsList"
+                    }
+                }
+            }
+        },
+        {
+            "$addFields": {
+                "itemsByRarity": {
+                    "$map": {
+                        "input": "$itemsByRarity",
+                        "as": "item",
+                        "in": {
+                            "rarity": "$$item.rarity",
+                            "shiny": "$$item.shiny",
+                            "items": "$$item.items",
+                            "sortKey": {
+                                "$switch": {
+                                    "branches": [
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Shiny"]}, "then": 0},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Mythic"]}, "then": 1},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Fabled"]}, "then": 2},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Legendary"]}, "then": 3},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Rare"]}, "then": 4},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Unique"]}, "then": 5},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Misc"]}, "then": 6}
+                                    ],
+                                    "default": 7
+                                }
                             }
-                            ]
                         }
-                        ]
-                    }
                     }
                 }
-                }
-            }, 
-            "shiny": "$_id.shiny", 
-            "items": "$itemsList"
             }
-        }
-        }
-    },
-    {
-        "$addFields": {
-        "itemsByRarity": {
-            "$map": {
-            "input": "$itemsByRarity", 
-            "as": "item", 
-            "in": {
-                "rarity": "$$item.rarity", 
-                "shiny": "$$item.shiny", 
-                "items": "$$item.items", 
-                "sortKey": {
-                "$switch": {
-                    "branches": [
-                    {
-                        "case": {
-                        "$eq": [
-                            "$$item.rarity", "Shiny"
-                        ]
-                        }, 
-                        "then": 0
-                    }, 
-                    {
-                        "case": {
-                        "$eq": [
-                            "$$item.rarity", "Mythic"
-                        ]
-                        }, 
-                        "then": 1
-                    }, 
-                    {
-                        "case": {
-                        "$eq": [
-                            "$$item.rarity", "Fabled"
-                        ]
-                        }, 
-                        "then": 2
-                    }, 
-                    {
-                        "case": {
-                        "$eq": [
-                            "$$item.rarity", "Legendary"
-                        ]
-                        }, 
-                        "then": 3
-                    }, 
-                    {
-                        "case": {
-                        "$eq": [
-                            "$$item.rarity", "Rare"
-                        ]
-                        }, 
-                        "then": 4
-                    }, 
-                    {
-                        "case": {
-                        "$eq": [
-                            "$$item.rarity", "Unique"
-                        ]
-                        }, 
-                        "then": 5
-                    }, 
-                    {
-                        "case": {
-                        "$eq": [
-                            "$$item.rarity", "Misc"
-                        ]
-                        }, 
-                        "then": 6
-                    }
-                    ], 
-                    "default": 7
-                }
-                }
-            }
-            }
-        }
-        }
-    },
-    {
-        "$addFields": {
-        "itemsByRarity": {
-            "$sortArray": {
-            "input": "$itemsByRarity", 
-            "sortBy": {
-                "sortKey": 1
-            }
-            }
-        }
-        }
-    },  
-    {
-        "$project": {
-        "_id": 0, 
-        "region": "$_id", 
-        "week": 1, 
-        "year": 1, 
-        "region_items": {
-            "$map": {
-            "input": "$itemsByRarity", 
-            "as": "item", 
-            "in": {
-                "rarity": "$$item.rarity",
-                "loot_items": {
-                "$map": {
-                    "input": "$$item.items",
-                    "as": "loot_item",
-                    "in": {
-                    "itemType": "$$loot_item.itemType",
-                    "amount": "$$loot_item.amount",
-                    "name": "$$loot_item.name",
-                    "type": "$$loot_item.type",
-                    "rarity": "$$loot_item.rarity",
-                    "shiny": "$$loot_item.shiny"     
+        },
+        {
+            "$addFields": {
+                "itemsByRarity": {
+                    "$sortArray": {
+                        "input": "$itemsByRarity",
+                        "sortBy": {"sortKey": 1}
                     }
                 }
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "region": "$_id",
+                "week": 1,
+                "year": 1,
+                "timestamp": 1, 
+                "region_items": {
+                    "$map": {
+                        "input": "$itemsByRarity",
+                        "as": "item",
+                        "in": {
+                            "rarity": "$$item.rarity",
+                            "loot_items": {
+                                "$map": {
+                                    "input": "$$item.items",
+                                    "as": "loot_item",
+                                    "in": {
+                                        "itemType": "$$loot_item.itemType",
+                                        "amount": "$$loot_item.amount",
+                                        "name": "$$loot_item.name",
+                                        "type": "$$loot_item.type",
+                                        "rarity": "$$loot_item.rarity",
+                                        "shiny": "$$loot_item.shiny"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            }
+        },
+        {
+            "$sort": {"region": 1}
         }
-        }
-    },
-    {
-        "$sort": {
-        "region": 1
-        }
-    }
-    ]
-    )
+    ])
     return check_results(result, custom_message="No lootpool items found for this week")
+
 
 def save_raidpool_item(raidpool, environment="prod"):
     """ Save items to the raidpool collection
@@ -484,12 +426,13 @@ def save_raidpool_item(raidpool, environment="prod"):
 
     # Check for duplicate items
     duplicate_item = collection.find_one(pool_check)
-    
+
     if duplicate_item is not None:
-        pool_timestamp = duplicate_item['timestamp'] # Get the timestamp of the existing lootpool
+        # Get the timestamp of the existing lootpool
+        pool_timestamp = duplicate_item['timestamp']
         current_time = datetime.now()
         time_difference = current_time - pool_timestamp
-        
+
         if len(raidpool.get("items")) > len(duplicate_item['items']) or (time_difference > timedelta(hours=1) and len(raidpool.get("items")) >= len(duplicate_item['items'])):
             if time_difference > timedelta(hours=1):
                 print("Time difference is greater than 1 hour")
@@ -499,11 +442,12 @@ def save_raidpool_item(raidpool, environment="prod"):
             collection.insert_one(raidpool)
         else:
             return {"message": "Duplicate item found, skipping insertion"}, 200
-    else: # No duplicate found
+    else:  # No duplicate found
         print("No duplicate found")
         collection.insert_one(raidpool)
-        
+
     return {"message": "Item saved successfully"}, 200
+
 
 def check_results(result, custom_message="No items found"):
     """ Check if the result is empty and return a custom message

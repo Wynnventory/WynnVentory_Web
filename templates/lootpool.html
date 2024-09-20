@@ -17,18 +17,17 @@
                 <div id="collapse-{{ loop.index }}" class="collapse show card-body">
                     {% for rarity_group in region_data.region_items %}
                     {% if rarity_group.rarity == 'Shiny' %}
-                    <h3 class="h6 rarity-header"><img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />{{
-                        rarity_group.rarity }}</h3>
+                    <h3 class="h6 rarity-header">
+                        <img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" /> {{ rarity_group.rarity }}
+                    </h3>
                     <div>
                         <ul class="list-unstyled">
                             {% for item in rarity_group.loot_items %}
                             <li class="lootpool-card-item">
                                 {% if item.name in loot_data.Icon %}
-                                <img src="{{ loot_data.Icon[item.name] }}" alt="{{ item.name }}"
-                                    class="img-fluid shiny" onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                                <img src="{{ loot_data.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid shiny" onclick="displayItem(event, '{{ item.name | urlencode }}')">
                                 {% endif %}
-                                <span class="{{ rarity_group.rarity }}"
-                                    onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                             </li>
                             {% endfor %}
                         </ul>
@@ -39,22 +38,22 @@
                         {% for item in rarity_group.loot_items %}
                         <li class="lootpool-card-item">
                             {% if item.name in loot_data.Icon %}
-                            <img src="{{ loot_data.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid"
-                                onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                            <img src="{{ loot_data.Icon[item.name] }}" alt="{{ item.name }}" class="img-fluid" onclick="displayItem(event, '{{ item.name | urlencode }}')">
                             {% endif %}
                             {% if rarity_group.rarity == 'Misc' %}
-                            <span class="{{ rarity_group.rarity }}"
-                                onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{
-                                item.name }}</span>
+                            <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
                             {% else %}
-                            <span class="{{ rarity_group.rarity }}"
-                                onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                            <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                             {% endif %}
                         </li>
                         {% endfor %}
                     </ul>
                     {% endif %}
                     {% endfor %}
+                </div>
+                <!-- Display the last updated time -->
+                <div class="card-footer">
+                    <small>{{ region_data.last_updated }}</small>
                 </div>
             </div>
         </div>
