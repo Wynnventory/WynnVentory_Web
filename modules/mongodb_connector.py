@@ -249,10 +249,10 @@ def save_lootpool_item(lootpool, environment="prod"):
     return {"message": "Item saved successfully"}, 200
 
 
-def get_lootpool_items(environment="prod"):
+def get_lootpool_items(pool, environment="prod"):
     """ Retrieve items from the trademarket collection by name
     """
-    collection = get_collection("lootpool", environment)
+    collection = get_collection(pool, environment)
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
     loot_year, loot_week = get_lootpool_week()
@@ -473,12 +473,12 @@ def get_collection(collection, environment="prod"):
             return db[PROD_MARKET_DB]
         elif environment == "dev" or environment == "dev2":
             return db[DEV_MARKET_DB]
-    elif collection == "lootpool":
+    elif collection == "lootrun":
         if environment == "prod":
             return db[PROD_LOOT_DB]
         elif environment == "dev" or environment == "dev2":
             return db[DEV_LOOT_DB]
-    elif collection == "raidpool":
+    elif collection == "raid":
         if environment == "prod":
             return db[PROD_RAID_DB]
         elif environment == "dev" or environment == "dev2":

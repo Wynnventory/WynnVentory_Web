@@ -291,102 +291,110 @@ background-color: var(--bs-body-bg);
 
 /* Wynncraft Style */
 .mythic,
-.Mythic {
+.Mythic,
+.MYTHIC {
     color: rgb(162, 0, 162);
     --tooltip-border-color: rgb(162, 0, 162);
 }
 li .mythic:hover,
-li .Mythic:hover {
+li .Mythic:hover,
+li .MYTHIC:hover {
     color: rgb(255, 0, 255);
     text-decoration: underline;
     cursor: pointer;
 }
 .fabled,
-.Fabled {
+.Fabled,
+.FABLED {
     color: rgb(246, 62, 62);
     --tooltip-border-color: rgb(246, 62, 62);
 }
 li .fabled:hover,
-li .Fabled:hover {
+li .Fabled:hover,
+li .FABLED:hover {
     color: rgb(255, 0, 0);
     text-decoration: underline;
     cursor: pointer;
 }
 .legendary,
-.Legendary {
+.Legendary,
+.LEGENDARY {
     color: rgb(80, 253, 255);
     --tooltip-border-color: rgb(80, 253, 255);
 }
 li .legendary:hover,
-li .Legendary:hover {
+li .Legendary:hover,
+li .LEGENDARY:hover {
     color: rgb(0, 255, 255);
     text-decoration: underline;
     cursor: pointer;
 }
 .rare,
-.Rare {
+.Rare,
+.RARE {
     color: rgb(255, 80, 232);
     --tooltip-border-color: rgb(255, 80, 232);
 }
 li .rare:hover,
-li .Rare:hover {
+li .Rare:hover,
+li .RARE:hover {
     color: rgb(255, 0, 255);
     text-decoration: underline;
     cursor: pointer;
 }
 .unique,
-.Unique {
+.Unique,
+.UNIQUE {
     color: rgb(252, 252, 84);
     --tooltip-border-color: rgb(252, 252, 84);
 }
 li .unique:hover,
-li .Unique:hover {
+li .Unique:hover,
+li .UNIQUE:hover {
     color: rgb(255, 255, 0);
     text-decoration: underline;
     cursor: pointer;
 }
 .common,
-.Common {
+.Common,
+.COMMON {
     color: rgb(255, 255, 255);
     --tooltip-border-color: rgb(255, 255, 255);
 }
 li .common:hover,
-li .Common:hover {
+li .Common:hover,
+li .COMMON:hover {
     color: rgb(255, 255, 255);
     text-decoration: underline;
     cursor: pointer;
 }
-.common,
-.Common {
-    color: rgb(255, 255, 255);
-    --tooltip-border-color: rgb(255, 255, 255);
-}
-li .common:hover,
-li .Common:hover {
-    color: rgb(255, 255, 255);
-    text-decoration: underline;
-    cursor: pointer;
-}
+
 .set,
-.Set {
+.Set,
+.SET {
     color: rgb(90, 255, 90);
     --tooltip-border-color: rgb(90, 255, 90);
 }
 li .set:hover,
-li .Set:hover {
+li .Set:hover,
+li .SET:hover {
     color: rgb(90, 255, 90);
     text-decoration: underline;
     cursor: pointer;
 }
+.shiny,
+.Shiny,
+.SHINY {
+    color: rgb(162, 0, 162);
+}
+
 .shiny:hover,
-.Shiny:hover {
+.Shiny:hover,
+.SHINY:hover {
     text-decoration: underline;
     cursor: pointer;
 }
-.shiny,
-.Shiny {
-    color: rgb(162, 0, 162);
-}
+
 .neutral::before {
     content: '✤' ' ';
     color: rgb(230, 153, 0);
