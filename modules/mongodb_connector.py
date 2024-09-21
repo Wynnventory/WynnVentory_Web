@@ -230,15 +230,19 @@ def save_lootpool_item(lootpool, environment="prod"):
         current_time = datetime.now()
         time_difference = current_time - pool_timestamp
 
-        if len(lootpool.get("items")) > len(duplicate_item['items']) or (time_difference > timedelta(hours=1) and len(lootpool.get("items")) >= len(duplicate_item['items'])):
-            print(
-                "Time difference is greater than 1 hour or new lootpool has more items than the existing one")
+        # Insert conditions
+        has_more_items = len(lootpool.get("items")) > len(duplicate_item['items'])
+        has_more_or_equal_items_and_old = time_difference > timedelta(hours=1) and len(lootpool.get("items")) >= len(duplicate_item['items'])
+        is_older_week = duplicate_item['week'] < loot_week
+
+        if has_more_items or has_more_or_equal_items_and_old or is_older_week:
+            print("New lootpool qualifies for insertion (more items, old data, or older week).")
             collection.delete_one(pool_check)
             collection.insert_one(lootpool)
         else:
             print("Duplicate item found, skipping insertion")
             return {"message": "Duplicate item found, skipping insertion"}, 200
-    else:  # No duplicate found
+    else:
         print("No duplicate found")
         collection.insert_one(lootpool)
 
@@ -288,7 +292,7 @@ def get_lootpool_items(environment="prod"):
                 "_id": "$_id.region",
                 "week": {"$first": loot_week},
                 "year": {"$first": loot_year},
-                "timestamp": {"$first": "$timestamp"}, 
+                "timestamp": {"$first": "$timestamp"},
                 "itemsByRarity": {
                     "$push": {
                         "rarity": {
@@ -369,7 +373,7 @@ def get_lootpool_items(environment="prod"):
                 "region": "$_id",
                 "week": 1,
                 "year": 1,
-                "timestamp": 1, 
+                "timestamp": 1,
                 "region_items": {
                     "$map": {
                         "input": "$itemsByRarity",
@@ -433,16 +437,19 @@ def save_raidpool_item(raidpool, environment="prod"):
         current_time = datetime.now()
         time_difference = current_time - pool_timestamp
 
-        if len(raidpool.get("items")) > len(duplicate_item['items']) or (time_difference > timedelta(hours=1) and len(raidpool.get("items")) >= len(duplicate_item['items'])):
-            if time_difference > timedelta(hours=1):
-                print("Time difference is greater than 1 hour")
-            elif len(raidpool.get("items")) > len(duplicate_item['items']):
-                print("New raidpool has more items than the existing one")
+        # Insert conditions
+        has_more_items = len(raidpool.get("items")) > len(duplicate_item['items'])
+        has_more_or_equal_items_and_old = time_difference > timedelta(hours=1) and len(raidpool.get("items")) >= len(duplicate_item['items'])
+        is_older_week = duplicate_item['week'] < loot_week
+
+        if has_more_items or has_more_or_equal_items_and_old or is_older_week:
+            print("New raidpool qualifies for insertion (more items, old data, or older week).")
             collection.delete_one(pool_check)
             collection.insert_one(raidpool)
         else:
+            print("Duplicate item found, skipping insertion")
             return {"message": "Duplicate item found, skipping insertion"}, 200
-    else:  # No duplicate found
+    else:
         print("No duplicate found")
         collection.insert_one(raidpool)
 
