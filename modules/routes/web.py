@@ -30,7 +30,6 @@ def lootrun_lootpool():
     
     # Calculate time difference
     for item in loot_data:
-        print(f"Item: {item}")
         timestamp = datetime.strptime(item["timestamp"], '%a, %d %b %Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
         time_diff = now - timestamp
         minutes = time_diff.total_seconds() // 60
