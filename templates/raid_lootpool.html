@@ -1,8 +1,8 @@
 {% extends 'components/_base.html' %}
-{% block title %}Lootpool{% endblock %}
+{% block title %}Raid Lootpool{% endblock %}
 {% block content %}
 
-<h1 class="pt-2 px-4">Wynncraft Lootpool</h1>
+<h1 class="pt-2 px-4">Wynncraft Raid Lootpool</h1>
 <div class="row px-4">
     <h4 id="time"></h4>
 </div>
@@ -41,9 +41,9 @@
                                 <span class="sprite bg-{{ item.type|lower }}"></span>
                             {% endif %}
                             {% if rarity_group.rarity == 'Misc' %}
-                            <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
                             {% else %}
-                            <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                             {% endif %}
                         </li>
                         {% endfor %}

@@ -480,139 +480,125 @@ li .SET:hover {
 
 /* SPRITES */
 .sprite {
+    width: 32px;
+    height: 32px;
     display: inline-block;
     background-image: url('/icons/wynn_sprites.png');
     background-repeat: no-repeat;
 }
 
+.bg-aspect {
+    background-image: url('/icons/aspect.webp');
+}
+
 .bg-helmet {
-    width: 32px;
-    height: 32px;
     background-position: -10px -10px;
 }
 
 .bg-insulator {
-    width: 32px;
-    height: 32px;
     background-position: -62px -10px;
 }
 
 .bg-nii {
-    width: 32px;
-    height: 32px;
     background-position: -10px -62px;
 }
 
 .bg-leggings {
-    width: 32px;
-    height: 32px;
     background-position: -62px -62px;
 }
 
 .bg-necklace {
-    width: 32px;
-    height: 32px;
     background-position: -114px -10px;
 }
 
 .bg-liquid_emerald {
-    width: 32px;
-    height: 32px;
     background-position: -270px -10px;
 }
 
 .bg-relik {
-    width: 31px;
-    height: 32px;
     background-position: -218px -62px;
 }
 
 .bg-ring {
-    width: 32px;
-    height: 32px;
     background-position: -114px -62px;
 }
 
 .bg-az {
-    width: 32px;
-    height: 32px;
     background-position: -10px -114px;
 }
 
 .bg-boots {
-    width: 32px;
-    height: 32px;
     background-position: -62px -114px;
 }
 
 .bg-bow {
-    width: 32px;
-    height: 32px;
     background-position: -114px -114px;
 }
 
 .bg-bracelet {
-    width: 32px;
-    height: 32px;
     background-position: -166px -10px;
 }
 
 .bg-chestplate {
-    width: 32px;
-    height: 32px;
     background-position: -166px -62px;
 }
 
 .bg-dagger {
-    width: 32px;
-    height: 32px;
     background-position: -166px -114px;
 }
 
 .bg-simulator {
-    width: 32px;
-    height: 32px;
     background-position: -10px -166px;
 }
 
 .bg-spear {
-    width: 32px;
-    height: 32px;
     background-position: -62px -166px;
 }
 
 .bg-tol {
-    width: 32px;
-    height: 32px;
     background-position: -114px -166px;
 }
 
 .bg-tome {
-    width: 52px;
-    height: 32px;
     background-position: -10px -218px;
 }
 
 .bg-uth {
-    width: 32px;
-    height: 32px;
     background-position: -166px -166px;
 }
 
 .bg-emerald_block {
-    width: 29px;
-    height: 32px;
     background-position: -218px -114px;
 }
 
 .bg-dungeonkey {
-    width: 42px;
-    height: 32px;
     background-position: -218px -166px;
 }
 
 .bg-wand {
-    width: 32px;
-    height: 32px;
     background-position: -218px -10px;
+}
+
+.bg-earthpowder {
+    background-image: url('/icons/earthpowder.webp');
+}
+
+.bg-thunderpowder {
+    background-image: url('/icons/thunderpowder.webp');
+}
+
+.bg-waterpowder {
+    background-image: url('/icons/waterpowder.webp');
+}
+
+.bg-firepowder {
+    background-image: url('/icons/firepowder.webp');
+}
+
+.bg-airpowder {
+    background-image: url('/icons/airpowder.webp');
+}
+
+.bg-corkianamplifier {
+    background-image: url('/icons/corkianamplifier.webp');
 }
