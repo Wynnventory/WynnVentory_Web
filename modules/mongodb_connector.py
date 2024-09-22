@@ -264,7 +264,6 @@ def get_lootpool_items(pool, environment="prod"):
                 "year": loot_year
             }
         },
-        # Updated stage to modify the rarity and type based on conditions
         {
             "$addFields": {
                 "items": {
@@ -274,7 +273,6 @@ def get_lootpool_items(pool, environment="prod"):
                         "in": {
                             "$let": {
                                 "vars": {
-                                    # Determine the new rarity
                                     "newRarity": {
                                         "$switch": {
                                             "branches": [
@@ -292,7 +290,6 @@ def get_lootpool_items(pool, environment="prod"):
                                             }
                                         }
                                     },
-                                    # Determine the new type
                                     "newType": {
                                         "$cond": {
                                             "if": {"$in": ["$$item.itemType", ["PowderItem", "AmplifierItem"]]},
@@ -335,7 +332,7 @@ def get_lootpool_items(pool, environment="prod"):
             "$group": {
                 "_id": {
                     "region": "$region",
-                    "rarity": "$items.rarity",  # Now always in lowercase
+                    "rarity": "$items.rarity",
                     "shiny": "$items.shiny"
                 },
                 "itemsList": {
@@ -343,8 +340,8 @@ def get_lootpool_items(pool, environment="prod"):
                         "itemType": "$items.itemType",
                         "amount": "$items.amount",
                         "name": "$items.name",
-                        "type": "$items.type",  # Updated type field
-                        "rarity": "$items.rarity",  # Stored in lowercase
+                        "type": "$items.type",
+                        "rarity": "$items.rarity",
                         "shiny": "$items.shiny"
                     }
                 },
