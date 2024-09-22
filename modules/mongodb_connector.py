@@ -249,10 +249,10 @@ def save_lootpool_item(lootpool, environment="prod"):
     return {"message": "Item saved successfully"}, 200
 
 
-def get_lootpool_items(environment="prod"):
+def get_lootpool_items(pool, environment="prod"):
     """ Retrieve items from the trademarket collection by name
     """
-    collection = get_collection("lootpool", environment)
+    collection = get_collection(pool, environment)
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
     loot_year, loot_week = get_lootpool_week()
@@ -262,6 +262,67 @@ def get_lootpool_items(environment="prod"):
             "$match": {
                 "week": loot_week,
                 "year": loot_year
+            }
+        },
+        {
+            "$addFields": {
+                "items": {
+                    "$map": {
+                        "input": "$items",
+                        "as": "item",
+                        "in": {
+                            "$let": {
+                                "vars": {
+                                    "newRarity": {
+                                        "$switch": {
+                                            "branches": [
+                                                {
+                                                    "case": {"$eq": ["$$item.itemType", "AspectItem"]},
+                                                    "then": "Aspect"
+                                                },
+                                                {
+                                                    "case": {"$eq": ["$$item.type", "Tome"]},
+                                                    "then": "Tome"
+                                                }
+                                            ],
+                                            "default": {
+                                                "$ifNull": ["$$item.rarity", "Misc"]
+                                            }
+                                        }
+                                    },
+                                    "newType": {
+                                        "$cond": {
+                                            "if": {"$in": ["$$item.itemType", ["PowderItem", "AmplifierItem"]]},
+                                            "then": {
+                                                "$reduce": {
+                                                    "input": {
+                                                        "$slice": [
+                                                            {"$split": ["$$item.name", " "]},
+                                                            0,
+                                                            2
+                                                        ]
+                                                    },
+                                                    "initialValue": "",
+                                                    "in": {"$concat": ["$$value", "$$this"]}
+                                                }
+                                            },
+                                            "else": "$$item.type"
+                                        }
+                                    }
+                                },
+                                "in": {
+                                    "$mergeObjects": [
+                                        "$$item",
+                                        {
+                                            "rarity": {"$toLower": "$$newRarity"},
+                                            "type": "$$newType"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         {
@@ -288,6 +349,16 @@ def get_lootpool_items(environment="prod"):
             }
         },
         {
+            "$addFields": {
+                "itemsList": {
+                    "$sortArray": {
+                        "input": "$itemsList",
+                        "sortBy": {"name": 1}
+                    }
+                }
+            }
+        },
+        {
             "$group": {
                 "_id": "$_id.region",
                 "week": {"$first": loot_week},
@@ -301,15 +372,21 @@ def get_lootpool_items(environment="prod"):
                                 "then": "Shiny",
                                 "else": {
                                     "$cond": {
-                                        "if": {"$eq": ["$_id.rarity", None]},
+                                        "if": {"$eq": ["$_id.rarity", "misc"]},
                                         "then": "Misc",
                                         "else": {
-                                            "$concat": [
-                                                {"$toUpper": {"$substr": [
-                                                    "$_id.rarity", 0, 1]}},
-                                                {"$substr": ["$_id.rarity", 1, {
-                                                    "$strLenCP": "$_id.rarity"}]}
-                                            ]
+                                            "$let": {
+                                                "vars": {
+                                                    "rarityLower": "$_id.rarity",
+                                                    "rarityLength": {"$strLenCP": "$_id.rarity"}
+                                                },
+                                                "in": {
+                                                    "$concat": [
+                                                        {"$toUpper": {"$substr": ["$$rarityLower", 0, 1]}},
+                                                        {"$substr": ["$$rarityLower", 1, {"$subtract": ["$$rarityLength", 1]}]}
+                                                    ]
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -334,22 +411,18 @@ def get_lootpool_items(environment="prod"):
                             "sortKey": {
                                 "$switch": {
                                     "branches": [
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Shiny"]}, "then": 0},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Mythic"]}, "then": 1},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Fabled"]}, "then": 2},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Legendary"]}, "then": 3},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Rare"]}, "then": 4},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Unique"]}, "then": 5},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Misc"]}, "then": 6}
+                                        {"case": {"$eq": ["$$item.rarity", "Shiny"]}, "then": 0},
+                                        {"case": {"$eq": ["$$item.rarity", "Aspect"]}, "then": 1},
+                                        {"case": {"$eq": ["$$item.rarity", "Mythic"]}, "then": 2},
+                                        {"case": {"$eq": ["$$item.rarity", "Fabled"]}, "then": 3},
+                                        {"case": {"$eq": ["$$item.rarity", "Legendary"]}, "then": 4},
+                                        {"case": {"$eq": ["$$item.rarity", "Rare"]}, "then": 6},
+                                        {"case": {"$eq": ["$$item.rarity", "Set"]}, "then": 7},
+                                        {"case": {"$eq": ["$$item.rarity", "Unique"]}, "then": 8},
+                                        {"case": {"$eq": ["$$item.rarity", "Tome"]}, "then": 9},
+                                        {"case": {"$eq": ["$$item.rarity", "Misc"]}, "then": 10}
                                     ],
-                                    "default": 7
+                                    "default": 10
                                 }
                             }
                         }
@@ -403,8 +476,8 @@ def get_lootpool_items(environment="prod"):
             "$sort": {"region": 1}
         }
     ])
-    return check_results(result, custom_message="No lootpool items found for this week")
 
+    return check_results(result, custom_message="No lootpool items found for this week")
 
 def save_raidpool_item(raidpool, environment="prod"):
     """ Save items to the raidpool collection
@@ -473,12 +546,12 @@ def get_collection(collection, environment="prod"):
             return db[PROD_MARKET_DB]
         elif environment == "dev" or environment == "dev2":
             return db[DEV_MARKET_DB]
-    elif collection == "lootpool":
+    elif collection == "lootrun":
         if environment == "prod":
             return db[PROD_LOOT_DB]
         elif environment == "dev" or environment == "dev2":
             return db[DEV_LOOT_DB]
-    elif collection == "raidpool":
+    elif collection == "raid":
         if environment == "prod":
             return db[PROD_RAID_DB]
         elif environment == "dev" or environment == "dev2":

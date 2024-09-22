@@ -162,12 +162,12 @@ def save_lootpool_items():
         return jsonify({"error": str(e)}), 500
 
 
-@api_bp.route("/api/lootpool/items/", methods=['GET'])
-def get_lootpool_items():
+@api_bp.route("/api/lootpool/<pool>/items/", methods=['GET'])
+def get_lootpool_items(pool):
     """ Retrieve lootpool items
     """
     env = request.args.get('env', 'prod')
-    result = mongodb_connector.get_lootpool_items(environment=env)
+    result = mongodb_connector.get_lootpool_items(pool, environment=env)
     return result
 
 @api_bp.route("/api/raidpool/items", methods=['POST'])
@@ -264,14 +264,14 @@ def process_queue():
     """ Process the queue of items to save to the database
     """
     while True:
-        request, item, env = request_queue.get()
+        request_type, item, env = request_queue.get()
         if item is None:
             break
-        if request == 'trademarket':
+        if request_type == 'trademarket':
             mongodb_connector.save_trade_market_item(item, env)
-        elif request == 'lootpool':
+        elif request_type == 'lootpool':
             mongodb_connector.save_lootpool_item(item, env)
-        elif request == 'raidpool':
+        elif request_type == 'raidpool':
             mongodb_connector.save_raidpool_item(item, env)
         request_queue.task_done()
 

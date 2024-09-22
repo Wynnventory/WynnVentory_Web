@@ -1,0 +1,63 @@
+{% extends 'components/_base.html' %}
+{% block title %}Raid Lootpool{% endblock %}
+{% block content %}
+
+<h1 class="pt-2 px-4">Wynncraft Raid Lootpool</h1>
+<div class="row px-4">
+    <h4 id="time"></h4>
+</div>
+
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
+    {% for region_data in loot_data %}
+        <div class="col">
+            <div class="card">
+                <div class="card-header" data-bs-toggle="collapse" href="#collapse-{{ loop.index }}" role="button" aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
+                    <h2 class="h5">{{ region_data.region }}</h2>
+                </div>
+                <div id="collapse-{{ loop.index }}" class="collapse show card-body">
+                    {% for rarity_group in region_data.region_items %}
+                    {% if rarity_group.rarity == 'Shiny' %}
+                    <h3 class="h6 rarity-header">
+                        <img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" /> {{ rarity_group.rarity }}
+                    </h3>
+                    <div>
+                        <ul class="list-unstyled">
+                            {% for item in rarity_group.loot_items %}
+                            <li class="lootpool-card-item">
+                                {% if item.type is not none %}
+                                    <span class="sprite bg-{{ item.type|lower }}"></span>
+                                {% endif %}
+                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <h3 class="h6 rarity-header">{{ rarity_group.rarity }}</h3>
+                    <ul class="list-unstyled">
+                        {% for item in rarity_group.loot_items %}
+                        <li class="lootpool-card-item">
+                            {% if item.type is not none %}
+                                <span class="sprite bg-{{ item.type|lower }}"></span>
+                            {% endif %}
+                            {% if rarity_group.rarity == 'Misc' %}
+                                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                            {% else %}
+                                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <!-- Display the last updated time -->
+                <div class="card-footer">
+                    <small>{{ region_data.last_updated }}</small>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<div id="item-stats-tooltip" class="item-stats-tooltip"></div>
+{% endblock %}

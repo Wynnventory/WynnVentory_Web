@@ -230,7 +230,7 @@
 //items.html Javascript code
 
 
-//lootpool.html Javascript code
+//lootrun_lootpool.html Javascript code
 
     document.addEventListener('DOMContentLoaded', (event) => {
         // Lootpool reset time
@@ -432,4 +432,4 @@
         }
     }
 
-//lootpool.html Javascript code
+//lootrun_lootpool.html Javascript code
