@@ -24,12 +24,13 @@ def item():
 
 @web_bp.route("/lootrun")
 def lootrun_lootpool():
-    loot_data = api.get_lootpool_items("lootrun")[0].get_json()
+    loot_data = api.get_lootpool_items("lootpool")[0].get_json()
 
     now = datetime.now(timezone.utc)
     
     # Calculate time difference
     for item in loot_data:
+        print(f"Item: {item}")
         timestamp = datetime.strptime(item["timestamp"], '%a, %d %b %Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
         time_diff = now - timestamp
         minutes = time_diff.total_seconds() // 60
@@ -43,7 +44,7 @@ def lootrun_lootpool():
 
 @web_bp.route("/raid")
 def raid_lootpool():
-    loot_data = api.get_lootpool_items("raid")[0].get_json()
+    loot_data = api.get_lootpool_items("raidpool")[0].get_json()
 
     now = datetime.now(timezone.utc)
 
