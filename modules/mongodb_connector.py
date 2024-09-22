@@ -231,12 +231,15 @@ def save_lootpool_item(lootpool, environment="prod"):
         time_difference = current_time - pool_timestamp
 
         # Insert conditions
-        has_more_items = len(lootpool.get("items")) > len(duplicate_item['items'])
-        has_more_or_equal_items_and_old = time_difference > timedelta(hours=1) and len(lootpool.get("items")) >= len(duplicate_item['items'])
+        has_more_items = len(lootpool.get("items")) > len(
+            duplicate_item['items'])
+        has_more_or_equal_items_and_old = time_difference > timedelta(
+            hours=1) and len(lootpool.get("items")) >= len(duplicate_item['items'])
         is_older_week = duplicate_item['week'] < loot_week
 
         if has_more_items or has_more_or_equal_items_and_old or is_older_week:
-            print("New lootpool qualifies for insertion (more items, old data, or older week).")
+            print(
+                "New lootpool qualifies for insertion (more items, old data, or older week).")
             collection.delete_one(pool_check)
             collection.insert_one(lootpool)
         else:
@@ -297,7 +300,8 @@ def get_lootpool_items(pool, environment="prod"):
                                                 "$reduce": {
                                                     "input": {
                                                         "$slice": [
-                                                            {"$split": ["$$item.name", " "]},
+                                                            {"$split": [
+                                                                "$$item.name", " "]},
                                                             0,
                                                             2
                                                         ]
@@ -382,8 +386,10 @@ def get_lootpool_items(pool, environment="prod"):
                                                 },
                                                 "in": {
                                                     "$concat": [
-                                                        {"$toUpper": {"$substr": ["$$rarityLower", 0, 1]}},
-                                                        {"$substr": ["$$rarityLower", 1, {"$subtract": ["$$rarityLength", 1]}]}
+                                                        {"$toUpper": {"$substr": [
+                                                            "$$rarityLower", 0, 1]}},
+                                                        {"$substr": ["$$rarityLower", 1, {
+                                                            "$subtract": ["$$rarityLength", 1]}]}
                                                     ]
                                                 }
                                             }
@@ -411,16 +417,26 @@ def get_lootpool_items(pool, environment="prod"):
                             "sortKey": {
                                 "$switch": {
                                     "branches": [
-                                        {"case": {"$eq": ["$$item.rarity", "Shiny"]}, "then": 0},
-                                        {"case": {"$eq": ["$$item.rarity", "Aspect"]}, "then": 1},
-                                        {"case": {"$eq": ["$$item.rarity", "Mythic"]}, "then": 2},
-                                        {"case": {"$eq": ["$$item.rarity", "Fabled"]}, "then": 3},
-                                        {"case": {"$eq": ["$$item.rarity", "Legendary"]}, "then": 4},
-                                        {"case": {"$eq": ["$$item.rarity", "Rare"]}, "then": 6},
-                                        {"case": {"$eq": ["$$item.rarity", "Set"]}, "then": 7},
-                                        {"case": {"$eq": ["$$item.rarity", "Unique"]}, "then": 8},
-                                        {"case": {"$eq": ["$$item.rarity", "Tome"]}, "then": 9},
-                                        {"case": {"$eq": ["$$item.rarity", "Misc"]}, "then": 10}
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Shiny"]}, "then": 0},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Aspect"]}, "then": 1},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Mythic"]}, "then": 2},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Fabled"]}, "then": 3},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Legendary"]}, "then": 4},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Rare"]}, "then": 6},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Set"]}, "then": 7},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Unique"]}, "then": 8},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Tome"]}, "then": 9},
+                                        {"case": {
+                                            "$eq": ["$$item.rarity", "Misc"]}, "then": 10}
                                     ],
                                     "default": 10
                                 }
@@ -479,6 +495,7 @@ def get_lootpool_items(pool, environment="prod"):
 
     return check_results(result, custom_message="No lootpool items found for this week")
 
+
 def save_raidpool_item(raidpool, environment="prod"):
     """ Save items to the raidpool collection
     """
@@ -511,12 +528,15 @@ def save_raidpool_item(raidpool, environment="prod"):
         time_difference = current_time - pool_timestamp
 
         # Insert conditions
-        has_more_items = len(raidpool.get("items")) > len(duplicate_item['items'])
-        has_more_or_equal_items_and_old = time_difference > timedelta(hours=1) and len(raidpool.get("items")) >= len(duplicate_item['items'])
+        has_more_items = len(raidpool.get("items")) > len(
+            duplicate_item['items'])
+        has_more_or_equal_items_and_old = time_difference > timedelta(
+            hours=1) and len(raidpool.get("items")) >= len(duplicate_item['items'])
         is_older_week = duplicate_item['week'] < loot_week
 
         if has_more_items or has_more_or_equal_items_and_old or is_older_week:
-            print("New raidpool qualifies for insertion (more items, old data, or older week).")
+            print(
+                "New raidpool qualifies for insertion (more items, old data, or older week).")
             collection.delete_one(pool_check)
             collection.insert_one(raidpool)
         else:
@@ -546,12 +566,12 @@ def get_collection(collection, environment="prod"):
             return db[PROD_MARKET_DB]
         elif environment == "dev" or environment == "dev2":
             return db[DEV_MARKET_DB]
-    elif collection == "lootrun":
+    elif collection == "lootpool":
         if environment == "prod":
             return db[PROD_LOOT_DB]
         elif environment == "dev" or environment == "dev2":
             return db[DEV_LOOT_DB]
-    elif collection == "raid":
+    elif collection == "raidpool":
         if environment == "prod":
             return db[PROD_RAID_DB]
         elif environment == "dev" or environment == "dev2":
