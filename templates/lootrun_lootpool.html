@@ -7,38 +7,52 @@
     <h4 id="time"></h4>
 </div>
 
+<!-- Toggle Checkbox Buttons for Rarities -->
+<div class="d-flex flex-wrap mb-3" role="group" aria-label="Rarity checkbox toggle button group">
+    <input type="checkbox" class="btn-check" id="mythic" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="mythic">Mythic</label>
+
+    <input type="checkbox" class="btn-check" id="fabled" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="fabled">Fabled</label>
+
+    <input type="checkbox" class="btn-check" id="legendary" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="legendary">Legendary</label>
+
+    <input type="checkbox" class="btn-check" id="rare" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="rare">Rare</label>
+
+    <input type="checkbox" class="btn-check" id="unique" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="unique">Unique</label>
+
+    <input type="checkbox" class="btn-check" id="tome" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="tome">Tome</label>
+
+    <input type="checkbox" class="btn-check" id="misc" autocomplete="off" checked>
+    <label class="btn btn-outline-primary mb-2" for="misc">Misc</label>
+</div>
+
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
     {% for region_data in loot_data %}
-        <div class="col">
-            <div class="card">
-                <div class="card-header" data-bs-toggle="collapse" href="#collapse-{{ loop.index }}" role="button" aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
-                    <h2 class="h5">{{ region_data.region }}</h2>
-                </div>
-                <div id="collapse-{{ loop.index }}" class="collapse show card-body">
-                    {% for rarity_group in region_data.region_items %}
-                    {% if rarity_group.rarity == 'Shiny' %}
+    <div class="col">
+        <div class="card">
+            <div class="card-header" data-bs-toggle="collapse" href="#collapse-{{ loop.index }}" role="button"
+                aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
+                <h2 class="h5">{{ region_data.region }}</h2>
+            </div>
+            <div id="collapse-{{ loop.index }}" class="collapse show card-body">
+                {% for rarity_group in region_data.region_items %}
+                <div class="rarity-group" data-rarity="{{ rarity_group.rarity }}">
                     <h3 class="h6 rarity-header">
-                        <img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" /> {{ rarity_group.rarity }}
+                    {% if rarity_group.rarity == 'Shiny' %}
+                        <img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />
+                    {% endif %}
+                        {{ rarity_group.rarity }}
                     </h3>
-                    <div>
-                        <ul class="list-unstyled">
-                            {% for item in rarity_group.loot_items %}
-                            <li class="lootpool-card-item">
-                                {% if item.type is not none %}
-                                    <span class="sprite bg-{{ item.type|lower }}"></span>
-                                {% endif %}
-                                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% else %}
-                    <h3 class="h6 rarity-header">{{ rarity_group.rarity }}</h3>
                     <ul class="list-unstyled">
                         {% for item in rarity_group.loot_items %}
                         <li class="lootpool-card-item">
                             {% if item.type is not none %}
-                                <span class="sprite bg-{{ item.type|lower }}"></span>
+                            <span class="sprite bg-{{ item.type|lower }}"></span>
                             {% endif %}
                             {% if rarity_group.rarity == 'Misc' %}
                             <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
@@ -48,16 +62,71 @@
                         </li>
                         {% endfor %}
                     </ul>
-                    {% endif %}
-                    {% endfor %}
                 </div>
-                <!-- Display the last updated time -->
-                <div class="card-footer">
-                    <small>{{ region_data.last_updated }}</small>
-                </div>
+                {% endfor %}
+            </div>
+            <!-- Display the last updated time -->
+            <div class="card-footer">
+                <small>{{ region_data.last_updated }}</small>
             </div>
         </div>
+    </div>
     {% endfor %}
 </div>
+
 <div id="item-stats-tooltip" class="item-stats-tooltip"></div>
+
+<script>
+    // Function to save checkbox state to localStorage
+    function saveCheckboxState(checkbox) {
+        localStorage.setItem(checkbox.id, checkbox.checked);
+    }
+
+    // Function to load checkbox state from localStorage
+    function loadCheckboxState(checkbox) {
+        const savedState = localStorage.getItem(checkbox.id);
+        if (savedState !== null) {
+            checkbox.checked = savedState === 'true'; // Restore saved state
+        }
+    }
+
+    // Function to toggle rarity groups based on checkbox state
+    function toggleRarityGroup(checkbox) {
+        const rarity = checkbox.id.charAt(0).toUpperCase() + checkbox.id.slice(1);
+        const rarityGroups = document.querySelectorAll(`.rarity-group[data-rarity="${rarity}"]`);
+        rarityGroups.forEach(group => {
+            if (checkbox.checked) {
+                group.style.display = 'block';
+            } else {
+                group.style.display = 'none';
+            }
+        });
+        if (rarity === 'Mythic') {
+            const rarityGroups = document.querySelectorAll(`.rarity-group[data-rarity="Shiny"]`);
+            rarityGroups.forEach(group => {
+                if (checkbox.checked) {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    // Initialize checkboxes and add event listeners
+    document.querySelectorAll('.btn-check').forEach(checkbox => {
+        // Load the saved state when the page loads
+        loadCheckboxState(checkbox);
+
+        // Set initial visibility based on the checkbox state
+        toggleRarityGroup(checkbox);
+
+        // Add event listener to toggle visibility and save state
+        checkbox.addEventListener('change', function () {
+            toggleRarityGroup(this);
+            saveCheckboxState(this);
+        });
+    });
+</script>
+
 {% endblock %}
