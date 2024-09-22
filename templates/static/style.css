@@ -278,102 +278,123 @@ background-color: var(--bs-body-bg);
     flex-direction: column;
     height: auto; /* Ensure auto height */
 }
+.lootpool-card-item {
+    display: flex;
+    align-items: center; 
+    text-align: left; 
+    /* padding: 3px 0;  */
+}
+.lootpool-card-item .sprite {
+    margin-right: 15px;
+}
 
 
 /* Wynncraft Style */
 .mythic,
-.Mythic {
+.Mythic,
+.MYTHIC {
     color: rgb(162, 0, 162);
     --tooltip-border-color: rgb(162, 0, 162);
 }
 li .mythic:hover,
-li .Mythic:hover {
+li .Mythic:hover,
+li .MYTHIC:hover {
     color: rgb(255, 0, 255);
     text-decoration: underline;
     cursor: pointer;
 }
 .fabled,
-.Fabled {
+.Fabled,
+.FABLED {
     color: rgb(246, 62, 62);
     --tooltip-border-color: rgb(246, 62, 62);
 }
 li .fabled:hover,
-li .Fabled:hover {
+li .Fabled:hover,
+li .FABLED:hover {
     color: rgb(255, 0, 0);
     text-decoration: underline;
     cursor: pointer;
 }
 .legendary,
-.Legendary {
+.Legendary,
+.LEGENDARY {
     color: rgb(80, 253, 255);
     --tooltip-border-color: rgb(80, 253, 255);
 }
 li .legendary:hover,
-li .Legendary:hover {
+li .Legendary:hover,
+li .LEGENDARY:hover {
     color: rgb(0, 255, 255);
     text-decoration: underline;
     cursor: pointer;
 }
 .rare,
-.Rare {
+.Rare,
+.RARE {
     color: rgb(255, 80, 232);
     --tooltip-border-color: rgb(255, 80, 232);
 }
 li .rare:hover,
-li .Rare:hover {
+li .Rare:hover,
+li .RARE:hover {
     color: rgb(255, 0, 255);
     text-decoration: underline;
     cursor: pointer;
 }
 .unique,
-.Unique {
+.Unique,
+.UNIQUE {
     color: rgb(252, 252, 84);
     --tooltip-border-color: rgb(252, 252, 84);
 }
 li .unique:hover,
-li .Unique:hover {
+li .Unique:hover,
+li .UNIQUE:hover {
     color: rgb(255, 255, 0);
     text-decoration: underline;
     cursor: pointer;
 }
 .common,
-.Common {
+.Common,
+.COMMON {
     color: rgb(255, 255, 255);
     --tooltip-border-color: rgb(255, 255, 255);
 }
 li .common:hover,
-li .Common:hover {
+li .Common:hover,
+li .COMMON:hover {
     color: rgb(255, 255, 255);
     text-decoration: underline;
     cursor: pointer;
 }
-.common,
-.Common {
-    color: rgb(255, 255, 255);
-    --tooltip-border-color: rgb(255, 255, 255);
-}
-li .common:hover,
-li .Common:hover {
-    color: rgb(255, 255, 255);
-    text-decoration: underline;
-    cursor: pointer;
-}
+
 .set,
-.Set {
+.Set,
+.SET {
     color: rgb(90, 255, 90);
     --tooltip-border-color: rgb(90, 255, 90);
 }
 li .set:hover,
-li .Set:hover {
+li .Set:hover,
+li .SET:hover {
     color: rgb(90, 255, 90);
     text-decoration: underline;
     cursor: pointer;
 }
+.shiny,
+.Shiny,
+.SHINY {
+    color: rgb(162, 0, 162);
+}
+
 .shiny:hover,
-.Shiny:hover {
+.Shiny:hover,
+.SHINY:hover {
     text-decoration: underline;
     cursor: pointer;
 }
+
 .neutral::before {
     content: '✤' ' ';
     color: rgb(230, 153, 0);
@@ -455,4 +476,129 @@ li .Set:hover {
 }
 .negative-to {
     color: #940000;
+}
+
+/* SPRITES */
+.sprite {
+    width: 32px;
+    height: 32px;
+    display: inline-block;
+    background-image: url('/icons/wynn_sprites.png');
+    background-repeat: no-repeat;
+}
+
+.bg-aspect {
+    background-image: url('/icons/aspect.webp');
+}
+
+.bg-helmet {
+    background-position: -10px -10px;
+}
+
+.bg-insulator {
+    background-position: -62px -10px;
+}
+
+.bg-nii {
+    background-position: -10px -62px;
+}
+
+.bg-leggings {
+    background-position: -62px -62px;
+}
+
+.bg-necklace {
+    background-position: -114px -10px;
+}
+
+.bg-liquid_emerald {
+    background-position: -270px -10px;
+}
+
+.bg-relik {
+    background-position: -218px -62px;
+}
+
+.bg-ring {
+    background-position: -114px -62px;
+}
+
+.bg-az {
+    background-position: -10px -114px;
+}
+
+.bg-boots {
+    background-position: -62px -114px;
+}
+
+.bg-bow {
+    background-position: -114px -114px;
+}
+
+.bg-bracelet {
+    background-position: -166px -10px;
+}
+
+.bg-chestplate {
+    background-position: -166px -62px;
+}
+
+.bg-dagger {
+    background-position: -166px -114px;
+}
+
+.bg-simulator {
+    background-position: -10px -166px;
+}
+
+.bg-spear {
+    background-position: -62px -166px;
+}
+
+.bg-tol {
+    background-position: -114px -166px;
+}
+
+.bg-tome {
+    background-position: -10px -218px;
+}
+
+.bg-uth {
+    background-position: -166px -166px;
+}
+
+.bg-emerald_block {
+    background-position: -218px -114px;
+}
+
+.bg-dungeonkey {
+    background-position: -218px -166px;
+}
+
+.bg-wand {
+    background-position: -218px -10px;
+}
+
+.bg-earthpowder {
+    background-image: url('/icons/earthpowder.webp');
+}
+
+.bg-thunderpowder {
+    background-image: url('/icons/thunderpowder.webp');
+}
+
+.bg-waterpowder {
+    background-image: url('/icons/waterpowder.webp');
+}
+
+.bg-firepowder {
+    background-image: url('/icons/firepowder.webp');
+}
+
+.bg-airpowder {
+    background-image: url('/icons/airpowder.webp');
+}
+
+.bg-corkianamplifier {
+    background-image: url('/icons/corkianamplifier.webp');
 }
