@@ -12,7 +12,7 @@ from modules import mongodb_connector
 
 api_bp = Blueprint('api', __name__)
 request_queue = Queue()
-SUPPORTED_VERSION = '0.8.3'
+SUPPORTED_VERSION = '0.8.4'
 
 WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
 
