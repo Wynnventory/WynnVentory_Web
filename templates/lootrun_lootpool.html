@@ -27,8 +27,8 @@
     <input type="checkbox" class="btn-check" id="tome" autocomplete="off" checked>
     <label class="btn btn-outline-primary me-2 mb-2" for="tome">Tome</label>
 
-    <input type="checkbox" class="btn-check" id="misc" autocomplete="off" checked>
-    <label class="btn btn-outline-primary mb-2" for="misc">Misc</label>
+    <input type="checkbox" class="btn-check" id="common" autocomplete="off" checked>
+    <label class="btn btn-outline-primary mb-2" for="common">Common</label>
 </div>
 
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
@@ -44,7 +44,7 @@
                 <div class="rarity-group" data-rarity="{{ rarity_group.rarity }}">
                     <h3 class="h6 rarity-header">
                     {% if rarity_group.rarity == 'Shiny' %}
-                        <img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />
+                        <span class="sprite bg-shiny"></span>
                     {% endif %}
                         {{ rarity_group.rarity }}
                     </h3>
@@ -54,7 +54,7 @@
                             {% if item.type is not none %}
                             <span class="sprite bg-{{ item.type|lower }}"></span>
                             {% endif %}
-                            {% if rarity_group.rarity == 'Misc' %}
+                            {% if rarity_group.rarity in ['Misc', "Common"] %}
                             <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
                             {% else %}
                             <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
@@ -103,6 +103,17 @@
         });
         if (rarity === 'Mythic') {
             const rarityGroups = document.querySelectorAll(`.rarity-group[data-rarity="Shiny"]`);
+            rarityGroups.forEach(group => {
+                if (checkbox.checked) {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        }
+
+        if (rarity === 'Common') {
+            const rarityGroups = document.querySelectorAll(`.rarity-group[data-rarity="Misc"]`);
             rarityGroups.forEach(group => {
                 if (checkbox.checked) {
                     group.style.display = 'block';
