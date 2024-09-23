@@ -15,40 +15,22 @@
                     <h2 class="h5">{{ region_data.region }}</h2>
                 </div>
                 <div id="collapse-{{ loop.index }}" class="collapse show card-body">
-                    {% for rarity_group in region_data.region_items %}
-                    {% if rarity_group.rarity == 'Shiny' %}
-                    <h3 class="h6 rarity-header">
-                        <img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" /> {{ rarity_group.rarity }}
-                    </h3>
-                    <div>
-                        <ul class="list-unstyled">
-                            {% for item in rarity_group.loot_items %}
-                            <li class="lootpool-card-item">
-                                {% if item.type is not none %}
-                                    <span class="sprite bg-{{ item.type|lower }}"></span>
-                                {% endif %}
-                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% else %}
-                    <h3 class="h6 rarity-header">{{ rarity_group.rarity }}</h3>
+                    {% for item_group in region_data.group_items %}
+                    <h3 class="h6 rarity-header">{{ item_group.group }}</h3>
                     <ul class="list-unstyled">
-                        {% for item in rarity_group.loot_items %}
+                        {% for item in item_group.loot_items %}
                         <li class="lootpool-card-item">
                             {% if item.type is not none %}
                                 <span class="sprite bg-{{ item.type|lower }}"></span>
                             {% endif %}
-                            {% if rarity_group.rarity == 'Misc' %}
-                                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                            {% if item.rarity == 'Common' and not item.type == "Tome" or item.type == 'CorkianAmplifier' %}
+                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
                             {% else %}
-                                <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                             {% endif %}
                         </li>
                         {% endfor %}
                     </ul>
-                    {% endif %}
                     {% endfor %}
                 </div>
                 <!-- Display the last updated time -->

@@ -435,7 +435,7 @@ def get_lootpool_items(environment="prod"):
                                         {"case": {
                                             "$eq": ["$$item.rarity", "Tome"]}, "then": 9},
                                         {"case": {
-                                            "$eq": ["$$item.rarity", "Misc"]}, "then": 10}
+                                            "$eq": ["$$item.rarity", "Common"]}, "then": 10}
                                     ],
                                     "default": 10
                                 }
@@ -510,137 +510,196 @@ def get_raidpool_items(environment="prod"):
                 "year": loot_year
             }
         },
+        # Add 'group', 'rarityFormatted', and 'rarityLower' fields to each item
+        {
+            "$addFields": {
+                "items": {
+                    "$map": {
+                        "input": "$items",
+                        "as": "item",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$item",
+                                {
+                                    # Assign 'group' based on itemType and type
+                                    "group": {
+                                        "$switch": {
+                                            "branches": [
+                                                {
+                                                    "case": { "$eq": ["$$item.itemType", "AspectItem"] },
+                                                    "then": "Aspects"
+                                                },
+                                                {
+                                                    "case": { "$eq": ["$$item.itemType", "GearItem"] },
+                                                    "then": "Gear"
+                                                },
+                                                {
+                                                    "case": { "$eq": ["$$item.type", "Tome"] },
+                                                    "then": "Tomes"
+                                                },
+                                                {
+                                                    "case": {
+                                                        "$in": ["$$item.itemType", ["PowderItem", "EmeraldItem", "AmplifierItem"]]
+                                                    },
+                                                    "then": "Misc"
+                                                }
+                                            ],
+                                            "default": "Other"
+                                        }
+                                    },
+                                    # Format 'rarity' with only the first character uppercase
+                                    "rarityFormatted": {
+                                        "$cond": {
+                                            "if": { "$ne": ["$$item.rarity", None] },
+                                            "then": {
+                                                "$concat": [
+                                                    {
+                                                        "$toUpper": {
+                                                            "$substr": ["$$item.rarity", 0, 1]
+                                                        }
+                                                    },
+                                                    {
+                                                        "$toLower": {
+                                                            "$substr": ["$$item.rarity", 1, { "$strLenCP": "$$item.rarity" }]
+                                                        }
+                                                    }
+                                                ]
+                                            },
+                                            "else": ""
+                                        }
+                                    },
+                                    # Store 'rarity' in lowercase for consistent comparisons
+                                    "rarityLower": {
+                                        "$toLower": {
+                                            "$ifNull": ["$$item.rarity", ""]
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         # Unwind the items array to process each item individually
         {
             "$unwind": "$items"
         },
-        # Normalize the rarity field and handle null values
-        {
-            "$addFields": {
-                "items": {
-                    "$mergeObjects": [
-                        "$items",
-                        {
-                            "rarity": {
-                                "$toLower": {
-                                    "$ifNull": ["$items.rarity", "Common"]
-                                }
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        # Group items by region, normalized rarity, and shiny status
+        # Group items by region and the new 'group' field
         {
             "$group": {
                 "_id": {
                     "region": "$region",
-                    "rarity": "$items.rarity",
-                    "shiny": "$items.shiny"
+                    "group": "$items.group"
                 },
                 "itemsList": {
-                    "$push": {
-                        "itemType": "$items.itemType",
-                        "amount": "$items.amount",
-                        "name": "$items.name",
-                        "type": "$items.type",
-                        "rarity": "$items.rarity",
-                        "shiny": "$items.shiny"
-                    }
+                    "$push": "$items"
                 },
-                "timestamp": {"$first": "$timestamp"}
+                "timestamp": { "$first": "$timestamp" }
             }
         },
-        # Sort itemsList by name within each group
+        # Assign 'raritySortKey' to items in 'itemsList' based on 'rarityLower'
+        {
+            "$addFields": {
+                "itemsList": {
+                    "$map": {
+                        "input": "$itemsList",
+                        "as": "item",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$item",
+                                {
+                                    "raritySortKey": {
+                                        "$switch": {
+                                            "branches": [
+                                                { "case": { "$eq": ["$$item.rarityLower", "mythic"] }, "then": 1 },
+                                                { "case": { "$eq": ["$$item.rarityLower", "fabled"] }, "then": 2 },
+                                                { "case": { "$eq": ["$$item.rarityLower", "legendary"] }, "then": 3 },
+                                                { "case": { "$eq": ["$$item.rarityLower", "rare"] }, "then": 4 },
+                                                { "case": { "$eq": ["$$item.rarityLower", "unique"] }, "then": 5 },
+                                                { "case": { "$eq": ["$$item.rarityLower", "common"] }, "then": 6 },
+                                                { "case": { "$eq": ["$$item.rarityLower", "set"] }, "then": 7 }
+                                            ],
+                                            "default": 8  # For rarities not specified
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        # Sort the 'itemsList' by 'raritySortKey' and 'name' within each group
         {
             "$addFields": {
                 "itemsList": {
                     "$sortArray": {
                         "input": "$itemsList",
-                        "sortBy": {"name": 1}
-                    }
-                }
-            }
-        },
-        # Group by region and prepare itemsByRarity
-        {
-            "$group": {
-                "_id": "$_id.region",
-                "week": {"$first": loot_week},
-                "year": {"$first": loot_year},
-                "timestamp": { "$first": "$timestamp" },
-                "itemsByRarity": {
-                    "$push": {
-                        "rarity": {
-                            "$cond": {
-                                "if": {"$eq": ["$_id.shiny", True]},
-                                "then": "Shiny",
-                                "else": {
-                                    "$cond": {
-                                        "if": {"$eq": ["$_id.rarity", "misc"]},
-                                        "then": "Misc",
-                                        "else": {
-                                            "$concat": [
-                                                {"$toUpper": {"$substr": ["$_id.rarity", 0, 1]}},
-                                                {"$substr": ["$_id.rarity", 1, {"$subtract": [{"$strLenCP": "$_id.rarity"}, 1]}]}
-                                            ]
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "shiny": "$_id.shiny",
-                        "items": "$itemsList"
-                    }
-                }
-            }
-        },
-        # Map over itemsByRarity to assign sortKey
-        {
-            "$addFields": {
-                "itemsByRarity": {
-                    "$map": {
-                        "input": "$itemsByRarity",
-                        "as": "item",
-                        "in": {
-                            "rarity": "$$item.rarity",
-                            "shiny": "$$item.shiny",
-                            "items": "$$item.items",
-                            "sortKey": {
-                                "$switch": {
-                                    "branches": [
-                                        {"case": {"$eq": ["$$item.rarity", "Shiny"]}, "then": 0},
-                                        {"case": {"$eq": ["$$item.rarity", "Aspect"]}, "then": 1},
-                                        {"case": {"$eq": ["$$item.rarity", "Mythic"]}, "then": 2},
-                                        {"case": {"$eq": ["$$item.rarity", "Fabled"]}, "then": 3},
-                                        {"case": {"$eq": ["$$item.rarity", "Legendary"]}, "then": 4},
-                                        {"case": {"$eq": ["$$item.rarity", "Rare"]}, "then": 6},
-                                        {"case": {"$eq": ["$$item.rarity", "Set"]}, "then": 7},
-                                        {"case": {"$eq": ["$$item.rarity", "Unique"]}, "then": 8},
-                                        {"case": {"$eq": ["$$item.rarity", "Tome"]}, "then": 9},
-                                        {"case": {"$eq": ["$$item.rarity", "Common"]}, "then": 10}
-                                    ],
-                                    "default": 10
-                                }
-                            }
+                        "sortBy": {
+                            "raritySortKey": 1,
+                            "name": 1
                         }
                     }
                 }
             }
         },
-        # Sort itemsByRarity based on sortKey
+        # Group by region to assemble the final structure
         {
-            "$addFields": {
-                "itemsByRarity": {
-                    "$sortArray": {
-                        "input": "$itemsByRarity",
-                        "sortBy": {"sortKey": 1}
+            "$group": {
+                "_id": "$_id.region",
+                "week": { "$first": loot_week },
+                "year": { "$first": loot_year },
+                "timestamp": { "$first": "$timestamp" },
+                "itemsByGroup": {
+                    "$push": {
+                        "group": "$_id.group",
+                        "items": "$itemsList"
                     }
                 }
             }
         },
-        # Project the final output
+        # Assign 'groupSortKey' to each group for ordering
+        {
+            "$addFields": {
+                "itemsByGroup": {
+                    "$map": {
+                        "input": "$itemsByGroup",
+                        "as": "item",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$item",
+                                {
+                                    "groupSortKey": {
+                                        "$switch": {
+                                            "branches": [
+                                                { "case": { "$eq": ["$$item.group", "Aspects"] }, "then": 1 },
+                                                { "case": { "$eq": ["$$item.group", "Tomes"] }, "then": 2 },
+                                                { "case": { "$eq": ["$$item.group", "Gear"] }, "then": 3 },
+                                                { "case": { "$eq": ["$$item.group", "Misc"] }, "then": 4 }
+                                            ],
+                                            "default": 5  # 'Other' or any unspecified group
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        # Sort the 'itemsByGroup' array based on 'groupSortKey'
+        {
+            "$addFields": {
+                "itemsByGroup": {
+                    "$sortArray": {
+                        "input": "$itemsByGroup",
+                        "sortBy": { "groupSortKey": 1 }
+                    }
+                }
+            }
+        },
+        # Project the final output, using 'rarityFormatted' for display
         {
             "$project": {
                 "_id": 0,
@@ -648,13 +707,26 @@ def get_raidpool_items(environment="prod"):
                 "week": 1,
                 "year": 1,
                 "timestamp": 1,
-                "region_items": {
+                "group_items": {
                     "$map": {
-                        "input": "$itemsByRarity",
-                        "as": "item",
+                        "input": "$itemsByGroup",
+                        "as": "groupItem",
                         "in": {
-                            "rarity": "$$item.rarity",
-                            "loot_items": "$$item.items"
+                            "group": "$$groupItem.group",
+                            "loot_items": {
+                                "$map": {
+                                    "input": "$$groupItem.items",
+                                    "as": "item",
+                                    "in": {
+                                        "name": "$$item.name",
+                                        "type": "$$item.type",
+                                        "rarity": "$$item.rarityFormatted",
+                                        "itemType": "$$item.itemType",
+                                        "amount": "$$item.amount",
+                                        "shiny": "$$item.shiny"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -662,10 +734,9 @@ def get_raidpool_items(environment="prod"):
         },
         # Sort the final results by region
         {
-            "$sort": {"region": 1}
+            "$sort": { "region": 1 }
         }
     ])
-
 
     return check_results(result, custom_message="No lootpool items found for this week")
 
