@@ -12,7 +12,7 @@ from modules import mongodb_connector
 
 api_bp = Blueprint('api', __name__)
 request_queue = Queue()
-SUPPORTED_VERSION = '0.8.1'
+SUPPORTED_VERSION = '0.8.2'
 
 WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
 
@@ -295,7 +295,7 @@ def shutdown_worker():
     worker_thread.join()
     
 def compare_versions(version_a: str, version_b: str) -> bool:
-    if version_a.lower().find("dev") != 1:
+    if version_a.lower().find("dev") != -1:
         return True
     
     # Split the versions by dot and convert each part to an integer
@@ -308,6 +308,7 @@ def compare_versions(version_a: str, version_b: str) -> bool:
             return True
         elif a < b:
             return False
+    return True
 
 
 # Start a worker thread to process the queue
