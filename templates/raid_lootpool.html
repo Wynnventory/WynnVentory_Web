@@ -7,6 +7,21 @@
     <h4 id="time"></h4>
 </div>
 
+<!-- Toggle Checkbox Buttons for Rarities -->
+<div class="d-flex flex-wrap mb-3" role="group" aria-label="Rarity checkbox toggle button group">
+    <input type="checkbox" class="btn-check" id="Aspects" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="Aspects">Aspects</label>
+
+    <input type="checkbox" class="btn-check" id="Tomes" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="Tomes">Tomes</label>
+
+    <input type="checkbox" class="btn-check" id="Gear" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="Gear">Gear</label>
+
+    <input type="checkbox" class="btn-check" id="Misc" autocomplete="off" checked>
+    <label class="btn btn-outline-primary me-2 mb-2" for="Misc">Misc</label>
+</div>
+
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4 g-3">
     {% for region_data in loot_data %}
         <div class="col">
@@ -16,21 +31,23 @@
                 </div>
                 <div id="collapse-{{ loop.index }}" class="collapse show card-body">
                     {% for item_group in region_data.group_items %}
-                    <h3 class="h6 rarity-header">{{ item_group.group }}</h3>
-                    <ul class="list-unstyled">
-                        {% for item in item_group.loot_items %}
-                        <li class="lootpool-card-item">
-                            {% if item.type is not none %}
-                                <span class="sprite bg-{{ item.type|lower }}"></span>
-                            {% endif %}
-                            {% if item.rarity == 'Common' and not item.type == "Tome" or item.type == 'CorkianAmplifier' %}
-                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
-                            {% else %}
-                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    <div class="item-group" data-group="{{ item_group.group }}">
+                        <h3 class="h6 rarity-header">{{ item_group.group }}</h3>
+                        <ul class="list-unstyled">
+                            {% for item in item_group.loot_items %}
+                            <li class="lootpool-card-item">
+                                {% if item.type is not none %}
+                                    <span class="sprite bg-{{ item.type|lower }}"></span>
+                                {% endif %}
+                                {% if item.rarity == 'Common' and not item.type == "Tome" or item.type == 'CorkianAmplifier' %}
+                                    <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                                {% else %}
+                                    <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                     {% endfor %}
                 </div>
                 <!-- Display the last updated time -->
@@ -42,4 +59,67 @@
     {% endfor %}
 </div>
 <div id="item-stats-tooltip" class="item-stats-tooltip"></div>
+<script>
+    // Function to save checkbox state to localStorage
+    function saveCheckboxState(checkbox) {
+        localStorage.setItem(checkbox.id, checkbox.checked);
+    }
+
+    // Function to load checkbox state from localStorage
+    function loadCheckboxState(checkbox) {
+        const savedState = localStorage.getItem(checkbox.id);
+        if (savedState !== null) {
+            checkbox.checked = savedState === 'true'; // Restore saved state
+        }
+    }
+
+    // Function to toggle rarity groups based on checkbox state
+    function toggleRarityGroup(checkbox) {
+        const rarity = checkbox.id.charAt(0).toUpperCase() + checkbox.id.slice(1);
+        const rarityGroups = document.querySelectorAll(`.item-group[data-group="${rarity}"]`);
+        rarityGroups.forEach(group => {
+            if (checkbox.checked) {
+                group.style.display = 'block';
+            } else {
+                group.style.display = 'none';
+            }
+        });
+        if (rarity === 'Mythic') {
+            const rarityGroups = document.querySelectorAll(`.item-group[data-group="Shiny"]`);
+            rarityGroups.forEach(group => {
+                if (checkbox.checked) {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        }
+
+        if (rarity === 'Common') {
+            const rarityGroups = document.querySelectorAll(`.item-group[data-group="Misc"]`);
+            rarityGroups.forEach(group => {
+                if (checkbox.checked) {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    // Initialize checkboxes and add event listeners
+    document.querySelectorAll('.btn-check').forEach(checkbox => {
+        // Load the saved state when the page loads
+        loadCheckboxState(checkbox);
+
+        // Set initial visibility based on the checkbox state
+        toggleRarityGroup(checkbox);
+
+        // Add event listener to toggle visibility and save state
+        checkbox.addEventListener('change', function () {
+            toggleRarityGroup(this);
+            saveCheckboxState(this);
+        });
+    });
+</script>
 {% endblock %}
