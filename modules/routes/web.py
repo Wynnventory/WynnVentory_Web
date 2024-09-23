@@ -26,6 +26,9 @@ def item():
 def lootrun_lootpool():
     loot_data = api.get_lootpool_items("lootpool")[0].get_json()
 
+    if not isinstance(loot_data, list):
+        loot_data = []
+
     now = datetime.now(timezone.utc)
     
     # Calculate time difference
