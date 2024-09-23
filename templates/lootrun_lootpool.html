@@ -41,12 +41,12 @@
             </div>
             <div id="collapse-{{ loop.index }}" class="collapse show card-body">
                 {% for rarity_group in region_data.region_items %}
-                <div class="rarity-group" data-rarity="{{ rarity_group.rarity }}">
+                <div class="rarity-group" data-rarity="{{ rarity_group.group }}">
                     <h3 class="h6 rarity-header">
-                    {% if rarity_group.rarity == 'Shiny' %}
+                    {% if rarity_group.group == 'Shiny' %}
                         <span class="sprite bg-shiny"></span>
                     {% endif %}
-                        {{ rarity_group.rarity }}
+                        {{ rarity_group.group }}
                     </h3>
                     <ul class="list-unstyled">
                         {% for item in rarity_group.loot_items %}
@@ -54,10 +54,10 @@
                             {% if item.type is not none %}
                             <span class="sprite bg-{{ item.type|lower }}"></span>
                             {% endif %}
-                            {% if rarity_group.rarity in ['Misc', "Common"] %}
-                            <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                            {% if rarity_group.group in ['Misc', "Common"] %}
+                            <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
                             {% else %}
-                            <span class="{{ rarity_group.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                            <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                             {% endif %}
                         </li>
                         {% endfor %}
