@@ -108,6 +108,14 @@ class Identification:
             "rawWaterMainAttackDamage": "Water Main Attack Damage",
             "thunderMainAttackDamage": "Thunder Main Attack Damage",
             "rawThunderMainAttackDamage": "Thunder Main Attack Damage",
+            "jumpHeight": "Jump Height",
+            "neutralDamage": "Neutral Damage",
+            "rawNeutralDamage": "Neutral Damage",
+            "rawDamage": "Damage",
+            "elementalSpellDamage": "Elemental Spell Damage",
+            "knockback": "Knockback",
+            "rawAirDamage": "Air Damage",
+            "rawElementalSpellDamage": "Elemental Spell Damage",
         }
         readable_name = mapping.get(name, name)
         # return ' '.join(word.capitalize() for word in readable_name.split())
@@ -138,6 +146,12 @@ class Identification:
             "rawEarthSpellDamage": "",
             "healthRegenRaw": "",
             "rawEarthMainAttackDamage": "",
+            "jumpHeight": "",
+            "rawNeutralDamage": "",
+            "rawDamage": "",
+            "rawAirDamage": "",
+            "rawElementalSpellDamage": "",
+            "poison": "/3s",
         }
 
         # Determine suffix based on name
