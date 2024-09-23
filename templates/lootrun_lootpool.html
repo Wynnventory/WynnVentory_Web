@@ -44,7 +44,7 @@
                 <div class="rarity-group" data-rarity="{{ rarity_group.rarity }}">
                     <h3 class="h6 rarity-header">
                     {% if rarity_group.rarity == 'Shiny' %}
-                        <img src="{{ url_for('static', filename='icons/shiny_icon.webp') }}" />
+                        <span class="sprite bg-shiny"></span>
                     {% endif %}
                         {{ rarity_group.rarity }}
                     </h3>

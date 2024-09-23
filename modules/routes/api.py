@@ -12,6 +12,7 @@ from modules import mongodb_connector
 
 api_bp = Blueprint('api', __name__)
 request_queue = Queue()
+SUPPORTED_VERSION = '0.8.1'
 
 WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
 
@@ -138,12 +139,12 @@ def save_lootpool_items():
         if not data:
             return {"message": "No items provided"}, 400
             
-        if type(data) is list and not compare_versions(data[0]['modVersion'], '0.7.0'):
-            print("Only mod version 0.8.0 is supported")
-            return jsonify({"message": "Only mod version 0.8.0 is supported"}), 400
-        elif type(data) is not list and not compare_versions(data['modVersion'], '0.7.0'):
-            print("Only mod version 0.8.0 is supported")
-            return jsonify({"message": "Only mod version 0.8.0 is supported"}), 400
+        if type(data) is list and not compare_versions(data[0]['modVersion'], SUPPORTED_VERSION):
+            print(f"Only mod version {SUPPORTED_VERSION} is supported")
+            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
+        elif type(data) is not list and not compare_versions(data['modVersion'], SUPPORTED_VERSION):
+            print(f"Only mod version {SUPPORTED_VERSION} is supported")
+            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
 
         items = data if isinstance(data, list) else [data]
 
@@ -182,6 +183,13 @@ def save_raidpool_items():
         data = request.get_json()
         if not data:
             return {"message": "No items provided"}, 400
+        
+        if type(data) is list and not compare_versions(data[0]['modVersion'], SUPPORTED_VERSION):
+            print(f"Only mod version {SUPPORTED_VERSION} is supported")
+            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
+        elif type(data) is not list and not compare_versions(data['modVersion'], SUPPORTED_VERSION):
+            print(f"Only mod version {SUPPORTED_VERSION} is supported")
+            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
 
         items = data if isinstance(data, list) else [data]
 
