@@ -602,3 +602,23 @@ li .SET:hover {
 .bg-corkianamplifier {
     background-image: url('/icons/corkianamplifier.webp');
 }
+
+.bg-archeraspect {
+    background-image: url('/icons/archeraspect.webp');
+}
+
+.bg-assassinaspect {
+    background-image: url('/icons/assassinaspect.webp');
+}
+
+.bg-mageaspect {
+    background-image: url('/icons/mageaspect.webp');
+}
+
+.bg-shamanaspect {
+    background-image: url('/icons/shamanaspect.webp');
+}
+
+.bg-warrioraspect {
+    background-image: url('/icons/warrioraspect.webp');
+}

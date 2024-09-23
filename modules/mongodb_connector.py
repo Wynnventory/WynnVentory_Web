@@ -261,77 +261,35 @@ def get_lootpool_items(pool, environment="prod"):
     loot_year, loot_week = get_lootpool_week()
 
     result = collection.aggregate([
+        # Match documents for the given week and year
         {
             "$match": {
                 "week": loot_week,
                 "year": loot_year
             }
         },
-        {
-            "$addFields": {
-                "items": {
-                    "$map": {
-                        "input": "$items",
-                        "as": "item",
-                        "in": {
-                            "$let": {
-                                "vars": {
-                                    "newRarity": {
-                                        "$switch": {
-                                            "branches": [
-                                                {
-                                                    "case": {"$eq": ["$$item.itemType", "AspectItem"]},
-                                                    "then": "Aspect"
-                                                },
-                                                {
-                                                    "case": {"$eq": ["$$item.type", "Tome"]},
-                                                    "then": "Tome"
-                                                }
-                                            ],
-                                            "default": {
-                                                "$ifNull": ["$$item.rarity", "Misc"]
-                                            }
-                                        }
-                                    },
-                                    "newType": {
-                                        "$cond": {
-                                            "if": {"$in": ["$$item.itemType", ["PowderItem", "AmplifierItem"]]},
-                                            "then": {
-                                                "$reduce": {
-                                                    "input": {
-                                                        "$slice": [
-                                                            {"$split": [
-                                                                "$$item.name", " "]},
-                                                            0,
-                                                            2
-                                                        ]
-                                                    },
-                                                    "initialValue": "",
-                                                    "in": {"$concat": ["$$value", "$$this"]}
-                                                }
-                                            },
-                                            "else": "$$item.type"
-                                        }
-                                    }
-                                },
-                                "in": {
-                                    "$mergeObjects": [
-                                        "$$item",
-                                        {
-                                            "rarity": {"$toLower": "$$newRarity"},
-                                            "type": "$$newType"
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
+        # Unwind the items array to process each item individually
         {
             "$unwind": "$items"
         },
+        # Normalize the rarity field and handle null values
+        {
+            "$addFields": {
+                "items": {
+                    "$mergeObjects": [
+                        "$items",
+                        {
+                            "rarity": {
+                                "$toLower": {
+                                    "$ifNull": ["$items.rarity", "Common"]
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        # Group items by region, normalized rarity, and shiny status
         {
             "$group": {
                 "_id": {
@@ -352,6 +310,7 @@ def get_lootpool_items(pool, environment="prod"):
                 "timestamp": {"$first": "$timestamp"}
             }
         },
+        # Sort itemsList by name within each group
         {
             "$addFields": {
                 "itemsList": {
@@ -362,12 +321,13 @@ def get_lootpool_items(pool, environment="prod"):
                 }
             }
         },
+        # Group by region and prepare itemsByRarity
         {
             "$group": {
                 "_id": "$_id.region",
                 "week": {"$first": loot_week},
                 "year": {"$first": loot_year},
-                "timestamp": {"$first": "$timestamp"},
+                "timestamp": { "$first": "$timestamp" },
                 "itemsByRarity": {
                     "$push": {
                         "rarity": {
@@ -379,20 +339,10 @@ def get_lootpool_items(pool, environment="prod"):
                                         "if": {"$eq": ["$_id.rarity", "misc"]},
                                         "then": "Misc",
                                         "else": {
-                                            "$let": {
-                                                "vars": {
-                                                    "rarityLower": "$_id.rarity",
-                                                    "rarityLength": {"$strLenCP": "$_id.rarity"}
-                                                },
-                                                "in": {
-                                                    "$concat": [
-                                                        {"$toUpper": {"$substr": [
-                                                            "$$rarityLower", 0, 1]}},
-                                                        {"$substr": ["$$rarityLower", 1, {
-                                                            "$subtract": ["$$rarityLength", 1]}]}
-                                                    ]
-                                                }
-                                            }
+                                            "$concat": [
+                                                {"$toUpper": {"$substr": ["$_id.rarity", 0, 1]}},
+                                                {"$substr": ["$_id.rarity", 1, {"$subtract": [{"$strLenCP": "$_id.rarity"}, 1]}]}
+                                            ]
                                         }
                                     }
                                 }
@@ -404,6 +354,7 @@ def get_lootpool_items(pool, environment="prod"):
                 }
             }
         },
+        # Map over itemsByRarity to assign sortKey
         {
             "$addFields": {
                 "itemsByRarity": {
@@ -417,26 +368,16 @@ def get_lootpool_items(pool, environment="prod"):
                             "sortKey": {
                                 "$switch": {
                                     "branches": [
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Shiny"]}, "then": 0},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Aspect"]}, "then": 1},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Mythic"]}, "then": 2},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Fabled"]}, "then": 3},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Legendary"]}, "then": 4},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Rare"]}, "then": 6},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Set"]}, "then": 7},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Unique"]}, "then": 8},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Tome"]}, "then": 9},
-                                        {"case": {
-                                            "$eq": ["$$item.rarity", "Misc"]}, "then": 10}
+                                        {"case": {"$eq": ["$$item.rarity", "Shiny"]}, "then": 0},
+                                        {"case": {"$eq": ["$$item.rarity", "Aspect"]}, "then": 1},
+                                        {"case": {"$eq": ["$$item.rarity", "Mythic"]}, "then": 2},
+                                        {"case": {"$eq": ["$$item.rarity", "Fabled"]}, "then": 3},
+                                        {"case": {"$eq": ["$$item.rarity", "Legendary"]}, "then": 4},
+                                        {"case": {"$eq": ["$$item.rarity", "Rare"]}, "then": 6},
+                                        {"case": {"$eq": ["$$item.rarity", "Set"]}, "then": 7},
+                                        {"case": {"$eq": ["$$item.rarity", "Unique"]}, "then": 8},
+                                        {"case": {"$eq": ["$$item.rarity", "Tome"]}, "then": 9},
+                                        {"case": {"$eq": ["$$item.rarity", "Common"]}, "then": 10}
                                     ],
                                     "default": 10
                                 }
@@ -446,6 +387,7 @@ def get_lootpool_items(pool, environment="prod"):
                 }
             }
         },
+        # Sort itemsByRarity based on sortKey
         {
             "$addFields": {
                 "itemsByRarity": {
@@ -456,6 +398,7 @@ def get_lootpool_items(pool, environment="prod"):
                 }
             }
         },
+        # Project the final output
         {
             "$project": {
                 "_id": 0,
@@ -469,29 +412,18 @@ def get_lootpool_items(pool, environment="prod"):
                         "as": "item",
                         "in": {
                             "rarity": "$$item.rarity",
-                            "loot_items": {
-                                "$map": {
-                                    "input": "$$item.items",
-                                    "as": "loot_item",
-                                    "in": {
-                                        "itemType": "$$loot_item.itemType",
-                                        "amount": "$$loot_item.amount",
-                                        "name": "$$loot_item.name",
-                                        "type": "$$loot_item.type",
-                                        "rarity": "$$loot_item.rarity",
-                                        "shiny": "$$loot_item.shiny"
-                                    }
-                                }
-                            }
+                            "loot_items": "$$item.items"
                         }
                     }
                 }
             }
         },
+        # Sort the final results by region
         {
             "$sort": {"region": 1}
         }
     ])
+
 
     return check_results(result, custom_message="No lootpool items found for this week")
 
