@@ -167,7 +167,11 @@ def get_lootpool_items(pool):
     """ Retrieve lootpool items
     """
     env = request.args.get('env', 'prod')
-    result = mongodb_connector.get_lootpool_items(pool, environment="dev2")
+    if pool == "raidpool":
+        # result = mongodb_connector.get_raidpool_items(pool, environment=env)
+        result = mongodb_connector.get_raidpool_items(environment="dev2")
+    else:
+        result = mongodb_connector.get_lootpool_items(environment=env)
     return result
 
 @api_bp.route("/api/raidpool/items", methods=['POST'])
