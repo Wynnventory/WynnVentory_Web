@@ -206,7 +206,7 @@ def save_lootpool_item(lootpool, environment="prod"):
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
 
-    print(f"Received lootpool with {len(lootpool.get('items'))} items")
+    # print(f"Received lootpool with {len(lootpool.get('items'))} items")
 
     # Add week and year to the item
     loot_year, loot_week = get_lootpool_week()
@@ -812,7 +812,7 @@ def save_raidpool_item(raidpool, environment="prod"):
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
 
-    print(f"Received raidpool with {len(raidpool.get('items'))} items")
+    # print(f"Received raidpool with {len(raidpool.get('items'))} items")
 
     # Add week and year to the item
     loot_year, loot_week = get_lootpool_week()
