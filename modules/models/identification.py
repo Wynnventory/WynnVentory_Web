@@ -95,6 +95,7 @@ class Identification:
             "poison": "Poison",
             "stealing": "Stealing",
             "sprint": "Sprint",
+            "elementalDamage": "Elemental Damage"
         }
         readable_name = mapping.get(name, name)
         # return ' '.join(word.capitalize() for word in readable_name.split())
