@@ -560,7 +560,11 @@ def get_raidpool_items(environment="prod"):
                                                     },
                                                     {
                                                         "$toLower": {
-                                                            "$substr": ["$$item.rarity", 1, { "$strLenCP": "$$item.rarity" }]
+                                                            "$substr": [
+                                                                "$$item.rarity",
+                                                                1,
+                                                                { "$strLenCP": "$$item.rarity" }
+                                                            ]
                                                         }
                                                     }
                                                 ]
@@ -630,20 +634,6 @@ def get_raidpool_items(environment="prod"):
                 }
             }
         },
-        # Sort the 'itemsList' by 'raritySortKey' and 'name' within each group
-        {
-            "$addFields": {
-                "itemsList": {
-                    "$sortArray": {
-                        "input": "$itemsList",
-                        "sortBy": {
-                            "raritySortKey": 1,
-                            "name": 1
-                        }
-                    }
-                }
-            }
-        },
         # Group by region to assemble the final structure
         {
             "$group": {
@@ -695,6 +685,48 @@ def get_raidpool_items(environment="prod"):
                     "$sortArray": {
                         "input": "$itemsByGroup",
                         "sortBy": { "groupSortKey": 1 }
+                    }
+                }
+            }
+        },
+        # Sort 'items' within each group differently based on 'group'
+        {
+            "$addFields": {
+                "itemsByGroup": {
+                    "$map": {
+                        "input": "$itemsByGroup",
+                        "as": "groupItem",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$groupItem",
+                                {
+                                    "items": {
+                                        "$cond": [
+                                            { "$eq": ["$$groupItem.group", "Aspects"] },
+                                            {
+                                                "$sortArray": {
+                                                    "input": "$$groupItem.items",
+                                                    "sortBy": {
+                                                        "raritySortKey": 1,
+                                                        "type": 1,
+                                                        "name": 1
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "$sortArray": {
+                                                    "input": "$$groupItem.items",
+                                                    "sortBy": {
+                                                        "raritySortKey": 1,
+                                                        "name": 1
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
                     }
                 }
             }
