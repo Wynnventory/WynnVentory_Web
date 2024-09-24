@@ -235,7 +235,7 @@ def save_lootpool_item(lootpool, environment="prod"):
             duplicate_item['items'])
         has_more_or_equal_items_and_old = time_difference > timedelta(
             hours=1) and len(lootpool.get("items")) >= len(duplicate_item['items'])
-        is_older_week = duplicate_item['week'] < loot_week
+        is_older_week = duplicate_item['week'] < loot_week or duplicate_item['year'] < loot_year
 
         if has_more_items or has_more_or_equal_items_and_old or is_older_week:
             print(
@@ -841,7 +841,7 @@ def save_raidpool_item(raidpool, environment="prod"):
             duplicate_item['items'])
         has_more_or_equal_items_and_old = time_difference > timedelta(
             hours=1) and len(raidpool.get("items")) >= len(duplicate_item['items'])
-        is_older_week = duplicate_item['week'] < loot_week
+        is_older_week = duplicate_item['week'] < loot_week or duplicate_item['year'] < loot_year
 
         if has_more_items or has_more_or_equal_items_and_old or is_older_week:
             print(
