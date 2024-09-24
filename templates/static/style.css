@@ -440,7 +440,7 @@ li .UNIQUE:hover {
 .common,
 .Common,
 .COMMON {
-    color: rgb(255, 255, 255);
+    color: --text-color;
     --tooltip-border-color: rgb(255, 255, 255);
 }
 
