@@ -14,8 +14,8 @@ def index():
 
 @web_bp.route("/items")
 def items():
-    items = wynn_api.get_item_database()
-    return render_template("items.html", items=items)
+    # items = wynn_api.get_item_database()
+    return render_template("items.html")
 
 @web_bp.route("/item") # TODO: TEST ONLY
 def item():
@@ -40,7 +40,10 @@ def lootrun_lootpool():
             item["last_updated"] = f"Last updated {int(minutes)} minutes ago"
         else:
             hours = minutes // 60
-            item["last_updated"] = f"Last updated {int(hours)} hours ago"
+            if hours == 1:
+                item["last_updated"] = f"Last updated {int(hours)} hour ago"
+            else:
+                item["last_updated"] = f"Last updated {int(hours)} hours ago"
     
     return render_template("lootrun_lootpool.html", loot_data=loot_data)
 
@@ -62,7 +65,10 @@ def raid_lootpool():
             item["last_updated"] = f"Last updated {int(minutes)} minutes ago"
         else:
             hours = minutes // 60
-            item["last_updated"] = f"Last updated {int(hours)} hours ago"
+            if hours == 1:
+                item["last_updated"] = f"Last updated {int(hours)} hour ago"
+            else:
+                item["last_updated"] = f"Last updated {int(hours)} hours ago"
 
     return render_template("raid_lootpool.html", loot_data=loot_data)
 

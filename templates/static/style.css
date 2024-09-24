@@ -578,146 +578,243 @@ li .SET:hover {
     background-repeat: no-repeat;
 }
 
-.bg-helmet {
-    background-position: -166px -218px;
+.sprite {
+    background-image: url('/icons/wynn_sprites.png');
+    background-repeat: no-repeat;
+    display: inline-block;
 }
 
-.bg-chestplate {
-    background-position: -216px -218px;
-}
-
-.bg-leggings {
-    background-position: -270px -10px;
-}
-
-.bg-boots {
-    background-position: -270px -60px;
-}
-
-.bg-wand {
-    background-position: -270px -110px;
-}
-
-.bg-bow {
-    background-position: -270px -160px;
-}
-
-.bg-relik {
-    background-position: -270px -210px;
-}
-
-.bg-spear {
-    background-position: -10px -270px;
+.bg-unique {
+    background-position: -160px -128px;
+    width: 30px; height: 30px;
 }
 
 .bg-dagger {
-    background-position: -60px -270px;
+    background-position: -0 -160px;
+    width: 30px; height: 30px;
 }
 
-.bg-tol {
-    background-position: -10px -10px;
+.bg-bow {
+    background-position: -30px -160px;
+    width: 30px; height: 30px;
 }
 
-.bg-nii {
-    background-position: -62px -10px;
+.bg-spear {
+    background-position: -60px -160px;
+    width: 30px; height: 30px;
 }
 
-.bg-uth {
-    background-position: -10px -62px;
+.bg-wand {
+    background-position: -90px -160px;
+    width: 30px; height: 30px;
 }
 
 .bg-az {
-    background-position: -62px -62px;
+    background-position: -0 -0;
+    width: 32px; height: 32px;
 }
 
-.bg-tome {
-    background-position: -114px -10px;
+.bg-nii {
+    background-position: -32px -0;
+    width: 32px; height: 32px;
 }
 
-.bg-emerald_block {
-    background-position: -114px -62px;
+.bg-tol {
+    background-position: -0 -32px;
+    width: 32px; height: 32px;
 }
 
-.bg-emerald {
-    background-position: -10px -114px;
-}
-
-.bg-liquid_emerald {
-    background-position: -62px -114px;
-}
-
-.bg-corkianamplifier {
-    background-position: -114px -114px;
-}
-
-.bg-simulator {
-    background-position: -166px -10px;
-}
-
-.bg-insulator {
-    background-position: -166px -62px;
-}
-
-.bg-shiny {
-    background-position: -166px -114px;
-}
-
-.bg-dungeonkey {
-    background-position: -10px -166px;
-}
-
-.bg-bracelet {
-    background-position: -110px -270px;
-}
-
-.bg-necklace {
-    background-position: -160px -270px;
-}
-
-.bg-ring {
-    background-position: -210px -270px;
-}
-
-.bg-earthpowder {
-    background-position: -62px -166px;
-}
-
-.bg-thunderpowder {
-    background-position: -114px -166px;
-}
-
-.bg-firepowder {
-    background-position: -166px -166px;
-}
-
-.bg-powder {
-    background-position: -166px -166px;
-}
-
-.bg-waterpowder {
-    background-position: -218px -10px;
+.bg-uth {
+    background-position: -32px -32px;
+    width: 32px; height: 32px;
 }
 
 .bg-airpowder {
-    background-position: -218px -62px;
+    background-position: -64px -0;
+    width: 32px; height: 32px;
 }
 
-.bg-warrioraspect {
-    background-position: -218px -114px;
+.bg-emerald_block {
+    background-position: -64px -32px;
+    width: 32px; height: 32px;
 }
 
-.bg-mageaspect {
-    background-position: -218px -166px;
+.bg-dungeonkey {
+    background-position: -0 -64px;
+    width: 32px; height: 32px;
 }
 
-.bg-shamanaspect {
-    background-position: -10px -218px;
+.bg-emerald {
+    background-position: -32px -64px;
+    width: 32px; height: 32px;
+}
+
+.bg-earthpowder {
+    background-position: -64px -64px;
+    width: 32px; height: 32px;
+}
+
+.bg-firepowder {
+    background-position: -96px -0;
+    width: 32px; height: 32px;
+}
+
+.bg-thunderpowder {
+    background-position: -96px -32px;
+    width: 32px; height: 32px;
+}
+
+.bg-liquid_emerald {
+    background-position: -96px -64px;
+    width: 32px; height: 32px;
+}
+
+.bg-waterpowder {
+    background-position: -0 -96px;
+    width: 32px; height: 32px;
 }
 
 .bg-archeraspect {
-    background-position: -62px -218px;
+    background-position: -32px -96px;
+    width: 32px; height: 32px;
+}
+
+.bg-armour_tome {
+    background-position: -64px -96px;
+    width: 32px; height: 32px;
 }
 
 .bg-assassinaspect {
-    background-position: -114px -218px;
+    background-position: -96px -96px;
+    width: 32px; height: 32px;
+}
+
+.bg-expertise_tome {
+    background-position: -128px -0;
+    width: 32px; height: 32px;
+}
+
+.bg-guild_tome {
+    background-position: -128px -32px;
+    width: 32px; height: 32px;
+}
+
+.bg-lootrun_tome {
+    background-position: -128px -64px;
+    width: 32px; height: 32px;
+}
+
+.bg-mageaspect {
+    background-position: -128px -96px;
+    width: 32px; height: 32px;
+}
+
+.bg-marathon_tome {
+    background-position: -0 -128px;
+    width: 32px; height: 32px;
+}
+
+.bg-shamanaspect {
+    background-position: -32px -128px;
+    width: 32px; height: 32px;
+}
+
+.bg-warrioraspect {
+    background-position: -64px -128px;
+    width: 32px; height: 32px;
+}
+
+.bg-mysticism_tome {
+    background-position: -96px -128px;
+    width: 32px; height: 32px;
+}
+
+.bg-weapon_tome {
+    background-position: -128px -128px;
+    width: 32px; height: 32px;
+}
+
+.bg-bracelet {
+    background-position: -120px -160px;
+    width: 30px; height: 30px;
+}
+
+.bg-necklace {
+    background-position: -150px -160px;
+    width: 30px; height: 30px;
+}
+
+.bg-ring {
+    background-position: -192px -0;
+    width: 30px; height: 30px;
+}
+
+.bg-shiny {
+    background-position: -160px -0;
+    width: 32px; height: 32px;
+}
+
+.bg-insulator {
+    background-position: -160px -32px;
+    width: 32px; height: 32px;
+}
+
+.bg-corkianamplifier {
+    background-position: -160px -64px;
+    width: 32px; height: 32px;
+}
+
+.bg-simulator {
+    background-position: -160px -96px;
+    width: 32px; height: 32px;
+}
+
+.bg-chestplate {
+    background-position: -192px -30px;
+    width: 30px; height: 30px;
+}
+
+.bg-boots {
+    background-position: -192px -60px;
+    width: 30px; height: 30px;
+}
+
+.bg-leggings {
+    background-position: -192px -90px;
+    width: 30px; height: 30px;
+}
+
+.bg-helmet {
+    background-position: -192px -120px;
+    width: 30px; height: 30px;
+}
+
+.bg-fabled {
+    background-position: -192px -150px;
+    width: 30px; height: 30px;
+}
+
+.bg-legendary {
+    background-position: -0 -190px;
+    width: 30px; height: 30px;
+}
+
+.bg-rare {
+    background-position: -30px -190px;
+    width: 30px; height: 30px;
+}
+
+.bg-relik {
+    background-position: -60px -190px;
+    width: 30px; height: 30px;
+}
+
+.bg-mythic {
+    background-position: -90px -190px;
+    width: 30px; height: 30px;
+}
+
+.bg-set {
+    background-position: -120px -190px;
+    width: 30px; height: 30px;
 }

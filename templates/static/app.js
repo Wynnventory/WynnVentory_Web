@@ -113,7 +113,7 @@ function displayItems(items) {
         if (item_type === 'weapon') {
             requirementsHTML = `<div>Class Req: ${class_req}<br>Combat Lv. Min: ${requirements.Level}<br>`;
             for (const [key, value] of Object.entries(requirements)) {
-                if (key !== 'Level') {
+                if (key !== 'Level' && key !== 'Classrequirement') {
                     requirementsHTML += `${key} Min: ${value}<br>`;
                 }
             }
@@ -121,7 +121,7 @@ function displayItems(items) {
         } else {
             requirementsHTML = `<div>Combat Lv. Min: ${requirements.Level}<br>`;
             for (const [key, value] of Object.entries(requirements)) {
-                if (key === 'class_req') {
+                if (key === 'class_req' && key !== 'Classrequirement') {
                     requirementsHTML += `Class Req: ${value}<br>`;
                 } else if (key !== 'Level') {
                     requirementsHTML += `${key} Min: ${value}<br>`;
