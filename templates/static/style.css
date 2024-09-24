@@ -348,6 +348,10 @@ background-color: var(--bs-body-bg);
     text-align: left;
 }
 
+.item-desc {
+    width: 90%;
+}
+
 .lootpool-card-item .sprite {
     margin-right: 10px;
 }
@@ -442,13 +446,13 @@ li .UNIQUE:hover {
     --tooltip-border-color: rgb(255, 255, 255);
 }
 
-li .common:hover,
+/* li .common:hover,
 li .Common:hover,
 li .COMMON:hover {
     color: rgb(255, 255, 255);
     text-decoration: underline;
     cursor: pointer;
-}
+} */
 
 .set,
 .Set,
