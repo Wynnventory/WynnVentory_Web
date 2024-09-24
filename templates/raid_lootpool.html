@@ -7,25 +7,32 @@
         <h4 id="time"></h4>
     </div>
 
-    <!-- Search Input Field -->
-    <div class="mb-3">
-        <input type="text" id="searchInput" class="form-control mt-2" placeholder="Search items by name...">
+    <!-- Side Menu Container -->
+    <div id="filter-sidebar" class="collapsed">
+        <!-- Filters Content -->
+        <div class="side-menu-content">
+            <!-- Search Input Field -->
+            <div class="mb-3">
+                <input type="text" id="searchInput" class="form-control mt-2" placeholder="Search items by name...">
+            </div>
+
+            <!-- Toggle Checkbox Buttons for Groups -->
+            <div class="d-flex flex-wrap mb-3" role="group" aria-label="Group checkbox toggle button group">
+                <input type="checkbox" class="btn-check" id="Aspects" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="Aspects">Aspects</label>
+
+                <input type="checkbox" class="btn-check" id="Tomes" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="Tomes">Tomes</label>
+
+                <input type="checkbox" class="btn-check" id="Gear" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="Gear">Gear</label>
+
+                <input type="checkbox" class="btn-check" id="Misc" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="Misc">Misc</label>
+            </div>
+        </div>
     </div>
-
-    <!-- Toggle Checkbox Buttons for Groups -->
-    <div class="d-flex flex-wrap mb-3" role="group" aria-label="Group checkbox toggle button group">
-        <input type="checkbox" class="btn-check" id="Aspects" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="Aspects">Aspects</label>
-
-        <input type="checkbox" class="btn-check" id="Tomes" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="Tomes">Tomes</label>
-
-        <input type="checkbox" class="btn-check" id="Gear" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="Gear">Gear</label>
-
-        <input type="checkbox" class="btn-check" id="Misc" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="Misc">Misc</label>
-    </div>
+    <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4 g-3">
         {% for region_data in loot_data %}
@@ -45,7 +52,9 @@
                                                 <span class="sprite bg-{{ item.type|lower }}"></span>
                                             {% endif %}
                                             {% if item.rarity == 'Common' and not item.type == "Tome" or item.type == 'CorkianAmplifier' %}
-                                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                                                <span class="{{ item.rarity }}" style="pointer-events: none;";>
+                                                    <span class="amount">{{ item.amount }}</span> {{ item.name }}
+                                                </span>
                                             {% else %}
                                                 <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                                             {% endif %}
@@ -66,6 +75,13 @@
     <div id="item-stats-tooltip" class="item-stats-tooltip"></div>
 
     <script>
+        document.addEventListener('click', function (event) {
+            let sideMenu = document.getElementById('filter-sidebar');
+            if (!sideMenu.classList.contains('collapsed') && !sideMenu.contains(event.target) && !sideMenuToggle.contains(event.target)) {
+                sideMenu.classList.add('collapsed');
+            }
+        });
+
         // Function to save checkbox state to localStorage
         function saveCheckboxState(checkbox) {
             localStorage.setItem(checkbox.id, checkbox.checked);
@@ -142,5 +158,8 @@
 
         // Event listener for search input
         document.getElementById('searchInput').addEventListener('input', filterItems);
+
+        // Initial filterItems call to set the initial state
+        filterItems();
     </script>
 {% endblock %}

@@ -7,34 +7,39 @@
         <h4 id="time"></h4>
     </div>
 
-    <!-- Search Input Field -->
-    <div class="mb-3">
-        <input type="text" id="searchInput" class="form-control mt-2" placeholder="Search items by name...">
+    <!-- Side Menu Container -->
+    <div id="filter-sidebar" class="collapsed">
+        <!-- Filters Content -->
+        <div class="side-menu-content">
+            <div class="mb-3">
+                <input type="text" id="searchInput" class="form-control mt-2" placeholder="Search items by name...">
+            </div>
+
+            <div class="d-flex flex-wrap mb-3" role="group" aria-label="Rarity checkbox toggle button group">
+                <input type="checkbox" class="btn-check" id="mythic" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="mythic">Mythic</label>
+
+                <input type="checkbox" class="btn-check" id="fabled" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="fabled">Fabled</label>
+
+                <input type="checkbox" class="btn-check" id="legendary" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="legendary">Legendary</label>
+
+                <input type="checkbox" class="btn-check" id="rare" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="rare">Rare</label>
+
+                <input type="checkbox" class="btn-check" id="unique" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="unique">Unique</label>
+
+                <input type="checkbox" class="btn-check" id="tomes" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="tomes">Tomes</label>
+
+                <input type="checkbox" class="btn-check" id="common" autocomplete="off" checked>
+                <label class="btn btn-outline-primary mb-2" for="common">Common</label>
+            </div>
+        </div>
     </div>
-
-    <!-- Toggle Checkbox Buttons for Rarities -->
-    <div class="d-flex flex-wrap mb-3" role="group" aria-label="Rarity checkbox toggle button group">
-        <input type="checkbox" class="btn-check" id="mythic" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="mythic">Mythic</label>
-
-        <input type="checkbox" class="btn-check" id="fabled" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="fabled">Fabled</label>
-
-        <input type="checkbox" class="btn-check" id="legendary" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="legendary">Legendary</label>
-
-        <input type="checkbox" class="btn-check" id="rare" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="rare">Rare</label>
-
-        <input type="checkbox" class="btn-check" id="unique" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="unique">Unique</label>
-
-        <input type="checkbox" class="btn-check" id="tomes" autocomplete="off" checked>
-        <label class="btn btn-outline-primary me-2 mb-2" for="tomes">Tomes</label>
-
-        <input type="checkbox" class="btn-check" id="common" autocomplete="off" checked>
-        <label class="btn btn-outline-primary mb-2" for="common">Common</label>
-    </div>
+    <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
         {% for region_data in loot_data %}
@@ -60,7 +65,9 @@
                                                 <span class="sprite bg-{{ item.type|lower }}"></span>
                                             {% endif %}
                                             {% if rarity_group.group in ['Misc', "Common"] %}
-                                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                                                <span class="{{ item.rarity }}" style="pointer-events: none;";>
+                                                    <span class="amount">{{ item.amount }}</span> {{ item.name }}
+                                                </span>
                                             {% else %}
                                                 <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                                             {% endif %}
