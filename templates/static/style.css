@@ -19,6 +19,15 @@
     --footer-bg: #2b2e33;
     --sidebar-color: #212529;
     --text-color: #e0e0e0;
+    text-shadow:
+            -1px -1px 0 #000,
+            0   -1px 0  #000,
+            1px -1px 0  #000,
+            1px  0   0  #000,
+            1px  1px 0  #000,
+            0    1px 0  #000,
+            -1px  1px 0 #000,
+            -1px  0   0 #000;
 }
 
 @media (min-width: 576px) {
@@ -337,11 +346,12 @@ background-color: var(--bs-body-bg);
     display: flex;
     align-items: center;
     text-align: left;
-    /* padding: 3px 0;  */
 }
 
 .lootpool-card-item .sprite {
     margin-right: 15px;
+    width: 30px;
+    height: 30px;
 }
 
 
@@ -349,7 +359,7 @@ background-color: var(--bs-body-bg);
 .mythic,
 .Mythic,
 .MYTHIC {
-    color: rgb(162, 0, 162);
+    color: rgb(187, 0, 187);
     --tooltip-border-color: rgb(162, 0, 162);
 }
 
