@@ -321,7 +321,7 @@ background-color: var(--bs-body-bg);
     }
 }
 
-@media (max-width: 576) {
+@media (max-width: 576px) {
     #filter-sidebar {
         width: 100%;
         height: auto;
@@ -349,9 +349,13 @@ background-color: var(--bs-body-bg);
 }
 
 .lootpool-card-item .sprite {
-    margin-right: 15px;
-    width: 30px;
-    height: 30px;
+    margin-right: 10px;
+}
+
+.amount {
+    display: inline-block;
+    width: 25px; /* Adjust the width as needed */
+    text-align: right;
 }
 
 

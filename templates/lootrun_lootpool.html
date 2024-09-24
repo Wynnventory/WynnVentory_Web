@@ -60,7 +60,9 @@
                                                 <span class="sprite bg-{{ item.type|lower }}"></span>
                                             {% endif %}
                                             {% if rarity_group.group in ['Misc', "Common"] %}
-                                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.amount }} {{ item.name }}</span>
+                                                <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                                                    <span class="amount">{{ item.amount }}</span> {{ item.name }}
+                                                </span>
                                             {% else %}
                                                 <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
                                             {% endif %}
