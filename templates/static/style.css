@@ -346,10 +346,8 @@ background-color: var(--bs-body-bg);
     display: flex;
     align-items: center;
     text-align: left;
-}
-
-.item-desc {
-    width: 90%;
+    flex-wrap: nowrap; /* Keep items on the same line */
+    min-width: 0; /* Prevent content from overflowing */
 }
 
 .lootpool-card-item .sprite {
@@ -594,12 +592,8 @@ li .SET:hover {
     display: inline-block;
     background-image: url('/icons/wynn_sprites.png');
     background-repeat: no-repeat;
-}
-
-.sprite {
-    background-image: url('/icons/wynn_sprites.png');
-    background-repeat: no-repeat;
-    display: inline-block;
+    background-size: initial; /* Ensure the background size is set */
+    flex-shrink: 0; /* Prevent the sprite from shrinking */
 }
 
 .bg-unique {
