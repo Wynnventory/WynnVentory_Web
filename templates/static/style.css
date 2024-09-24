@@ -830,3 +830,58 @@ li .SET:hover {
     background-position: -120px -190px;
     width: 30px; height: 30px;
 }
+
+/* Side Menu Styles */
+#sideMenu {
+    position: fixed;
+    top: 0;
+    right: -300px; /* Start off-screen */
+    width: 300px;
+    height: 100%;
+    background-color: var(--bs-body-bg);
+    overflow-y: auto;
+    transition: right 0.3s ease;
+    z-index: 1050; /* Overlaps main content */
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+}
+
+#sideMenu.open {
+    right: 0; /* Slide in when open */
+}
+
+#sideMenuToggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1060; /* Above the side menu */
+    width: fit-content;
+}
+
+#closeSideMenu {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: none;
+    border: none;
+}
+
+.side-menu-content {
+    margin-top: 50px; /* Space below close button */
+}
+
+body.side-menu-open {
+    overflow: hidden; /* Prevent background scrolling */
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    #sideMenu {
+        width: 100%;
+        right: -100%;
+    }
+
+    #sideMenu.open {
+        right: 0;
+    }
+}
