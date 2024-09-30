@@ -298,6 +298,91 @@ async function fetchItemStats(itemName) {
     }
 }
 
+function displayAspect(event, encodedAspectClass, encodedItemName) {
+    const aspectClass = decodeURIComponent(encodedAspectClass).replace('Aspect', '').toLowerCase();
+    const aspectName = decodeURIComponent(encodedItemName);
+
+    fetchAspectStats(aspectClass, aspectName).then(data => {
+        if (data) {
+            showTooltipAspect(event, data);
+        } else {
+            console.error('No stats available for this item');
+        }
+    }).catch(error => {
+        console.error('Error fetching item stats:', error);
+    });
+}
+
+async function fetchAspectStats(className, aspectName) {
+    const response = await fetch(`/api/aspect/${encodeURIComponent(className)}/${encodeURIComponent(aspectName)}`);
+    if (response.ok) {
+        const data = await response.json();
+        return data;
+    } else {
+        console.error('Failed to fetch item stats');
+        return null;
+    }
+}
+
+function showTooltipAspect(event, aspectStats) {
+    const tooltip = document.getElementById('item-stats-tooltip');
+    const { rarity, requiredClass, tiers } = aspectStats;
+    tooltip.classList.remove('Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
+    tooltip.classList.add(rarity);
+
+    // Tier
+    let tierHTML = '';
+    tierHTML = `<div>Tier I 
+                <span style="color:darkgray;">>>>>>>>>></span>
+                <span class="${rarity}"> Tier II </span>[0/${tiers[2].threshold-1}]<br></div>`;
+
+    // Description
+    let descriptionHTML = '';
+    descriptionHTML = `<div>${tiers[1].description}<br></div>`;
+
+    // Requirements
+    let requirementsHTML = '';
+    requirementsHTML = `<div>Class Req: <span style="color: white;">${requiredClass.charAt(0).toUpperCase() + requiredClass.slice(1)}</span><br></div>`;
+
+    // Build aspect tooltip
+    tooltip.innerHTML = `
+            <div class="item-header">
+                <h5 class="${rarity}">${aspectStats.name}</h5>
+            </div>
+            <div class="item-infobox item-tiertext item-text">
+                ${tierHTML}
+            </div>
+            <div class="item-infobox item-text">
+                ${descriptionHTML}
+            </div>
+            <div class="item-infobox item-text">
+                ${requirementsHTML}
+            </div>
+            `;
+
+    tooltip.style.display = 'block';
+
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    let top = event.pageY - 100;
+    let left = event.pageX + 25;
+
+    if (top + tooltipRect.height > viewportHeight) {
+        top = viewportHeight - tooltipRect.height - 10;
+    }
+
+    if (left + tooltipRect.width > viewportWidth) {
+        left = viewportWidth - tooltipRect.width - 10;
+    }
+
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${left}px`;
+
+    document.addEventListener('click', hideTooltipOnClickOutside);
+}
+
 function showTooltip(event, itemStats) {
     const tooltip = document.getElementById('item-stats-tooltip');
     const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req } = itemStats;

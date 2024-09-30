@@ -56,7 +56,11 @@
                                                     <span class="amount">{{ item.amount }}</span> {{ item.name }}
                                                 </span>
                                             {% else %}
+                                                {% if item.itemType == 'AspectItem' %}
+                                                <span class="{{ item.rarity }}" onclick="displayAspect(event, '{{ item.type | urlencode }}', '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                                                {% else %}
                                                 <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                                                {% endif %} 
                                             {% endif %}
                                         </li>
                                     {% endfor %}
