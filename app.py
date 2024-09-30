@@ -5,7 +5,7 @@ from modules import create_app
 app = create_app()
 
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.WARNING)
+# log.setLevel(logging.WARNING)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

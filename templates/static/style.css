@@ -130,6 +130,10 @@ a:hover {
     padding-top: 1rem;
 }
 
+.item-tiertext {
+    text-align: center;
+}
+
 /*.bg-nav{
 background-color: var(--bs-body-bg);
 }*/

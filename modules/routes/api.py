@@ -16,6 +16,12 @@ SUPPORTED_VERSION = '0.8.4'
 
 WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
 
+@api_bp.route("/api/aspect/<class_name>/<aspect_name>", methods=['GET'])
+def get_aspect_stats(class_name, aspect_name):
+    """ Retrieve aspect stats from the Wynn API by aspect class and name
+    """
+    aspect_data = wynn_api.get_aspect_by_name(class_name, aspect_name)
+    return jsonify(aspect_data)
 
 @api_bp.route("/api/item/<item_name>", methods=['GET'])
 def get_item_stats(item_name):
