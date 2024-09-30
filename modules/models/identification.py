@@ -116,6 +116,7 @@ class Identification:
             "knockback": "Knockback",
             "rawAirDamage": "Air Damage",
             "rawElementalSpellDamage": "Elemental Spell Damage",
+            "damage": "Damage",
         }
         readable_name = mapping.get(name, name)
         # return ' '.join(word.capitalize() for word in readable_name.split())

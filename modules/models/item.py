@@ -30,7 +30,8 @@ class Item:
         item_subtype = data.get('weaponType', 
                                 data.get('armorType', 
                                         data.get('accessoryType', 
-                                                data.get('type', 'Unknown Subtype'))))
+                                                 data.get('tomeType',
+                                                          data.get('type', 'Unknown Subtype')))))
 
         return Item(
             name=name,

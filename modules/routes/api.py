@@ -223,7 +223,8 @@ def process_item_data(item_data):
     item_subtype = item_data.get('weaponType',
                                  item_data.get('armourType',
                                                item_data.get('accessoryType',
-                                                             'Unknown Subtype')))
+                                                             item_data.get('tome',
+                                                             'Unknown Subtype'))))
 
     if item_type == 'weapon':
         if item_subtype in [wt.value for wt in WeaponType]:
@@ -240,6 +241,8 @@ def process_item_data(item_data):
             item = Accessory.from_dict(item_data)
         else:
             raise ValueError(f"Unsupported accessory subtype: {item_subtype}")
+    elif item_type == 'tome':
+        item = Item.from_dict(item_data, 'tome')
     else:
         raise ValueError(f"Unsupported item type: {item_type}")
 

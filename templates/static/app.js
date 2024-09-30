@@ -474,9 +474,9 @@ function showTooltip(event, itemStats) {
             <div class="item-infobox item-text">
                 ${otherIdentificationsHTML}
             </div>
-            ${item_type === 'accessory' ? `
+            ${item_type === 'accessory' || item_type === 'tome' ? `
             <div class="item-infobox ${rarity}">
-                ${rarity} Item
+                ${item_type === 'tome' ? `${rarity} Raid Reward` : `${rarity} Item`}
             </div>
             ` : `
             <div class="item-infobox item-text">

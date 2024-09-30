@@ -4,6 +4,7 @@ class ItemType(Enum):
     WEAPON = 'weapon'
     ARMOR = 'armor'
     ACCESSORY = 'accessory'
+    TOME = 'tome'
 
 class WeaponType(Enum):
     DAGGER = 'dagger'
