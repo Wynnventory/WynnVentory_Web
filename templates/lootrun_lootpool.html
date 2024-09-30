@@ -192,12 +192,8 @@
 
                 if (visibleItems.length === 0) {
                     group.style.display = 'none';
-                } else {
-                    if (checkbox && checkbox.checked) {
-                        group.style.display = '';
-                    } else {
-                        group.style.display = 'none';
-                    }
+                } else if (!checkbox || (checkbox && checkbox.checked)) {
+                    group.style.display = '';
                 }
             });
         }

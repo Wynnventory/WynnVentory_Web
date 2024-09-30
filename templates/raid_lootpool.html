@@ -147,7 +147,7 @@
                     // Also check if the group's checkbox is checked
                     const groupName = group.getAttribute('data-group');
                     const checkbox = document.getElementById(groupName);
-                    if (checkbox && checkbox.checked) {
+                    if (!checkbox || (checkbox && checkbox.checked)) {
                         group.style.display = '';
                     } else {
                         group.style.display = 'none';
