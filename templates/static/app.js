@@ -327,7 +327,7 @@ async function fetchAspectStats(className, aspectName) {
 function showTooltipAspect(event, aspectStats) {
     const tooltip = document.getElementById('item-stats-tooltip');
     const { rarity, requiredClass, tiers } = aspectStats;
-    tooltip.classList.remove('Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
+    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique');
     tooltip.classList.add(rarity);
 
     // Tier
