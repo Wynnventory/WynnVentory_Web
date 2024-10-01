@@ -520,6 +520,45 @@ def get_lootpool_items(environment="prod"):
 
     return check_results(result, custom_message="No lootpool items found for this week")
 
+def get_lootpool_items_raw(environment="prod"):
+    """ Retrieve items from the lootpool collection
+    """
+    collection = get_collection("lootpool", environment)
+    if collection is None:
+        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    loot_year, loot_week = get_lootpool_week()
+
+    result = collection.aggregate([
+        # Match documents for the given week and year
+        {
+            "$match": {
+                "week": loot_week,
+                "year": loot_year
+            }
+        }
+    ])
+
+    return check_results(result, custom_message="No lootpool items found for this week")
+
+def get_raidpool_items_raw(environment="prod"):
+    """ Retrieve items from the raidpool collection
+    """
+    collection = get_collection("raidpool", environment)
+    if collection is None:
+        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    loot_year, loot_week = get_lootpool_week()
+
+    result = collection.aggregate([
+        # Match documents for the given week and year
+        {
+            "$match": {
+                "week": loot_week,
+                "year": loot_year
+            }
+        }
+    ])
+
+    return check_results(result, custom_message="No lootpool items found for this week")
 
 def get_raidpool_items(environment="prod"):
     """ Retrieve items from the raidpool collection

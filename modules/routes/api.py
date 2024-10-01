@@ -181,6 +181,18 @@ def get_lootpool_items(pool):
 
     return result
 
+@api_bp.route("/api/lootpool/<pool>", methods=['GET'])
+def get_lootpool_items_raw(pool):
+    """ Retrieve lootpool items
+    """
+    env = request.args.get('env', 'prod')
+    if pool == "raidpool":
+        result = mongodb_connector.get_raidpool_items_raw(environment=env)
+    else:
+        result = mongodb_connector.get_lootpool_items_raw(environment=env)
+
+    return result
+
 @api_bp.route("/api/raidpool/items", methods=['POST'])
 def save_raidpool_items():
     """ Save items to the raidpool collection
