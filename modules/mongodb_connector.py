@@ -12,6 +12,7 @@ PROD_LOOT_DB = "lootpool_items_PROD"
 DEV_LOOT_DB = "lootpool_items_DEV"
 PROD_RAID_DB = "raidpool_items_PROD"
 DEV_RAID_DB = "raidpool_items_DEV"
+PROD_MARKET_ARCH_DB = "tm_items_ARCH_PROD"
 
 # Create a new client and connect to the server with SSL settings
 client = MongoClient(uri, server_api=ServerApi(
@@ -857,6 +858,25 @@ def save_raidpool_item(raidpool, environment="prod"):
 
     return {"message": "Item saved successfully"}, 200
 
+def get_price_history(item_name, environment="prod"):
+    """ Retrieve the price history of an item from the trademarket collection
+    """
+    collection = get_collection("trademarket_ARCH", environment)
+
+    filter={
+        'name': item_name
+    }
+    sort=list({
+        'date': 1
+    }.items())
+
+    result = collection.find(
+        filter=filter,
+        sort=sort,
+        projection={'_id': 0}
+    )
+
+    return check_results(result, custom_message="No items found with that name")
 
 def check_results(result, custom_message="No items found"):
     """ Check if the result is empty and return a custom message
@@ -885,3 +905,9 @@ def get_collection(collection, environment="prod"):
             return db[PROD_RAID_DB]
         elif environment == "dev" or environment == "dev2":
             return db[DEV_RAID_DB]
+    elif collection == "trademarket_ARCH":
+        if environment == "prod":
+            return db[PROD_MARKET_ARCH_DB]
+        else:
+            print("Dev environment not supported for archive collection")
+        return None

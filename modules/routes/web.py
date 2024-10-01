@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, abort
 from datetime import datetime, timezone
 
 from modules import wynn_api
@@ -75,3 +75,19 @@ def raid_lootpool():
 @web_bp.route("/players")
 def players():
     return lootrun_lootpool()
+
+@web_bp.route("/history/", defaults={'item_name': None})
+@web_bp.route("/history/<item_name>")
+@web_bp.route("/history/<item_name>/")
+def history(item_name):
+    allowed_ips = ["83.76.209.66",
+                   "127.0.0.1"]
+    user_ip = request.remote_addr
+    
+    print(f"Trying to access price history for {item_name} from {user_ip}")
+
+    # Check if the user's IP matches the allowed IP
+    if user_ip not in allowed_ips:
+        abort(404) 
+
+    return render_template("price_history.html", item_name=item_name)

@@ -1,0 +1,237 @@
+{% extends 'components/_base.html' %}
+{% block title %}Price History{% endblock %}
+{% block content %}
+
+<h1 class="pt-2 px-4">Price History</h1>
+
+<!-- Input field for the item name -->
+<div class="input-group mb-3">
+    <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch" placeholder="Enter item name...">
+    <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
+</div>
+
+<!-- Chart containers -->
+<div class="container text-center">
+    <div class="row">
+        <div class="col chart-container">
+            <canvas id="priceHistoryChart"></canvas>
+        </div>
+        <div class="col chart-container">
+            <canvas id="highestPriceChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Add Chart.js and the date adapter -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+
+<style>
+    .chart-container {
+        position: relative;
+        height: 400px;
+        width: 100%;
+    }
+</style>
+
+<script>
+    let priceHistoryChart = null;
+    let highestPriceChart = null;
+
+    // Function to initialize empty charts
+    function initializeEmptyCharts() {
+        if (priceHistoryChart) priceHistoryChart.destroy();
+        if (highestPriceChart) highestPriceChart.destroy();
+
+        const emptyData = {
+            labels: [],
+            datasets: [{
+                label: 'No Data',
+                data: [],
+                borderColor: 'rgba(200, 200, 200, 1)',
+                fill: false,
+            }]
+        };
+
+        const chartOptions = {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Price'
+                    }
+                }
+            }
+        };
+
+        const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+        priceHistoryChart = new Chart(ctx, {
+            type: 'line',
+            data: emptyData,
+            options: chartOptions
+        });
+
+        const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
+        highestPriceChart = new Chart(ctx2, {
+            type: 'line',
+            data: emptyData,
+            options: chartOptions
+        });
+    }
+
+    // Function to fetch price data and update the charts
+    async function fetchPriceData(itemName) {
+        try {
+            const response = await fetch(`http://localhost:5000/api/trademarket/${itemName}/history/`);
+            const data = await response.json();
+
+            if (response.ok && data.length > 0) {
+                updateCharts(data);
+            } else {
+                alert('No data found for the given item');
+                initializeEmptyCharts();
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            initializeEmptyCharts();
+        }
+    }
+
+    // Function to update both charts with data
+    function updateCharts(priceData) {
+        const labels = priceData.map(item => new Date(item.date));
+        const averagePrices = priceData.map(item => item.average_price);
+        const highestPrices = priceData.map(item => item.highest_price);
+        const lowestPrices = priceData.map(item => item.lowest_price);
+
+        if (priceHistoryChart) priceHistoryChart.destroy();
+        if (highestPriceChart) highestPriceChart.destroy();
+
+        const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+        priceHistoryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Average Price',
+                    data: averagePrices,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Lowest Price',
+                    data: lowestPrices,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Price'
+                        }
+                    }
+                }
+            }
+        });
+
+        const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
+        highestPriceChart = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Highest Price',
+                    data: highestPrices,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Price'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Function to handle the search process
+    function handleSearch(itemName) {
+        if (itemName) {
+            // Update the URL without reloading the page
+            history.pushState(null, '', `/history/${itemName}`);
+            fetchPriceData(itemName);
+        } else {
+            initializeEmptyCharts();
+        }
+    }
+
+    // Add event listener to the search button
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const itemName = document.getElementById('itemSearch').value.trim();
+        handleSearch(itemName);
+    });
+
+    // Add enter key listener to the input field
+    document.getElementById('itemSearch').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            const itemName = document.getElementById('itemSearch').value.trim();
+            handleSearch(itemName);
+        }
+    });
+
+    // Check if an item name is provided in the URL and load the corresponding data
+    window.onload = function() {
+        const itemName = '{{ item_name }}';
+        if (itemName) {
+            document.getElementById('itemSearch').value = itemName;
+            handleSearch(itemName);
+        } else {
+            initializeEmptyCharts();
+        }
+    };
+</script>
+{% endblock %}

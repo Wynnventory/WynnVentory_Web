@@ -217,6 +217,15 @@ def save_raidpool_items():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@api_bp.route("/api/trademarket/<item_name>/history/", methods=['GET'])
+def get_market_histopry(item_name):
+    """ Retrieve price history of an item from the trademarket archive collection
+    """
+    env = request.args.get('env', 'prod')
+    result = mongodb_connector.get_price_history(item_name, env)
+
+    return result
+
 def process_item_data(item_data):
     """Process item data from the Wynn API and store it in the appropriate model class."""
     item_type = item_data.get('type', 'Unknown Type')
