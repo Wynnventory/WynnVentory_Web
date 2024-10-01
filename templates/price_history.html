@@ -99,7 +99,6 @@
             if (response.ok && data.length > 0) {
                 updateCharts(data);
             } else {
-                alert('No data found for the given item');
                 initializeEmptyCharts();
             }
         } catch (error) {
@@ -200,7 +199,7 @@
 
     // Function to handle the search process
     function handleSearch(itemName) {
-        if (itemName) {
+        if (itemName && itemName !== 'None') {
             // Update the URL without reloading the page
             history.pushState(null, '', `/history/${itemName}`);
             fetchPriceData(itemName);
@@ -226,7 +225,7 @@
     // Check if an item name is provided in the URL and load the corresponding data
     window.onload = function() {
         const itemName = '{{ item_name }}';
-        if (itemName) {
+        if (itemName && itemName !== 'None') {
             document.getElementById('itemSearch').value = itemName;
             handleSearch(itemName);
         } else {

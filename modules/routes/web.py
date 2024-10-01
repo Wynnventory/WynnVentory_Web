@@ -80,14 +80,22 @@ def players():
 @web_bp.route("/history/<item_name>")
 @web_bp.route("/history/<item_name>/")
 def history(item_name):
-    allowed_ips = ["83.76.209.66",
-                   "127.0.0.1"]
-    user_ip = request.remote_addr
+    # List of allowed IP addresses
+    allowed_ips = ["83.76.209.66", "127.0.0.1"]
+
+    # Check if the app is behind a proxy and get the real client IP
+    if request.headers.getlist("X-Forwarded-For"):
+        # 'X-Forwarded-For' may have a list of IPs, we take the first one as the client IP
+        user_ip = request.headers.getlist("X-Forwarded-For")[0]
+    else:
+        # Use 'remote_addr' if there is no proxy
+        user_ip = request.remote_addr
+
+    # Check if the user's IP is in the list of allowed IPs
+    if user_ip not in allowed_ips:
+        abort(404)  # Show 404 error if the IP is not allowed
     
     print(f"Trying to access price history for {item_name} from {user_ip}")
-
-    # Check if the user's IP matches the allowed IP
-    if user_ip not in allowed_ips:
-        abort(404) 
-
+    
+    # Render the price history page if IP is allowed
     return render_template("price_history.html", item_name=item_name)
