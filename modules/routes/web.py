@@ -95,6 +95,7 @@ def history(item_name):
     print(f"Trying to access price history for {item_name} from {user_ip}")
     # Check if the user's IP is in the list of allowed IPs
     if user_ip not in allowed_ips:
+        print(f"IP {user_ip} is not allowed")
         abort(404)  # Show 404 error if the IP is not allowed
     
     
