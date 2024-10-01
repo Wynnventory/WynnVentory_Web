@@ -83,6 +83,8 @@ def history(item_name):
     # List of allowed IP addresses
     allowed_ips = ["83.76.209.66", "127.0.0.1"]
 
+    print(f"Trying to access price history for {item_name} from {user_ip}")
+    
     # Check if the app is behind a proxy and get the real client IP
     if request.headers.getlist("X-Forwarded-For"):
         # 'X-Forwarded-For' may have a list of IPs, we take the first one as the client IP
@@ -95,7 +97,6 @@ def history(item_name):
     if user_ip not in allowed_ips:
         abort(404)  # Show 404 error if the IP is not allowed
     
-    print(f"Trying to access price history for {item_name} from {user_ip}")
     
     # Render the price history page if IP is allowed
     return render_template("price_history.html", item_name=item_name)
