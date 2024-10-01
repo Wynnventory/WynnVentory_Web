@@ -6,7 +6,8 @@
 
 <!-- Input field for the item name -->
 <div class="input-group mb-3">
-    <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch" placeholder="Enter item name...">
+    <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch"
+        placeholder="Enter item name...">
     <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
 </div>
 
@@ -40,8 +41,20 @@
 
     // Function to capitalize each word in the item name
     function capitalizeWords(str) {
-        return str.replace(/\b\w/g, char => char.toUpperCase());
+        const smallWords = ['of'];
+        return str
+            .split(' ')
+            .map((word, index) => {
+                if (index === 0 || !smallWords.includes(word.toLowerCase())) {
+                    // Capitalize the first word or any word that's not a small word
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                }
+                // Return small words in lowercase
+                return word.toLowerCase();
+            })
+            .join(' ');
     }
+
 
     // Function to convert emeralds to stx, le, eb, e format
     function convertEmeraldsToGameFormat(emeralds) {
@@ -57,7 +70,7 @@
         // Formatting the result
         let result = '';
         if (stx > 0) {
-            const decimalLE = (le + eb / 64 + e / (64 * 64)).toFixed(1);  // Calculate remaining value in LE as a decimal
+            const decimalLE = (le + eb / 64 + e / (64 * 64)).toFixed(2);  // Calculate remaining value in LE as a decimal
             result = `${stx}stx ${decimalLE}le`;
         } else {
             if (le > 0) result += `${le}le `;
@@ -106,7 +119,7 @@
             plugins: {
                 tooltip: {
                     callbacks: {
-                        label: function(tooltipItem) {
+                        label: function (tooltipItem) {
                             const emeraldValue = tooltipItem.raw;  // Get raw value of the data point
                             const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
                             return `Price: ${emeraldValue}e (${gameFormat})`;  // Show both formats
@@ -201,7 +214,7 @@
                 plugins: {
                     tooltip: {
                         callbacks: {
-                            label: function(tooltipItem) {
+                            label: function (tooltipItem) {
                                 const emeraldValue = tooltipItem.raw;
                                 const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
                                 return `Price: ${emeraldValue}e (${gameFormat})`;
@@ -248,7 +261,7 @@
                 plugins: {
                     tooltip: {
                         callbacks: {
-                            label: function(tooltipItem) {
+                            label: function (tooltipItem) {
                                 const emeraldValue = tooltipItem.raw;
                                 const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
                                 return `Price: ${emeraldValue}e (${gameFormat})`;
@@ -278,13 +291,13 @@
     }
 
     // Add event listener to the search button
-    document.getElementById('searchBtn').addEventListener('click', function() {
+    document.getElementById('searchBtn').addEventListener('click', function () {
         const itemName = document.getElementById('itemSearch').value.trim();
         handleSearch(itemName);
     });
 
     // Add enter key listener to the input field
-    document.getElementById('itemSearch').addEventListener('keypress', function(event) {
+    document.getElementById('itemSearch').addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
             const itemName = document.getElementById('itemSearch').value.trim();
             handleSearch(itemName);
@@ -292,7 +305,7 @@
     });
 
     // Check if an item name is provided in the URL and load the corresponding data
-    window.onload = function() {
+    window.onload = function () {
         const itemName = '{{ item_name }}';
         if (itemName && itemName !== 'None') {
             // Capitalize the item name and update the input field
