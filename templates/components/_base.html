@@ -43,6 +43,14 @@
                                 <span
                                     class="ms-1 d-none d-sm-inline">Raidpool</span> </a>
                         </li>
+                        {% if show_price_history %}
+                        <li>
+                            <a href="{{ url_for('web.history') }}" class="nav-link px-sm-0 px-2">
+                                <i class="icon-minecraft icon-minecraft-emerald"></i><span
+                                    class="ms-1 d-none d-sm-inline">Price History</span>
+                            </a>
+                        </li>
+                        {% endif %}
                         {# <li>
                             <a href="{{ url_for('web.players') }}" class="nav-link px-sm-0 px-2">
                                 <i class="icon-minecraft icon-minecraft-player-head"></i></i><span
