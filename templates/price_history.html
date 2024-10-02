@@ -19,6 +19,9 @@
         <div class="col chart-container">
             <canvas id="highestPriceChart"></canvas>
         </div>
+        <div class="col chart-container">
+            <canvas id="saturationChart"></canvas>
+        </div>
     </div>
 </div>
 
@@ -37,11 +40,13 @@
 <script>
     let priceHistoryChart = null;
     let highestPriceChart = null;
+    let saturationChart = null;
 
     // Function to initialize empty charts
     function initializeEmptyCharts() {
         if (priceHistoryChart) priceHistoryChart.destroy();
         if (highestPriceChart) highestPriceChart.destroy();
+        if (saturationChart) saturationChart.destroy();
 
         const emptyData = {
             labels: [],
@@ -75,6 +80,28 @@
             }
         };
 
+        const saturationChartOptions = {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Listings'
+                    }
+                }
+            }
+        };
+
         const ctx = document.getElementById('priceHistoryChart').getContext('2d');
         priceHistoryChart = new Chart(ctx, {
             type: 'line',
@@ -87,6 +114,13 @@
             type: 'line',
             data: emptyData,
             options: chartOptions
+        });
+
+        const ctx3 = document.getElementById('saturationChart').getContext('2d');
+        saturationChart = new Chart(ctx3, {
+            type: 'line',
+            data: emptyData,
+            options: saturationChartOptions
         });
     }
 
@@ -113,9 +147,12 @@
         const averagePrices = priceData.map(item => item.average_price);
         const highestPrices = priceData.map(item => item.highest_price);
         const lowestPrices = priceData.map(item => item.lowest_price);
+        const total_listings = priceData.map(item => item.total_count);
+        const unid_listings = priceData.map(item => item.unidentified_count);
 
         if (priceHistoryChart) priceHistoryChart.destroy();
         if (highestPriceChart) highestPriceChart.destroy();
+        if (saturationChart) saturationChart.destroy();
 
         const ctx = document.getElementById('priceHistoryChart').getContext('2d');
         priceHistoryChart = new Chart(ctx, {
@@ -190,6 +227,49 @@
                         title: {
                             display: true,
                             text: 'Price'
+                        }
+                    }
+                }
+            }
+        });
+
+        const ctx3 = document.getElementById('saturationChart').getContext('2d');
+        highestPriceChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Listings',
+                    data: total_listings,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Unidentified Listings',
+                    data: unid_listings,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    fill: false,
+                    tension: 0.1
+                },]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Listings'
                         }
                     }
                 }
