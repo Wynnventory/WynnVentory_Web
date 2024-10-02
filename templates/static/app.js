@@ -327,7 +327,7 @@ async function fetchAspectStats(className, aspectName) {
 function showTooltipAspect(event, aspectStats) {
     const tooltip = document.getElementById('item-stats-tooltip');
     const { rarity, requiredClass, tiers } = aspectStats;
-    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique');
+    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
     tooltip.classList.add(rarity);
 
     // Tier
@@ -386,7 +386,7 @@ function showTooltipAspect(event, aspectStats) {
 function showTooltip(event, itemStats) {
     const tooltip = document.getElementById('item-stats-tooltip');
     const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req } = itemStats;
-    tooltip.classList.remove('Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
+    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
     tooltip.classList.add(rarity);
 
     // Requirements
