@@ -181,7 +181,7 @@ def get_lootpool_items(pool):
 
     return result
 
-@api_bp.route("/api/lootpool/<pool>/items/unprocessed", methods=['GET'])
+@api_bp.route("/api/lootpool/<pool>/", methods=['GET'])
 def get_lootpool_items_raw(pool):
     """ Retrieve lootpool items
     """
