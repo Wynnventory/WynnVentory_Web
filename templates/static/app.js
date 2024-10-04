@@ -258,8 +258,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     function updateCountdown() {
         const now = new Date();
-        const nextResetTime = getNextResetTime();
-        const timeDiff = nextResetTime - now;
+        let nextResetTime = getNextResetTime();
+        let timeDiff = nextResetTime - now;
+
+        // Handle negative time difference (after 8 PM on Friday)
+        if (timeDiff <= 0) {
+            nextResetTime.setUTCDate(nextResetTime.getUTCDate() + 7); // Set to the next Friday
+            timeDiff = nextResetTime - now; // Recalculate timeDiff
+        }
 
         const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
