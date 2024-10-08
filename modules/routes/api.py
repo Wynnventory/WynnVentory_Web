@@ -218,7 +218,7 @@ def save_raidpool_items():
         return jsonify({"error": str(e)}), 500
 
 @api_bp.route("/api/trademarket/<item_name>/history/", methods=['GET'])
-def get_market_histopry(item_name):
+def get_market_history(item_name):
     """ Retrieve price history of an item from the trademarket archive collection
     """
     env = request.args.get('env', 'prod')
