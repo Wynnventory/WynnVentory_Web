@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 
+
 def archive_and_summarize():
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     from_day = today - timedelta(days=DAY_OFFSET)
@@ -135,7 +136,8 @@ def archive_and_summarize():
             ]},
             "prices": {"$sortArray": {"input": "$prices", "sortBy": 1}},
             "unidentified_average_price": {"$round": [
-                {"$cond": [{"$gt": ["$countUnidentified", 0]}, {"$divide": ["$sumUnidentifiedPrice", "$countUnidentified"]}, None]},
+                {"$cond": [{"$gt": ["$countUnidentified", 0]},
+                           {"$divide": ["$sumUnidentifiedPrice", "$countUnidentified"]}, None]},
                 2
             ]},
             "unidentifiedPrices": {"$sortArray": {"input": "$unidentifiedPrices", "sortBy": 1}},
@@ -230,6 +232,7 @@ def archive_and_summarize():
         }
     })
     logging.info(f"Original data older than {DAY_OFFSET} days deleted. Archiving process complete.")
+
 
 if __name__ == "__main__":
     archive_and_summarize()
