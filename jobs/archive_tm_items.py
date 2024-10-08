@@ -5,8 +5,8 @@ import logging
 # MongoDB connection settings
 MONGO_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 DB_NAME = "wynnventory"
-ORIGINAL_COLLECTION = "trademarket_items_DEV"
-SUMMARY_COLLECTION = "tm_items_ARCH_DEV"
+ORIGINAL_COLLECTION = "trademarket_items_PROD"
+SUMMARY_COLLECTION = "tm_items_ARCH_PROD"
 DAY_OFFSET = 7
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
