@@ -13,6 +13,7 @@ DEV_LOOT_DB = "lootpool_items_DEV"
 PROD_RAID_DB = "raidpool_items_PROD"
 DEV_RAID_DB = "raidpool_items_DEV"
 PROD_MARKET_ARCH_DB = "tm_items_ARCH_PROD"
+DEV_MARKET_ARCH_DB = "tm_items_ARCH_DEV"
 
 # Create a new client and connect to the server with SSL settings
 client = MongoClient(uri, server_api=ServerApi(
@@ -937,6 +938,7 @@ def get_collection(collection, environment="prod"):
     elif collection == "trademarket_ARCH":
         if environment == "prod":
             return db[PROD_MARKET_ARCH_DB]
-        else:
-            print("Dev environment not supported for archive collection")
-        return None
+        elif environment == "dev" or environment == "dev2":
+            return db[DEV_MARKET_ARCH_DB]
+
+    return None

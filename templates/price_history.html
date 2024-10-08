@@ -145,6 +145,9 @@
     function updateCharts(priceData) {
         const labels = priceData.map(item => new Date(item.date));
         const averagePrices = priceData.map(item => item.average_price);
+        const average80Prices = priceData.map(item => item.average_mid_80_percent_price);
+        const unidentifiedAveragePrice = priceData.map(item => item.unidentified_average_price);
+        const unidentifiedAverage80Prices = priceData.map(item => item.unidentified_average_mid_80_percent_price);
         const highestPrices = priceData.map(item => item.highest_price);
         const lowestPrices = priceData.map(item => item.lowest_price);
         const total_listings = priceData.map(item => item.total_count);
@@ -163,6 +166,27 @@
                     label: 'Average Price',
                     data: averagePrices,
                     borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Average 80% Price',
+                    data: average80Prices,
+                    borderColor: 'rgba(53, 134, 134, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Unid Average Price',
+                    data: unidentifiedAveragePrice,
+                    borderColor: 'rgba(106, 93, 158, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Unid Average 80% Price',
+                    data: unidentifiedAverage80Prices,
+                    borderColor: 'rgba(69, 53, 134, 1)',
                     fill: false,
                     tension: 0.1
                 },
