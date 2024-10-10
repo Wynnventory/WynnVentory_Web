@@ -225,6 +225,7 @@ def save_lootpool_item(lootpool, environment="prod"):
 
     # Check for duplicate items
     duplicate_item = collection.find_one(pool_check)
+    # print(f"Duplicate item: {duplicate_item}")
 
     if duplicate_item is not None:
         # Get the timestamp of the existing lootpool
@@ -521,6 +522,35 @@ def get_lootpool_items(environment="prod"):
 
     return check_results(result, custom_message="No lootpool items found for this week")
 
+def get_lootpool_items_raw(environment="prod"):
+    """ Retrieve items from the lootpool collection
+    """
+    collection = get_collection("lootpool", environment)
+    if collection is None:
+        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    loot_year, loot_week = get_lootpool_week()
+
+    result = collection.find(
+        filter={'week': loot_week, 'year': loot_year},
+        projection={'_id': 0}
+    )
+
+    return check_results(result, custom_message="No lootpool items found for this week")
+
+def get_raidpool_items_raw(environment="prod"):
+    """ Retrieve items from the raidpool collection
+    """
+    collection = get_collection("raidpool", environment)
+    if collection is None:
+        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    loot_year, loot_week = get_lootpool_week()
+
+    result = collection.find(
+        filter={'week': loot_week, 'year': loot_year},
+        projection={'_id': 0}
+    )
+
+    return check_results(result, custom_message="No lootpool items found for this week")
 
 def get_raidpool_items(environment="prod"):
     """ Retrieve items from the raidpool collection

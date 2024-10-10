@@ -12,7 +12,7 @@ from modules import mongodb_connector
 
 api_bp = Blueprint('api', __name__)
 request_queue = Queue()
-SUPPORTED_VERSION = '0.8.4'
+SUPPORTED_VERSION = '0.8.6'
 
 WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
 
@@ -178,6 +178,18 @@ def get_lootpool_items(pool):
         result = mongodb_connector.get_raidpool_items(environment=env)
     else:
         result = mongodb_connector.get_lootpool_items(environment=env)
+
+    return result
+
+@api_bp.route("/api/lootpool/<pool>/", methods=['GET'])
+def get_lootpool_items_raw(pool):
+    """ Retrieve lootpool items
+    """
+    env = request.args.get('env', 'prod')
+    if pool == "raidpool":
+        result = mongodb_connector.get_raidpool_items_raw(environment=env)
+    else:
+        result = mongodb_connector.get_lootpool_items_raw(environment=env)
 
     return result
 
