@@ -156,28 +156,6 @@
             }
         };
 
-        const saturationChartOptions = {
-            responsive: true,
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'day'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Listings'
-                    }
-                }
-            }
-        };
-
         const ctx = document.getElementById('priceHistoryChart').getContext('2d');
         priceHistoryChart = new Chart(ctx, {
             type: 'line',
@@ -349,49 +327,6 @@
                                 const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
                                 return `Price: ${emeraldValue}e (${gameFormat})`;
                             }
-                        }
-                    }
-                }
-            }
-        });
-
-        const ctx3 = document.getElementById('saturationChart').getContext('2d');
-        saturationChart = new Chart(ctx3, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Total Listings',
-                    data: total_listings,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Unidentified Listings',
-                    data: unid_listings,
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    fill: false,
-                    tension: 0.1
-                },]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Listings'
                         }
                     }
                 }
