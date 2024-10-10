@@ -142,6 +142,7 @@ def save_lootpool_items():
     """
     try:
         data = request.get_json()
+        print(f"Items received: {data}")
         if not data:
             return {"message": "No items provided"}, 400
             
@@ -174,6 +175,7 @@ def get_lootpool_items(pool):
     """ Retrieve lootpool items
     """
     env = request.args.get('env', 'prod')
+    env = "dev"
     if pool == "raidpool":
         result = mongodb_connector.get_raidpool_items(environment=env)
     else:
