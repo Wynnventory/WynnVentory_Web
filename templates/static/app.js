@@ -258,8 +258,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     function updateCountdown() {
         const now = new Date();
-        const nextResetTime = getNextResetTime();
-        const timeDiff = nextResetTime - now;
+        let nextResetTime = getNextResetTime();
+        let timeDiff = nextResetTime - now;
+
+        // Handle negative time difference (after 8 PM on Friday)
+        if (timeDiff <= 0) {
+            nextResetTime.setUTCDate(nextResetTime.getUTCDate() + 7); // Set to the next Friday
+            timeDiff = nextResetTime - now; // Recalculate timeDiff
+        }
 
         const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -327,7 +333,7 @@ async function fetchAspectStats(className, aspectName) {
 function showTooltipAspect(event, aspectStats) {
     const tooltip = document.getElementById('item-stats-tooltip');
     const { rarity, requiredClass, tiers } = aspectStats;
-    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique');
+    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
     tooltip.classList.add(rarity);
 
     // Tier
@@ -386,7 +392,7 @@ function showTooltipAspect(event, aspectStats) {
 function showTooltip(event, itemStats) {
     const tooltip = document.getElementById('item-stats-tooltip');
     const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req } = itemStats;
-    tooltip.classList.remove('Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
+    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
     tooltip.classList.add(rarity);
 
     // Requirements

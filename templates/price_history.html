@@ -6,7 +6,8 @@
 
 <!-- Input field for the item name -->
 <div class="input-group mb-3">
-    <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch" placeholder="Enter item name...">
+    <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch"
+        placeholder="Enter item name...">
     <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
 </div>
 
@@ -42,6 +43,48 @@
     let highestPriceChart = null;
     let saturationChart = null;
 
+    // Function to capitalize each word in the item name
+    function capitalizeWords(str) {
+        const smallWords = ['of'];
+        return str
+            .split(' ')
+            .map((word, index) => {
+                if (index === 0 || !smallWords.includes(word.toLowerCase())) {
+                    // Capitalize the first word or any word that's not a small word
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                }
+                // Return small words in lowercase
+                return word.toLowerCase();
+            })
+            .join(' ');
+    }
+
+
+    // Function to convert emeralds to stx, le, eb, e format
+    function convertEmeraldsToGameFormat(emeralds) {
+        const stx = Math.floor(emeralds / (64 * 64 * 64));  // Calculate stacks
+        emeralds %= 64 * 64 * 64;  // Get remainder in emeralds after stack conversion
+
+        const le = Math.floor(emeralds / (64 * 64));  // Calculate liquid emeralds
+        emeralds %= 64 * 64;  // Get remainder after liquid emeralds
+
+        const eb = Math.floor(emeralds / 64);  // Calculate emerald blocks
+        const e = emeralds % 64;  // Remaining emeralds
+
+        // Formatting the result
+        let result = '';
+        if (stx > 0) {
+            const decimalLE = (le + eb / 64 + e / (64 * 64)).toFixed(2);  // Calculate remaining value in LE as a decimal
+            result = `${stx}stx ${decimalLE}le`;
+        } else {
+            if (le > 0) result += `${le}le `;
+            if (eb > 0) result += `${eb}eb `;
+            if (e > 0) result += `${e}e`;
+        }
+
+        return result.trim();
+    }
+
     // Function to initialize empty charts
     function initializeEmptyCharts() {
         if (priceHistoryChart) priceHistoryChart.destroy();
@@ -75,6 +118,39 @@
                     title: {
                         display: true,
                         text: 'Price'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function (tooltipItem) {
+                            const emeraldValue = tooltipItem.raw;  // Get raw value of the data point
+                            const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
+                            return `Price: ${emeraldValue}e (${gameFormat})`;  // Show both formats
+                        }
+                    }
+                }
+            }
+        };
+
+        const saturationChartOptions = {
+            responsive: true,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Listings'
                     }
                 }
             }
@@ -217,6 +293,17 @@
                             text: 'Price'
                         }
                     }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                const emeraldValue = tooltipItem.raw;
+                                const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
+                                return `Price: ${emeraldValue}e (${gameFormat})`;
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -251,6 +338,60 @@
                         title: {
                             display: true,
                             text: 'Price'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                const emeraldValue = tooltipItem.raw;
+                                const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
+                                return `Price: ${emeraldValue}e (${gameFormat})`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        const ctx3 = document.getElementById('saturationChart').getContext('2d');
+        saturationChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Listings',
+                    data: total_listings,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Unidentified Listings',
+                    data: unid_listings,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    fill: false,
+                    tension: 0.1
+                },]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Listings'
                         }
                     }
                 }
@@ -304,6 +445,12 @@
     // Function to handle the search process
     function handleSearch(itemName) {
         if (itemName && itemName !== 'None') {
+            // Capitalize each word in item name
+            itemName = capitalizeWords(itemName);
+
+            // Update the input field to show capitalized text
+            document.getElementById('itemSearch').value = itemName;
+
             // Update the URL without reloading the page
             history.pushState(null, '', `/history/${itemName}`);
             fetchPriceData(itemName);
@@ -313,13 +460,13 @@
     }
 
     // Add event listener to the search button
-    document.getElementById('searchBtn').addEventListener('click', function() {
+    document.getElementById('searchBtn').addEventListener('click', function () {
         const itemName = document.getElementById('itemSearch').value.trim();
         handleSearch(itemName);
     });
 
     // Add enter key listener to the input field
-    document.getElementById('itemSearch').addEventListener('keypress', function(event) {
+    document.getElementById('itemSearch').addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
             const itemName = document.getElementById('itemSearch').value.trim();
             handleSearch(itemName);
@@ -327,11 +474,14 @@
     });
 
     // Check if an item name is provided in the URL and load the corresponding data
-    window.onload = function() {
+    window.onload = function () {
         const itemName = '{{ item_name }}';
         if (itemName && itemName !== 'None') {
-            document.getElementById('itemSearch').value = itemName;
-            handleSearch(itemName);
+            // Capitalize the item name and update the input field
+            const capitalizedItemName = capitalizeWords(itemName);
+            document.getElementById('itemSearch').value = capitalizedItemName;
+
+            handleSearch(capitalizedItemName);
         } else {
             initializeEmptyCharts();
         }

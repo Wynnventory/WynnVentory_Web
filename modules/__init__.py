@@ -4,7 +4,8 @@ ALLOWED_IPS = ["127.0.0.1",
                "83.76.209.66", # Pfister PC
                "178.197.215.137", # Tim Handy
                "85.2.46.237", # Tim PC
-               "178.197.211.252" # Pfister Handy
+               "178.197.211.252", # Pfister Handy
+               "213.55.241.4" # Säm PC
                ]
 
 
