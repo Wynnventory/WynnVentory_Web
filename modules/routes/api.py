@@ -155,12 +155,12 @@ def save_lootpool_items():
 
         items = data if isinstance(data, list) else [data]
         
-        print(f"Saving items to {env} collection")
         if not utils.is_time_valid("RAID", items[0]['collectionTime']):
             print("Invalid time")
             return jsonify({"message": "Items are of last weeks pool."}), 400
 
         env = request.args.get('env')
+        print(f"Saving items to {env} collection")
         if not env or env == 'dev':
             for item in items:
                 request_queue.put(("lootpool", item, "prod"))
@@ -217,12 +217,12 @@ def save_raidpool_items():
 
         items = data if isinstance(data, list) else [data]
 
-        print(f"Saving items to {env} collection")
         if not utils.is_time_valid("RAID", items[0]['collectionTime']):
             print("Invalid time")
             return jsonify({"message": "Items are of last weeks pool."}), 400
         
         env = request.args.get('env')
+        print(f"Saving items to {env} collection")
         if not env or env == 'dev':
             for item in items:
                 request_queue.put(("raidpool", item, "prod"))
