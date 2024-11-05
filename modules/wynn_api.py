@@ -1,7 +1,5 @@
 import requests
 
-from modules.utils import map_local_icons
-
 
 BASE_URL = "https://api.wynncraft.com/v3"
 def get_item_database():

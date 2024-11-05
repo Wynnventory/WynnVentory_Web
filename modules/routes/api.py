@@ -8,11 +8,12 @@ from modules import wynn_api
 from modules.models import Weapon, Armour, Accessory, Item
 from modules.models.item_types import WeaponType, ArmorType, AccessoryType
 from modules import mongodb_connector
+from modules import utils
 
 
 api_bp = Blueprint('api', __name__)
 request_queue = Queue()
-SUPPORTED_VERSION = '0.8.8'
+SUPPORTED_VERSION = '0.8.9'
 
 WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
 
@@ -153,6 +154,11 @@ def save_lootpool_items():
             return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
 
         items = data if isinstance(data, list) else [data]
+        
+        print(f"Saving items to {env} collection")
+        if not utils.is_time_valid("RAID", items[0]['collectionTime']):
+            print("Invalid time")
+            return jsonify({"message": "Items are of last weeks pool."}), 400
 
         env = request.args.get('env')
         if not env or env == 'dev':
@@ -211,11 +217,12 @@ def save_raidpool_items():
 
         items = data if isinstance(data, list) else [data]
 
-        env = request.args.get('env')
-        
         print(f"Saving items to {env} collection")
-        print(f"Items: {items}")
+        if not utils.is_time_valid("RAID", items[0]['collectionTime']):
+            print("Invalid time")
+            return jsonify({"message": "Items are of last weeks pool."}), 400
         
+        env = request.args.get('env')
         if not env or env == 'dev':
             for item in items:
                 request_queue.put(("raidpool", item, "prod"))

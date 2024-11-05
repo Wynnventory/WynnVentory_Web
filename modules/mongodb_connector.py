@@ -3,7 +3,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from flask import jsonify
 
-from modules.utils import get_lootpool_week
+from modules.utils import get_lootpool_week, get_raidpool_week
 
 uri = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 PROD_MARKET_DB = "trademarket_items_PROD"
@@ -543,7 +543,7 @@ def get_raidpool_items_raw(environment="prod"):
     collection = get_collection("raidpool", environment)
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
-    loot_year, loot_week = get_lootpool_week()
+    loot_year, loot_week = get_raidpool_week()
 
     result = collection.find(
         filter={'week': loot_week, 'year': loot_year},
@@ -558,7 +558,7 @@ def get_raidpool_items(environment="prod"):
     collection = get_collection("raidpool", environment)
     if collection is None:
         return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
-    loot_year, loot_week = get_lootpool_week()
+    loot_year, loot_week = get_raidpool_week()
 
     result = collection.aggregate([
         # Match documents for the given week and year
@@ -847,7 +847,7 @@ def save_raidpool_item(raidpool, environment="prod"):
     # print(f"Received raidpool with {len(raidpool.get('items'))} items")
 
     # Add week and year to the item
-    loot_year, loot_week = get_lootpool_week()
+    loot_year, loot_week = get_raidpool_week()
     raidpool['week'] = loot_week
     raidpool['year'] = loot_year
     raidpool['timestamp'] = datetime.utcnow()
