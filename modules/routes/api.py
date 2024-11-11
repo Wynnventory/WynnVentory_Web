@@ -155,7 +155,7 @@ def save_lootpool_items():
 
         items = data if isinstance(data, list) else [data]
         
-        if not utils.is_time_valid("RAID", items[0]['collectionTime']):
+        if not utils.is_time_valid("LOOT", items[0]['collectionTime']):
             print("Invalid time")
             return jsonify({"message": "Items are of last weeks pool."}), 400
 
