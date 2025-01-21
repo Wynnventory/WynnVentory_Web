@@ -516,7 +516,7 @@
                 // 8) Avg Total Count
                 const avgTotalCountCell = document.createElement('td');
                 if (item.average_total_count !== null && item.average_total_count !== undefined) {
-                    avgTotalCountCell.textContent = convertEmeraldsToGameFormat(item.average_total_count.toFixed(2));
+                    avgTotalCountCell.textContent = item.average_total_count.toFixed(2);
                 } else {
                     avgTotalCountCell.textContent = 'N/A';
                 }
@@ -525,7 +525,7 @@
                 // 9) Avg Unid Count
                 const avgUnidCountCell = document.createElement('td');
                 if (item.average_unidentified_count !== null && item.average_unidentified_count !== undefined) {
-                    avgUnidCountCell.textContent = convertEmeraldsToGameFormat(item.average_unidentified_count.toFixed(2));
+                    avgUnidCountCell.textContent = item.average_unidentified_count.toFixed(2);
                 } else {
                     avgUnidCountCell.textContent = 'N/A';
                 }
