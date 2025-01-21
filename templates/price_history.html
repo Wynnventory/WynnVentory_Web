@@ -471,7 +471,7 @@
                 // 3) Average Price
                 const avgPriceCell = document.createElement('td');
                 if (item.average_price !== null && item.average_price !== undefined) {
-                    avgPriceCell.textContent = item.average_price.toFixed(2);
+                    avgPriceCell.textContent = convertEmeraldsToGameFormat(item.average_price.toFixed(2));
                 } else {
                     avgPriceCell.textContent = 'N/A';
                 }
@@ -480,7 +480,7 @@
                 // 4) Lowest Price
                 const lowPriceCell = document.createElement('td');
                 if (item.lowest_price !== null && item.lowest_price !== undefined) {
-                    lowPriceCell.textContent = item.lowest_price.toFixed(2);
+                    lowPriceCell.textContent = convertEmeraldsToGameFormat(item.lowest_price.toFixed(2));
                 } else {
                     lowPriceCell.textContent = 'N/A';
                 }
@@ -489,7 +489,7 @@
                 // 5) Highest Price
                 const highPriceCell = document.createElement('td');
                 if (item.highest_price !== null && item.highest_price !== undefined) {
-                    highPriceCell.textContent = item.highest_price.toFixed(2);
+                    highPriceCell.textContent = convertEmeraldsToGameFormat(item.highest_price.toFixed(2));
                 } else {
                     highPriceCell.textContent = 'N/A';
                 }
@@ -498,7 +498,7 @@
                 // 6) Mid 80% Avg
                 const mid80Cell = document.createElement('td');
                 if (item.average_mid_80_percent_price !== null && item.average_mid_80_percent_price !== undefined) {
-                    mid80Cell.textContent = item.average_mid_80_percent_price.toFixed(2);
+                    mid80Cell.textContent = convertEmeraldsToGameFormat(item.average_mid_80_percent_price.toFixed(2));
                 } else {
                     mid80Cell.textContent = 'N/A';
                 }
@@ -507,7 +507,7 @@
                 // 7) Unid Mid 80% Avg
                 const unidMid80Cell = document.createElement('td');
                 if (item.unidentified_average_mid_80_percent_price !== null && item.unidentified_average_mid_80_percent_price !== undefined) {
-                    unidMid80Cell.textContent = item.unidentified_average_mid_80_percent_price.toFixed(2);
+                    unidMid80Cell.textContent = convertEmeraldsToGameFormat(item.unidentified_average_mid_80_percent_price.toFixed(2));
                 } else {
                     unidMid80Cell.textContent = 'N/A';
                 }
@@ -516,8 +516,7 @@
                 // 8) Avg Total Count
                 const avgTotalCountCell = document.createElement('td');
                 if (item.average_total_count !== null && item.average_total_count !== undefined) {
-                    // Could show decimals or round
-                    avgTotalCountCell.textContent = item.average_total_count.toFixed(2);
+                    avgTotalCountCell.textContent = convertEmeraldsToGameFormat(item.average_total_count.toFixed(2));
                 } else {
                     avgTotalCountCell.textContent = 'N/A';
                 }
@@ -526,7 +525,7 @@
                 // 9) Avg Unid Count
                 const avgUnidCountCell = document.createElement('td');
                 if (item.average_unidentified_count !== null && item.average_unidentified_count !== undefined) {
-                    avgUnidCountCell.textContent = item.average_unidentified_count.toFixed(2);
+                    avgUnidCountCell.textContent = convertEmeraldsToGameFormat(item.average_unidentified_count.toFixed(2));
                 } else {
                     avgUnidCountCell.textContent = 'N/A';
                 }
