@@ -245,6 +245,18 @@ def get_market_history(item_name):
 
     return result
 
+@api_bp.route("/api/trademarket/ranking/", methods=['GET'])
+def get_all_items_ranking():
+    """
+    Retrieve a ranking of items based on their archived price data.
+    For example, you can rank them by average price.
+    """
+    env = request.args.get('env', 'prod')
+    ranking_data = mongodb_connector.get_all_items_ranking(env)
+
+    # ranking_data should already be in a JSON-serializable format.
+    return ranking_data
+
 def process_item_data(item_data):
     """Process item data from the Wynn API and store it in the appropriate model class."""
     item_type = item_data.get('type', 'Unknown Type')

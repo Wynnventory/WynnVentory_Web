@@ -909,6 +909,40 @@ def get_price_history(item_name, environment="prod"):
 
     return check_results(result, custom_message="No items found with that name")
 
+def get_all_items_ranking(environment="prod"):
+    """
+    Retrieve ranking data for all items from the archive collection.
+    """
+    collection = get_collection("trademarket_ARCH", environment)
+
+    # Example aggregation pipeline:
+    # 1) Group documents by item name, computing relevant stats
+    # 2) Sort by average_price descending
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$name",
+                # Use your archived fields; here we're assuming your archived docs
+                # contain 'average_price', 'lowest_price', 'highest_price', etc.
+                "lowest_price": {"$min": "$lowest_price"},
+                "highest_price": {"$max": "$highest_price"},
+                "average_price": {"$avg": "$average_price"},
+                "average_total_count": {"$avg": "total_count"},
+                "average_unidentified_count": {"$avg": "unidentified_count"},
+                "average_mid_80_percent_price": {"$avg": "average_mid_80_percent_price"},
+                "unidentified_average_mid_80_percent_price": {"$avg": "unidentified_average_mid_80_percent_price"},
+                "dates": {"$push": "$date"}
+            }
+        },
+        {
+            "$sort": {"avg_price": -1}  # Sort by average price descending
+        }
+    ]
+
+    results = collection.aggregate(pipeline)
+    return check_results(results, custom_message="No items found in archive.")
+
+
 def check_results(result, custom_message="No items found"):
     """ Check if the result is empty and return a custom message
     """
