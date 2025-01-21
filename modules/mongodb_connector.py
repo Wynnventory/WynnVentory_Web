@@ -922,20 +922,18 @@ def get_all_items_ranking(environment="prod"):
         {
             "$group": {
                 "_id": "$name",
-                # Use your archived fields; here we're assuming your archived docs
-                # contain 'average_price', 'lowest_price', 'highest_price', etc.
                 "lowest_price": {"$min": "$lowest_price"},
                 "highest_price": {"$max": "$highest_price"},
                 "average_price": {"$avg": "$average_price"},
-                "average_total_count": {"$avg": "total_count"},
-                "average_unidentified_count": {"$avg": "unidentified_count"},
-                "average_mid_80_percent_price": {"$avg": "average_mid_80_percent_price"},
-                "unidentified_average_mid_80_percent_price": {"$avg": "unidentified_average_mid_80_percent_price"},
+                "average_total_count": {"$avg": "$total_count"},
+                "average_unidentified_count": {"$avg": "$unidentified_count"},
+                "average_mid_80_percent_price": {"$avg": "$average_mid_80_percent_price"},
+                "unidentified_average_mid_80_percent_price": {"$avg": "$unidentified_average_mid_80_percent_price"},
                 "dates": {"$push": "$date"}
             }
         },
         {
-            "$sort": {"avg_price": -1}  # Sort by average price descending
+            "$sort": {"average_price": -1}
         }
     ]
 
