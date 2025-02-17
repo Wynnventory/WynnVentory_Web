@@ -932,6 +932,12 @@ def get_all_items_ranking(environment="prod"):
                 "dates": {"$push": "$date"}
             }
         },
+        # Exclude documents where average_mid_80_percent_price < 1024
+        {
+            "$match": {
+                "average_mid_80_percent_price": {"$gte": 1024}
+            }
+        },
         {
             "$sort": {"average_price": -1}
         }
