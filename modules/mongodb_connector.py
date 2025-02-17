@@ -211,7 +211,7 @@ def save_lootpool_item(lootpool, environment="prod"):
     # print(f"Received lootpool with {len(lootpool.get('items'))} items")
 
     # Add week and year to the item
-    loot_year, loot_week = get_lootpool_week()
+    loot_year, loot_week = get_lootpool_week(now=lootpool.get('collectionTime'))
     lootpool['week'] = loot_week
     lootpool['year'] = loot_year
     lootpool['timestamp'] = datetime.utcnow()

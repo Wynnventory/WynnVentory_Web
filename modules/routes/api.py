@@ -196,6 +196,9 @@ def save_raidpool_items():
 
 def save_pool(data, pool_type, env):
     try:
+        if env not in ['prod', 'dev', 'dev2']:
+            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
+
         if not data:
             return jsonify({"message": "No items provided"}), 400
 
@@ -212,14 +215,8 @@ def save_pool(data, pool_type, env):
             collection_time = item.get('collectionTime')
             if not collection_time or not utils.is_time_valid(pool_type, collection_time):
                 print(f"Item at index {idx} has an invalid collectionTime: {collection_time}")
-                return jsonify({"message": "One or more items have an invalid timestamp."}), 400
-
-        if env not in ['prod', 'dev', 'dev2']:
-            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
-
-        print(f"Saving {len(items)} {pool_type} items to {env} collection")
-        for item in items:
-            request_queue.put((pool_type, item, env))
+            else:
+                request_queue.put((pool_type, item, env))
 
         return jsonify({"message": f"Items saved to {env} {pool_type} collection successfully"}), 200
 

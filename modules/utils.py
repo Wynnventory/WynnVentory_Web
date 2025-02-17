@@ -24,12 +24,11 @@ def map_local_icons(icon_name):
     return mapping.get(icon_name, icon_name)
 
 
-def get_lootpool_week(reset_day=4, reset_hour=18):
+def get_lootpool_week(reset_day=4, reset_hour=18, now=datetime.utcnow()):
     """ Get the current Wynn week number and year. Lootpool resets every Friday at 6 PM UTC. """
-    now = datetime.utcnow()
 
-    reset_day = 4  # Friday
-    reset_hour = 18  # 18:00 (6 PM) UTC
+    if now is not datetime:
+        now = datetime.strptime(now, '%Y-%m-%d %H:%M:%S')
 
     days_since_reset = (now.weekday() - reset_day) % 7
     last_reset = now - timedelta(days=days_since_reset)
