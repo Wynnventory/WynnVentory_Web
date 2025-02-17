@@ -316,7 +316,7 @@ def process_queue():
         request_type, item, env = request_queue.get()
         if item is None:
             request_queue.task_done()
-            print(f"Worker has finished task")
+            print("Worker has finished task")
             break
         try:
             if request_type == 'trademarket':
@@ -331,11 +331,12 @@ def process_queue():
         finally:
             request_queue.task_done()
 
-def shutdown_workers():
-    for _ in worker_threads:
-        request_queue.put((None, None, None))
-    for t in worker_threads:
-        t.join()
+def shutdown_worker():
+    """ Shutdown the worker thread
+    """
+    request_queue.put(None)
+    worker_thread.join()
+    print("Shutting down worker thread")
 
 def compare_versions(version_a: str, version_b: str) -> bool:
     if version_a.lower().find("dev") != -1:
@@ -353,12 +354,7 @@ def compare_versions(version_a: str, version_b: str) -> bool:
             return False
     return True
 
-
-NUM_WORKERS = 4
-worker_threads = []
-for _ in range(NUM_WORKERS):
-    print(f"Starting worker thread {_ + 1}")
-    t = threading.Thread(target=process_queue, daemon=True)
-    t.start()
-    worker_threads.append(t)
-
+worker_thread = threading.Thread(target=process_queue)
+worker_thread.daemon = True
+worker_thread.start()
+print("Worker thread started")
