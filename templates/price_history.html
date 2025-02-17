@@ -103,7 +103,10 @@
                     ? decimalValue.toString()       // e.g., '4'
                     : decimalValue.toFixed(2);      // e.g., '4.50'
 
-                result = `${stx}stx ${displayLE}le`;
+                result = `${stx}stx`;
+                if(displayLE !== "0") {
+                    result += ` ${displayLE}le`;
+                }
             } else {
                 if (le > 0) result += `${le}le `;
                 if (eb > 0) result += `${eb}eb `;
