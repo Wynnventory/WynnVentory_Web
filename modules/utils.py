@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 ####################################################################################################
@@ -24,11 +24,13 @@ def map_local_icons(icon_name):
     return mapping.get(icon_name, icon_name)
 
 
-def get_lootpool_week(reset_day=4, reset_hour=18, now=datetime.utcnow()):
+def get_lootpool_week():
+    return get_lootpool_week_for_timestamp(datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'))
+
+def get_lootpool_week_for_timestamp(timestamp, reset_day=4, reset_hour=18):
     """ Get the current Wynn week number and year. Lootpool resets every Friday at 6 PM UTC. """
 
-    if now is not datetime:
-        now = datetime.strptime(now, '%Y-%m-%d %H:%M:%S')
+    now = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
 
     days_since_reset = (now.weekday() - reset_day) % 7
     last_reset = now - timedelta(days=days_since_reset)
@@ -49,7 +51,6 @@ def get_lootpool_week(reset_day=4, reset_hour=18, now=datetime.utcnow()):
         wynn_year = last_reset.year
 
     return wynn_year, wynn_week
-
 
 def get_raidpool_week():
     """ Get the current Wynn week number and year. Raidpool resets every Friday at 6 PM UTC. """

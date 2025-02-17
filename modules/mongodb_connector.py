@@ -3,7 +3,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from flask import jsonify
 
-from modules.utils import get_lootpool_week, get_raidpool_week
+from modules.utils import get_lootpool_week, get_lootpool_week_for_timestamp, get_raidpool_week
 
 uri = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 PROD_MARKET_DB = "trademarket_items_PROD"
@@ -211,7 +211,7 @@ def save_lootpool_item(lootpool, environment="prod"):
     # print(f"Received lootpool with {len(lootpool.get('items'))} items")
 
     # Add week and year to the item
-    loot_year, loot_week = get_lootpool_week(now=lootpool.get('collectionTime'))
+    loot_year, loot_week = get_lootpool_week_for_timestamp(lootpool.get('collectionTime'))
     lootpool['week'] = loot_week
     lootpool['year'] = loot_year
     lootpool['timestamp'] = datetime.utcnow()
