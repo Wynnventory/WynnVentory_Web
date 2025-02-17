@@ -81,7 +81,6 @@
                 .join(' ');
         }
 
-        // Convert emeralds to stx/le/eb/e
         function convertEmeraldsToGameFormat(emeralds) {
             const stx = Math.floor(emeralds / (64 * 64 * 64));
             emeralds %= 64 * 64 * 64;
@@ -94,13 +93,23 @@
 
             let result = '';
             if (stx > 0) {
-                const decimalLE = (le + eb / 64 + e / (64 * 64)).toFixed(2);
-                result = `${stx}stx ${decimalLE}le`;
+                // Calculate the fractional LE (if any)
+                let decimalValue = le + eb / 64 + e / (64 * 64);
+                // Round to 2 decimals
+                decimalValue = Math.round(decimalValue * 100) / 100;
+
+                // Convert to string with or without decimals
+                const displayLE = Number.isInteger(decimalValue)
+                    ? decimalValue.toString()       // e.g., '4'
+                    : decimalValue.toFixed(2);      // e.g., '4.50'
+
+                result = `${stx}stx ${displayLE}le`;
             } else {
                 if (le > 0) result += `${le}le `;
                 if (eb > 0) result += `${eb}eb `;
-                if (e > 0) result += `${e}e`;
+                if (e > 0)  result += `${e}e`;
             }
+
             return result.trim();
         }
 
@@ -471,7 +480,7 @@
                 // 3) Average Price
                 const avgPriceCell = document.createElement('td');
                 if (item.average_price !== null && item.average_price !== undefined) {
-                    avgPriceCell.textContent = convertEmeraldsToGameFormat(item.average_price.toFixed(2));
+                    avgPriceCell.textContent = convertEmeraldsToGameFormat(item.average_price);
                 } else {
                     avgPriceCell.textContent = 'N/A';
                 }
@@ -480,7 +489,7 @@
                 // 4) Lowest Price
                 const lowPriceCell = document.createElement('td');
                 if (item.lowest_price !== null && item.lowest_price !== undefined) {
-                    lowPriceCell.textContent = convertEmeraldsToGameFormat(item.lowest_price.toFixed(2));
+                    lowPriceCell.textContent = convertEmeraldsToGameFormat(item.lowest_price);
                 } else {
                     lowPriceCell.textContent = 'N/A';
                 }
@@ -489,7 +498,7 @@
                 // 5) Highest Price
                 const highPriceCell = document.createElement('td');
                 if (item.highest_price !== null && item.highest_price !== undefined) {
-                    highPriceCell.textContent = convertEmeraldsToGameFormat(item.highest_price.toFixed(2));
+                    highPriceCell.textContent = convertEmeraldsToGameFormat(item.highest_price);
                 } else {
                     highPriceCell.textContent = 'N/A';
                 }
@@ -498,7 +507,7 @@
                 // 6) Mid 80% Avg
                 const mid80Cell = document.createElement('td');
                 if (item.average_mid_80_percent_price !== null && item.average_mid_80_percent_price !== undefined) {
-                    mid80Cell.textContent = convertEmeraldsToGameFormat(item.average_mid_80_percent_price.toFixed(2));
+                    mid80Cell.textContent = convertEmeraldsToGameFormat(item.average_mid_80_percent_price);
                 } else {
                     mid80Cell.textContent = 'N/A';
                 }
@@ -507,7 +516,7 @@
                 // 7) Unid Mid 80% Avg
                 const unidMid80Cell = document.createElement('td');
                 if (item.unidentified_average_mid_80_percent_price !== null && item.unidentified_average_mid_80_percent_price !== undefined) {
-                    unidMid80Cell.textContent = convertEmeraldsToGameFormat(item.unidentified_average_mid_80_percent_price.toFixed(2));
+                    unidMid80Cell.textContent = convertEmeraldsToGameFormat(item.unidentified_average_mid_80_percent_price);
                 } else {
                     unidMid80Cell.textContent = 'N/A';
                 }
