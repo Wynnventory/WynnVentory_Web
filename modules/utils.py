@@ -94,10 +94,10 @@ def is_time_valid(type, time_str):
     # Parse the time string into a datetime object
     time = datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S')
 
-    if type == "RAID":
+    if type == "raidpool":
         reset_day = 4  # Friday
         reset_hour = 17  # 17:00 (5 PM) UTC
-    elif type == "LOOT":
+    elif type == "lootpool":
         reset_day = 4  # Friday
         reset_hour = 18  # 18:00 (6 PM) UTC
     else:

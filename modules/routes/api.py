@@ -123,11 +123,11 @@ def get_market_item_price_info(item_name):
     """
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
-    
+
     user = request.args.get('playername')
     if user not in WHITELISTED_PLAYERS:
         return jsonify({"message": "Unauthorized"}), 401
-    
+
     env = request.args.get('env')
     if env == 'dev2':
         env = "dev"
@@ -139,38 +139,17 @@ def get_market_item_price_info(item_name):
 
 @api_bp.route("/api/lootpool/items", methods=['POST'])
 def save_lootpool_items():
-    """ Save items to the lootpool collection
-    """
     try:
         data = request.get_json()
         if not data:
-            return {"message": "No items provided"}, 400
-            
-        if type(data) is list and not compare_versions(data[0]['modVersion'], SUPPORTED_VERSION):
-            print(f"Only mod version {SUPPORTED_VERSION} is supported")
-            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
-        elif type(data) is not list and not compare_versions(data['modVersion'], SUPPORTED_VERSION):
-            print(f"Only mod version {SUPPORTED_VERSION} is supported")
-            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
+            return jsonify({"message": "No items provided"}), 400
 
-        items = data if isinstance(data, list) else [data]
-        
-        if not utils.is_time_valid("LOOT", items[0]['collectionTime']):
-            print("Invalid time")
-            return jsonify({"message": "Items are of last weeks pool."}), 400
+        env = request.args.get('env', 'prod')
+        if env not in ['prod', 'dev', 'dev2']:
+            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
 
-        env = request.args.get('env')
-        print(f"Saving items to {env} collection")
-        if not env or env == 'dev':
-            for item in items:
-                request_queue.put(("lootpool", item, "prod"))
-            return jsonify({"message": "Items received successfully"}), 200
-        elif env == 'dev2':
-            for item in items:
-                request_queue.put(("lootpool", item, "dev"))
-            return jsonify({"message": "Items saved to dev collection"}), 200
-        else:
-            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
+        save_pool(data, "lootpool", env)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -201,38 +180,50 @@ def get_lootpool_items_raw(pool):
 
 @api_bp.route("/api/raidpool/items", methods=['POST'])
 def save_raidpool_items():
-    """ Save items to the raidpool collection
-    """
+    """Save items to the raidpool collection."""
     try:
         data = request.get_json()
         if not data:
-            return {"message": "No items provided"}, 400
-        
-        if type(data) is list and not compare_versions(data[0]['modVersion'], SUPPORTED_VERSION):
-            print(f"Only mod version {SUPPORTED_VERSION} is supported")
-            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
-        elif type(data) is not list and not compare_versions(data['modVersion'], SUPPORTED_VERSION):
-            print(f"Only mod version {SUPPORTED_VERSION} is supported")
-            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
+            return jsonify({"message": "No items provided"}), 400
 
+        env = request.args.get('env', 'prod')
+        if env not in ['prod', 'dev', 'dev2']:
+            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
+
+        save_pool(data, "raidpool", env)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def save_pool(data, pool_type, env):
+    try:
+        if not data:
+            return jsonify({"message": "No items provided"}), 400
+
+        # Normalize data into a list.
         items = data if isinstance(data, list) else [data]
 
-        if not utils.is_time_valid("RAID", items[0]['collectionTime']):
-            print("Invalid time")
-            return jsonify({"message": "Items are of last weeks pool."}), 400
-        
-        env = request.args.get('env')
-        print(f"Saving items to {env} collection")
-        if not env or env == 'dev':
-            for item in items:
-                request_queue.put(("raidpool", item, "prod"))
-            return jsonify({"message": "Items received successfully"}), 200
-        elif env == 'dev2':
-            for item in items:
-                request_queue.put(("raidpool", item, "dev"))
-            return jsonify({"message": "Items saved to dev collection"}), 200
-        else:
-            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
+        # Validate modVersion and collectionTime for every item in one loop.
+        for idx, item in enumerate(items):
+            mod_version = item.get('modVersion')
+            if not mod_version or not compare_versions(mod_version, SUPPORTED_VERSION):
+                print(f"Item at index {idx} has unsupported mod version: {mod_version}")
+                return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported for all items."}), 400
+
+            collection_time = item.get('collectionTime')
+            if not collection_time or not utils.is_time_valid(pool_type, collection_time):
+                print(f"Item at index {idx} has an invalid collectionTime: {collection_time}")
+                return jsonify({"message": "One or more items have an invalid timestamp."}), 400
+
+        if env not in ['prod', 'dev', 'dev2']:
+            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
+
+        print(f"Saving {len(items)} {pool_type} items to {env} collection")
+        for item in items:
+            request_queue.put((pool_type, item, env))
+
+        return jsonify({"message": f"Items saved to {env} {pool_type} collection successfully"}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
