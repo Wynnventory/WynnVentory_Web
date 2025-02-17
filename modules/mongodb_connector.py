@@ -935,7 +935,8 @@ def get_all_items_ranking(environment="prod"):
         # Exclude documents where average_mid_80_percent_price < 1024
         {
             "$match": {
-                "average_mid_80_percent_price": {"$gte": 20480}
+                "average_mid_80_percent_price": {"$gte": 20480},
+                "average_total_count": {"$gte": 2}
             }
         },
         {
