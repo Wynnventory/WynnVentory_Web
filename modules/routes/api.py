@@ -148,11 +148,10 @@ def save_lootpool_items():
         if env not in ['prod', 'dev', 'dev2']:
             return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
 
-        save_pool(data, "lootpool", env)
+        return save_pool(data, "lootpool", env)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @api_bp.route("/api/lootpool/<pool>/items/", methods=['GET'])
 def get_lootpool_items(pool):
@@ -190,7 +189,7 @@ def save_raidpool_items():
         if env not in ['prod', 'dev', 'dev2']:
             return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
 
-        save_pool(data, "raidpool", env)
+        return save_pool(data, "raidpool", env)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -313,27 +312,31 @@ def format_item_for_db(item):
 
 
 def process_queue():
-    """ Process the queue of items to save to the database
-    """
     while True:
         request_type, item, env = request_queue.get()
         if item is None:
+            request_queue.task_done()
+            print(f"Worker has finished task")
             break
-        if request_type == 'trademarket':
-            mongodb_connector.save_trade_market_item(item, env)
-        elif request_type == 'lootpool':
-            mongodb_connector.save_lootpool_item(item, env)
-        elif request_type == 'raidpool':
-            mongodb_connector.save_raidpool_item(item, env)
-        request_queue.task_done()
+        try:
+            if request_type == 'trademarket':
+                mongodb_connector.save_trade_market_item(item, env)
+            elif request_type == 'lootpool':
+                mongodb_connector.save_lootpool_item(item, env)
+            elif request_type == 'raidpool':
+                mongodb_connector.save_raidpool_item(item, env)
+        except Exception as e:
+            # Log the error so you can investigate it further.
+            print(f"Error processing {request_type} item: {e}")
+        finally:
+            request_queue.task_done()
 
+def shutdown_workers():
+    for _ in worker_threads:
+        request_queue.put((None, None, None))
+    for t in worker_threads:
+        t.join()
 
-def shutdown_worker():
-    """ Shutdown the worker thread
-    """
-    request_queue.put(None)
-    worker_thread.join()
-    
 def compare_versions(version_a: str, version_b: str) -> bool:
     if version_a.lower().find("dev") != -1:
         return True
@@ -351,9 +354,11 @@ def compare_versions(version_a: str, version_b: str) -> bool:
     return True
 
 
-# Start a worker thread to process the queue
-worker_thread = threading.Thread(target=process_queue)
-worker_thread.daemon = True
-worker_thread.start()
+NUM_WORKERS = 4
+worker_threads = []
+for _ in range(NUM_WORKERS):
+    print(f"Starting worker thread {_ + 1}")
+    t = threading.Thread(target=process_queue, daemon=True)
+    t.start()
+    worker_threads.append(t)
 
-atexit.register(shutdown_worker)
