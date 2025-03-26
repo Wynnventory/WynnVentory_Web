@@ -3,7 +3,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from flask import jsonify
 
-from modules.utils import get_lootpool_week, get_raidpool_week
+from modules.utils import get_lootpool_week, get_lootpool_week_for_timestamp, get_raidpool_week
 
 uri = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 PROD_MARKET_DB = "trademarket_items_PROD"
@@ -211,7 +211,7 @@ def save_lootpool_item(lootpool, environment="prod"):
     # print(f"Received lootpool with {len(lootpool.get('items'))} items")
 
     # Add week and year to the item
-    loot_year, loot_week = get_lootpool_week()
+    loot_year, loot_week = get_lootpool_week_for_timestamp(lootpool.get('collectionTime'))
     lootpool['week'] = loot_week
     lootpool['year'] = loot_year
     lootpool['timestamp'] = datetime.utcnow()
@@ -908,6 +908,45 @@ def get_price_history(item_name, environment="prod"):
     )
 
     return check_results(result, custom_message="No items found with that name")
+
+def get_all_items_ranking(environment="prod"):
+    """
+    Retrieve ranking data for all items from the archive collection.
+    """
+    collection = get_collection("trademarket_ARCH", environment)
+
+    # Example aggregation pipeline:
+    # 1) Group documents by item name, computing relevant stats
+    # 2) Sort by average_price descending
+    pipeline = [
+        {
+            "$group": {
+                "_id": "$name",
+                "lowest_price": {"$min": "$lowest_price"},
+                "highest_price": {"$max": "$highest_price"},
+                "average_price": {"$avg": "$average_price"},
+                "average_total_count": {"$avg": "$total_count"},
+                "average_unidentified_count": {"$avg": "$unidentified_count"},
+                "average_mid_80_percent_price": {"$avg": "$average_mid_80_percent_price"},
+                "unidentified_average_mid_80_percent_price": {"$avg": "$unidentified_average_mid_80_percent_price"},
+                "dates": {"$push": "$date"}
+            }
+        },
+        # Exclude documents where average_mid_80_percent_price < 1024
+        {
+            "$match": {
+                "average_mid_80_percent_price": {"$gte": 20480},
+                "average_total_count": {"$gte": 2}
+            }
+        },
+        {
+            "$sort": {"average_price": -1}
+        }
+    ]
+
+    results = collection.aggregate(pipeline)
+    return check_results(results, custom_message="No items found in archive.")
+
 
 def check_results(result, custom_message="No items found"):
     """ Check if the result is empty and return a custom message

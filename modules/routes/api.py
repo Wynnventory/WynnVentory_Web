@@ -123,7 +123,7 @@ def get_market_item_price_info(item_name):
     """
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
-    
+
     user = request.args.get('playername')
     # if user not in WHITELISTED_PLAYERS:
     #     return jsonify({"message": "Unauthorized"}), 401
@@ -139,41 +139,19 @@ def get_market_item_price_info(item_name):
 
 @api_bp.route("/api/lootpool/items", methods=['POST'])
 def save_lootpool_items():
-    """ Save items to the lootpool collection
-    """
     try:
         data = request.get_json()
         if not data:
-            return {"message": "No items provided"}, 400
-            
-        if type(data) is list and not compare_versions(data[0]['modVersion'], SUPPORTED_VERSION):
-            print(f"Only mod version {SUPPORTED_VERSION} is supported")
-            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
-        elif type(data) is not list and not compare_versions(data['modVersion'], SUPPORTED_VERSION):
-            print(f"Only mod version {SUPPORTED_VERSION} is supported")
-            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
+            return jsonify({"message": "No items provided"}), 400
 
-        items = data if isinstance(data, list) else [data]
-        
-        if not utils.is_time_valid("RAID", items[0]['collectionTime']):
-            print("Invalid time")
-            return jsonify({"message": "Items are of last weeks pool."}), 400
+        env = request.args.get('env', 'prod')
+        if env not in ['prod', 'dev', 'dev2']:
+            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
 
-        env = request.args.get('env')
-        print(f"Saving items to {env} collection")
-        if not env or env == 'dev':
-            for item in items:
-                request_queue.put(("lootpool", item, "prod"))
-            return jsonify({"message": "Items received successfully"}), 200
-        elif env == 'dev2':
-            for item in items:
-                request_queue.put(("lootpool", item, "dev"))
-            return jsonify({"message": "Items saved to dev collection"}), 200
-        else:
-            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
+        return save_pool(data, "lootpool", env)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @api_bp.route("/api/lootpool/<pool>/items/", methods=['GET'])
 def get_lootpool_items(pool):
@@ -201,38 +179,47 @@ def get_lootpool_items_raw(pool):
 
 @api_bp.route("/api/raidpool/items", methods=['POST'])
 def save_raidpool_items():
-    """ Save items to the raidpool collection
-    """
+    """Save items to the raidpool collection."""
     try:
         data = request.get_json()
         if not data:
-            return {"message": "No items provided"}, 400
-        
-        if type(data) is list and not compare_versions(data[0]['modVersion'], SUPPORTED_VERSION):
-            print(f"Only mod version {SUPPORTED_VERSION} is supported")
-            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
-        elif type(data) is not list and not compare_versions(data['modVersion'], SUPPORTED_VERSION):
-            print(f"Only mod version {SUPPORTED_VERSION} is supported")
-            return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported"}), 400
+            return jsonify({"message": "No items provided"}), 400
 
+        env = request.args.get('env', 'prod')
+        if env not in ['prod', 'dev', 'dev2']:
+            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
+
+        return save_pool(data, "raidpool", env)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def save_pool(data, pool_type, env):
+    try:
+        if env not in ['prod', 'dev', 'dev2']:
+            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
+
+        if not data:
+            return jsonify({"message": "No items provided"}), 400
+
+        # Normalize data into a list.
         items = data if isinstance(data, list) else [data]
 
-        if not utils.is_time_valid("RAID", items[0]['collectionTime']):
-            print("Invalid time")
-            return jsonify({"message": "Items are of last weeks pool."}), 400
-        
-        env = request.args.get('env')
-        print(f"Saving items to {env} collection")
-        if not env or env == 'dev':
-            for item in items:
-                request_queue.put(("raidpool", item, "prod"))
-            return jsonify({"message": "Items received successfully"}), 200
-        elif env == 'dev2':
-            for item in items:
-                request_queue.put(("raidpool", item, "dev"))
-            return jsonify({"message": "Items saved to dev collection"}), 200
-        else:
-            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
+        # Validate modVersion and collectionTime for every item in one loop.
+        for idx, item in enumerate(items):
+            mod_version = item.get('modVersion')
+            if not mod_version or not compare_versions(mod_version, SUPPORTED_VERSION):
+                print(f"Item at index {idx} has unsupported mod version: {mod_version}")
+                return jsonify({"message": f"Only mod version {SUPPORTED_VERSION} is supported for all items."}), 400
+
+            collection_time = item.get('collectionTime')
+            if not collection_time or not utils.is_time_valid(pool_type, collection_time):
+                print(f"Item at index {idx} has an invalid collectionTime: {collection_time}")
+            else:
+                request_queue.put((pool_type, item, env))
+
+        return jsonify({"message": f"Items saved to {env} {pool_type} collection successfully"}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -244,6 +231,18 @@ def get_market_history(item_name):
     result = mongodb_connector.get_price_history(item_name, env)
 
     return result
+
+@api_bp.route("/api/trademarket/ranking/", methods=['GET'])
+def get_all_items_ranking():
+    """
+    Retrieve a ranking of items based on their archived price data.
+    For example, you can rank them by average price.
+    """
+    env = request.args.get('env', 'prod')
+    ranking_data = mongodb_connector.get_all_items_ranking(env)
+
+    # ranking_data should already be in a JSON-serializable format.
+    return ranking_data
 
 def process_item_data(item_data):
     """Process item data from the Wynn API and store it in the appropriate model class."""
@@ -310,27 +309,32 @@ def format_item_for_db(item):
 
 
 def process_queue():
-    """ Process the queue of items to save to the database
-    """
     while True:
         request_type, item, env = request_queue.get()
         if item is None:
+            request_queue.task_done()
+            print("Worker has finished task")
             break
-        if request_type == 'trademarket':
-            mongodb_connector.save_trade_market_item(item, env)
-        elif request_type == 'lootpool':
-            mongodb_connector.save_lootpool_item(item, env)
-        elif request_type == 'raidpool':
-            mongodb_connector.save_raidpool_item(item, env)
-        request_queue.task_done()
-
+        try:
+            if request_type == 'trademarket':
+                mongodb_connector.save_trade_market_item(item, env)
+            elif request_type == 'lootpool':
+                mongodb_connector.save_lootpool_item(item, env)
+            elif request_type == 'raidpool':
+                mongodb_connector.save_raidpool_item(item, env)
+        except Exception as e:
+            # Log the error so you can investigate it further.
+            print(f"Error processing {request_type} item: {e}")
+        finally:
+            request_queue.task_done()
 
 def shutdown_worker():
     """ Shutdown the worker thread
     """
     request_queue.put(None)
     worker_thread.join()
-    
+    print("Shutting down worker thread")
+
 def compare_versions(version_a: str, version_b: str) -> bool:
     if version_a.lower().find("dev") != -1:
         return True
@@ -347,10 +351,7 @@ def compare_versions(version_a: str, version_b: str) -> bool:
             return False
     return True
 
-
-# Start a worker thread to process the queue
 worker_thread = threading.Thread(target=process_queue)
 worker_thread.daemon = True
 worker_thread.start()
-
-atexit.register(shutdown_worker)
+print("Worker thread started")

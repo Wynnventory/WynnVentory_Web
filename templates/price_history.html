@@ -2,257 +2,137 @@
 {% block title %}Price History{% endblock %}
 {% block content %}
 
-<h1 class="pt-2 px-4">Price History</h1>
+    <h1 class="pt-2 px-4">Price History</h1>
 
-<!-- Input field for the item name -->
-<div class="input-group mb-3">
-    <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch"
-        placeholder="Enter item name...">
-    <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
-</div>
+    <!-- Input field for the item name -->
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch"
+               placeholder="Enter item name...">
+        <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
+    </div>
 
-<!-- Chart containers -->
-<div class="container text-center">
-    <div class="row">
-        <div class="col chart-container">
-            <canvas id="priceHistoryChart"></canvas>
-        </div>
-        <div class="col chart-container">
-            <canvas id="highestPriceChart"></canvas>
-        </div>
-        <div class="col chart-container">
-            <canvas id="saturationChart"></canvas>
+    <!-- Chart containers -->
+    <div class="container text-center">
+        <div class="row">
+            <div class="col chart-container">
+                <canvas id="priceHistoryChart"></canvas>
+            </div>
+            <div class="col chart-container">
+                <canvas id="highestPriceChart"></canvas>
+            </div>
+            <div class="col chart-container">
+                <canvas id="saturationChart"></canvas>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Add Chart.js and the date adapter -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+    <!-- RANKING SECTION -->
+    <div class="container mt-5">
+        <h2>Item Rankings</h2>
+        <p class="text-muted">Based on archived data (average of all dates).</p>
+        <table class="table table-striped" id="rankingTable">
+            <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Item Name</th>
+                <th>Avg Price</th>
+                <th>Lowest</th>
+                <th>Highest</th>
+                <th>Mid 80% Avg</th>
+                <th>Unid Mid 80% Avg</th>
+                <th>Avg Total Count</th>
+                <th>Avg Unid Count</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
-<style>
-    .chart-container {
-        position: relative;
-        height: 400px;
-        width: 100%;
-    }
-</style>
+    <!-- Add Chart.js and the date adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
 
-<script>
-    let priceHistoryChart = null;
-    let highestPriceChart = null;
-    let saturationChart = null;
+    <style>
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+    </style>
 
-    // Function to capitalize each word in the item name
-    function capitalizeWords(str) {
-        const smallWords = ['of'];
-        return str
-            .split(' ')
-            .map((word, index) => {
-                if (index === 0 || !smallWords.includes(word.toLowerCase())) {
-                    // Capitalize the first word or any word that's not a small word
-                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                }
-                // Return small words in lowercase
-                return word.toLowerCase();
-            })
-            .join(' ');
-    }
+    <script>
+        let priceHistoryChart = null;
+        let highestPriceChart = null;
+        let saturationChart = null;
 
-
-    // Function to convert emeralds to stx, le, eb, e format
-    function convertEmeraldsToGameFormat(emeralds) {
-        const stx = Math.floor(emeralds / (64 * 64 * 64));  // Calculate stacks
-        emeralds %= 64 * 64 * 64;  // Get remainder in emeralds after stack conversion
-
-        const le = Math.floor(emeralds / (64 * 64));  // Calculate liquid emeralds
-        emeralds %= 64 * 64;  // Get remainder after liquid emeralds
-
-        const eb = Math.floor(emeralds / 64);  // Calculate emerald blocks
-        const e = emeralds % 64;  // Remaining emeralds
-
-        // Formatting the result
-        let result = '';
-        if (stx > 0) {
-            const decimalLE = (le + eb / 64 + e / (64 * 64)).toFixed(2);  // Calculate remaining value in LE as a decimal
-            result = `${stx}stx ${decimalLE}le`;
-        } else {
-            if (le > 0) result += `${le}le `;
-            if (eb > 0) result += `${eb}eb `;
-            if (e > 0) result += `${e}e`;
+        // Function to capitalize each word in the item name
+        function capitalizeWords(str) {
+            const smallWords = ['of'];
+            return str
+                .split(' ')
+                .map((word, index) => {
+                    if (index === 0 || !smallWords.includes(word.toLowerCase())) {
+                        // Capitalize the first word or any word that's not a small word
+                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                    }
+                    // Return small words in lowercase
+                    return word.toLowerCase();
+                })
+                .join(' ');
         }
 
-        return result.trim();
-    }
+        function convertEmeraldsToGameFormat(emeralds) {
+            const stx = Math.floor(emeralds / (64 * 64 * 64));
+            emeralds %= 64 * 64 * 64;
 
-    // Function to initialize empty charts
-    function initializeEmptyCharts() {
-        if (priceHistoryChart) priceHistoryChart.destroy();
-        if (highestPriceChart) highestPriceChart.destroy();
-        if (saturationChart) saturationChart.destroy();
+            const le = Math.floor(emeralds / (64 * 64));
+            emeralds %= 64 * 64;
 
-        const emptyData = {
-            labels: [],
-            datasets: [{
-                label: 'No Data',
-                data: [],
-                borderColor: 'rgba(200, 200, 200, 1)',
-                fill: false,
-            }]
-        };
+            const eb = Math.floor(emeralds / 64);
+            const e = emeralds % 64;
 
-        const chartOptions = {
-            responsive: true,
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'day'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Price'
-                    }
+            let result = '';
+            if (stx > 0) {
+                // Calculate the fractional LE (if any)
+                let decimalValue = le + eb / 64 + e / (64 * 64);
+                // Round to 2 decimals
+                decimalValue = Math.round(decimalValue * 100) / 100;
+
+                // Convert to string with or without decimals
+                const displayLE = Number.isInteger(decimalValue)
+                    ? decimalValue.toString()       // e.g., '4'
+                    : decimalValue.toFixed(2);      // e.g., '4.50'
+
+                result = `${stx}stx`;
+                if(displayLE !== "0") {
+                    result += ` ${displayLE}le`;
                 }
-            },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function (tooltipItem) {
-                            const emeraldValue = tooltipItem.raw;  // Get raw value of the data point
-                            const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
-                            return `Price: ${emeraldValue}e (${gameFormat})`;  // Show both formats
-                        }
-                    }
-                }
-            }
-        };
-
-        const saturationChartOptions = {
-            responsive: true,
-            scales: {
-                x: {
-                    type: 'time',
-                    time: {
-                        unit: 'day'
-                    },
-                    title: {
-                        display: true,
-                        text: 'Date'
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: 'Listings'
-                    }
-                }
-            }
-        };
-
-        const ctx = document.getElementById('priceHistoryChart').getContext('2d');
-        priceHistoryChart = new Chart(ctx, {
-            type: 'line',
-            data: emptyData,
-            options: chartOptions
-        });
-
-        const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
-        highestPriceChart = new Chart(ctx2, {
-            type: 'line',
-            data: emptyData,
-            options: chartOptions
-        });
-
-        const ctx3 = document.getElementById('saturationChart').getContext('2d');
-        saturationChart = new Chart(ctx3, {
-            type: 'line',
-            data: emptyData,
-            options: saturationChartOptions
-        });
-    }
-
-    // Function to fetch price data and update the charts
-    async function fetchPriceData(itemName) {
-        try {
-            const response = await fetch(`/api/trademarket/${itemName}/history/`);
-            const data = await response.json();
-
-            if (response.ok && data.length > 0) {
-                updateCharts(data);
             } else {
-                initializeEmptyCharts();
+                if (le > 0) result += `${le}le `;
+                if (eb > 0) result += `${eb}eb `;
+                if (e > 0)  result += `${e.toFixed(2)}e`;
             }
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            initializeEmptyCharts();
+
+            return result.trim();
         }
-    }
 
-    // Function to update both charts with data
-    function updateCharts(priceData) {
-        const labels = priceData.map(item => new Date(item.date));
-        const averagePrices = priceData.map(item => item.average_price);
-        const average80Prices = priceData.map(item => item.average_mid_80_percent_price);
-        const unidentifiedAveragePrice = priceData.map(item => item.unidentified_average_price);
-        const unidentifiedAverage80Prices = priceData.map(item => item.unidentified_average_mid_80_percent_price);
-        const highestPrices = priceData.map(item => item.highest_price);
-        const lowestPrices = priceData.map(item => item.lowest_price);
-        const total_listings = priceData.map(item => item.total_count);
-        const unid_listings = priceData.map(item => item.unidentified_count);
+        // Initialize empty charts
+        function initializeEmptyCharts() {
+            if (priceHistoryChart) priceHistoryChart.destroy();
+            if (highestPriceChart) highestPriceChart.destroy();
+            if (saturationChart) saturationChart.destroy();
 
-        if (priceHistoryChart) priceHistoryChart.destroy();
-        if (highestPriceChart) highestPriceChart.destroy();
-        if (saturationChart) saturationChart.destroy();
-
-        const ctx = document.getElementById('priceHistoryChart').getContext('2d');
-        priceHistoryChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
+            const emptyData = {
+                labels: [],
                 datasets: [{
-                    label: 'Average Price',
-                    data: averagePrices,
-                    borderColor: 'rgba(75, 192, 192, 1)',
+                    label: 'No Data',
+                    data: [],
+                    borderColor: 'rgba(200, 200, 200, 1)',
                     fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Average 80% Price',
-                    data: average80Prices,
-                    borderColor: 'rgba(53, 134, 134, 1)',
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Unid Average Price',
-                    data: unidentifiedAveragePrice,
-                    borderColor: 'rgba(106, 93, 158, 1)',
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Unid Average 80% Price',
-                    data: unidentifiedAverage80Prices,
-                    borderColor: 'rgba(69, 53, 134, 1)',
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Lowest Price',
-                    data: lowestPrices,
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    fill: false,
-                    tension: 0.1
                 }]
-            },
-            options: {
+            };
+
+            const chartOptions = {
                 responsive: true,
                 scales: {
                     x: {
@@ -283,77 +163,9 @@
                         }
                     }
                 }
-            }
-        });
+            };
 
-        const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
-        highestPriceChart = new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Highest Price',
-                    data: highestPrices,
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    fill: false,
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Price'
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (tooltipItem) {
-                                const emeraldValue = tooltipItem.raw;
-                                const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
-                                return `Price: ${emeraldValue}e (${gameFormat})`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        const ctx3 = document.getElementById('saturationChart').getContext('2d');
-        saturationChart = new Chart(ctx3, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Total Listings',
-                    data: total_listings,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    fill: false,
-                    tension: 0.1
-                },
-                {
-                    label: 'Unidentified Listings',
-                    data: unid_listings,
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    fill: false,
-                    tension: 0.1
-                },]
-            },
-            options: {
+            const saturationChartOptions = {
                 responsive: true,
                 scales: {
                     x: {
@@ -373,53 +185,381 @@
                         }
                     }
                 }
-            }
-        });
-    }
+            };
 
-    // Function to handle the search process
-    function handleSearch(itemName) {
-        if (itemName && itemName !== 'None') {
-            // Capitalize each word in item name
-            itemName = capitalizeWords(itemName);
+            const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+            priceHistoryChart = new Chart(ctx, {
+                type: 'line',
+                data: emptyData,
+                options: chartOptions
+            });
 
-            // Update the input field to show capitalized text
-            document.getElementById('itemSearch').value = itemName;
+            const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
+            highestPriceChart = new Chart(ctx2, {
+                type: 'line',
+                data: emptyData,
+                options: chartOptions
+            });
 
-            // Update the URL without reloading the page
-            history.pushState(null, '', `/history/${itemName}`);
-            fetchPriceData(itemName);
-        } else {
-            initializeEmptyCharts();
+            const ctx3 = document.getElementById('saturationChart').getContext('2d');
+            saturationChart = new Chart(ctx3, {
+                type: 'line',
+                data: emptyData,
+                options: saturationChartOptions
+            });
         }
-    }
 
-    // Add event listener to the search button
-    document.getElementById('searchBtn').addEventListener('click', function () {
-        const itemName = document.getElementById('itemSearch').value.trim();
-        handleSearch(itemName);
-    });
+        // Fetch item-specific price data
+        async function fetchPriceData(itemName) {
+            try {
+                const response = await fetch(`/api/trademarket/${itemName}/history/`);
+                const data = await response.json();
 
-    // Add enter key listener to the input field
-    document.getElementById('itemSearch').addEventListener('keypress', function (event) {
-        if (event.key === 'Enter') {
+                if (response.ok && data.length > 0) {
+                    updateCharts(data);
+                } else {
+                    initializeEmptyCharts();
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                initializeEmptyCharts();
+            }
+        }
+
+        // Update charts with fetched data
+        function updateCharts(priceData) {
+            const labels = priceData.map(item => new Date(item.date));
+            const averagePrices = priceData.map(item => item.average_price);
+            const average80Prices = priceData.map(item => item.average_mid_80_percent_price);
+            const unidentifiedAveragePrice = priceData.map(item => item.unidentified_average_price);
+            const unidentifiedAverage80Prices = priceData.map(item => item.unidentified_average_mid_80_percent_price);
+            const highestPrices = priceData.map(item => item.highest_price);
+            const lowestPrices = priceData.map(item => item.lowest_price);
+            const total_listings = priceData.map(item => item.total_count);
+            const unid_listings = priceData.map(item => item.unidentified_count);
+
+            if (priceHistoryChart) priceHistoryChart.destroy();
+            if (highestPriceChart) highestPriceChart.destroy();
+            if (saturationChart) saturationChart.destroy();
+
+            // 1) Price History Chart
+            const ctx = document.getElementById('priceHistoryChart').getContext('2d');
+            priceHistoryChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Average Price',
+                            data: averagePrices,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Average 80% Price',
+                            data: average80Prices,
+                            borderColor: 'rgba(53, 134, 134, 1)',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Unid Average Price',
+                            data: unidentifiedAveragePrice,
+                            borderColor: 'rgba(106, 93, 158, 1)',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Unid Average 80% Price',
+                            data: unidentifiedAverage80Prices,
+                            borderColor: 'rgba(69, 53, 134, 1)',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Lowest Price',
+                            data: lowestPrices,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (tooltipItem) {
+                                    const emeraldValue = tooltipItem.raw;
+                                    const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
+                                    return `Price: ${emeraldValue}e (${gameFormat})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2) Highest Price Chart
+            const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
+            highestPriceChart = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Highest Price',
+                        data: highestPrices,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Price'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function (tooltipItem) {
+                                    const emeraldValue = tooltipItem.raw;
+                                    const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
+                                    return `Price: ${emeraldValue}e (${gameFormat})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3) Saturation Chart
+            const ctx3 = document.getElementById('saturationChart').getContext('2d');
+            saturationChart = new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Total Listings',
+                            data: total_listings,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Unidentified Listings',
+                            data: unid_listings,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Listings'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Search item by name
+        function handleSearch(itemName) {
+            if (itemName && itemName !== 'None') {
+                itemName = capitalizeWords(itemName);
+                document.getElementById('itemSearch').value = itemName;
+                history.pushState(null, '', `/history/${itemName}`);
+                fetchPriceData(itemName);
+            } else {
+                initializeEmptyCharts();
+            }
+        }
+
+        // Bind search button
+        document.getElementById('searchBtn').addEventListener('click', function () {
             const itemName = document.getElementById('itemSearch').value.trim();
             handleSearch(itemName);
-        }
-    });
+        });
 
-    // Check if an item name is provided in the URL and load the corresponding data
-    window.onload = function () {
-        const itemName = '{{ item_name }}';
-        if (itemName && itemName !== 'None') {
-            // Capitalize the item name and update the input field
-            const capitalizedItemName = capitalizeWords(itemName);
-            document.getElementById('itemSearch').value = capitalizedItemName;
+        // Bind Enter key in the input
+        document.getElementById('itemSearch').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                const itemName = document.getElementById('itemSearch').value.trim();
+                handleSearch(itemName);
+            }
+        });
 
-            handleSearch(capitalizedItemName);
-        } else {
-            initializeEmptyCharts();
+        // =====================
+        // RANKING CODE
+        // =====================
+
+        // Fetch ALL items ranking
+        async function fetchRankingData() {
+            try {
+                // Make sure your backend uses {"$sort": {"average_price": -1}} instead of "avg_price"
+                const response = await fetch('/api/trademarket/ranking/?env=prod');
+                const rankingData = await response.json();
+
+                if (response.ok) {
+                    displayRanking(rankingData);
+                } else {
+                    console.error('No ranking data found or request failed.');
+                }
+            } catch (error) {
+                console.error('Error fetching ranking data:', error);
+            }
         }
-    };
-</script>
+
+        // Display the ranking data in the table
+        function displayRanking(rankingData) {
+            const tableBody = document.querySelector('#rankingTable tbody');
+            tableBody.innerHTML = '';
+
+            rankingData.forEach((item, index) => {
+                const row = document.createElement('tr');
+
+                // 1) Rank
+                const rankCell = document.createElement('td');
+                rankCell.textContent = index + 1; // 1-based index
+                row.appendChild(rankCell);
+
+                // 2) Item Name
+                const nameCell = document.createElement('td');
+                nameCell.textContent = item._id || 'N/A';
+                row.appendChild(nameCell);
+
+                // 3) Average Price
+                const avgPriceCell = document.createElement('td');
+                if (item.average_price !== null && item.average_price !== undefined) {
+                    avgPriceCell.textContent = convertEmeraldsToGameFormat(item.average_price);
+                } else {
+                    avgPriceCell.textContent = 'N/A';
+                }
+                row.appendChild(avgPriceCell);
+
+                // 4) Lowest Price
+                const lowPriceCell = document.createElement('td');
+                if (item.lowest_price !== null && item.lowest_price !== undefined) {
+                    lowPriceCell.textContent = convertEmeraldsToGameFormat(item.lowest_price);
+                } else {
+                    lowPriceCell.textContent = 'N/A';
+                }
+                row.appendChild(lowPriceCell);
+
+                // 5) Highest Price
+                const highPriceCell = document.createElement('td');
+                if (item.highest_price !== null && item.highest_price !== undefined) {
+                    highPriceCell.textContent = convertEmeraldsToGameFormat(item.highest_price);
+                } else {
+                    highPriceCell.textContent = 'N/A';
+                }
+                row.appendChild(highPriceCell);
+
+                // 6) Mid 80% Avg
+                const mid80Cell = document.createElement('td');
+                if (item.average_mid_80_percent_price !== null && item.average_mid_80_percent_price !== undefined) {
+                    mid80Cell.textContent = convertEmeraldsToGameFormat(item.average_mid_80_percent_price);
+                } else {
+                    mid80Cell.textContent = 'N/A';
+                }
+                row.appendChild(mid80Cell);
+
+                // 7) Unid Mid 80% Avg
+                const unidMid80Cell = document.createElement('td');
+                if (item.unidentified_average_mid_80_percent_price !== null && item.unidentified_average_mid_80_percent_price !== undefined) {
+                    unidMid80Cell.textContent = convertEmeraldsToGameFormat(item.unidentified_average_mid_80_percent_price);
+                } else {
+                    unidMid80Cell.textContent = 'N/A';
+                }
+                row.appendChild(unidMid80Cell);
+
+                // 8) Avg Total Count
+                const avgTotalCountCell = document.createElement('td');
+                if (item.average_total_count !== null && item.average_total_count !== undefined) {
+                    avgTotalCountCell.textContent = item.average_total_count.toFixed(2);
+                } else {
+                    avgTotalCountCell.textContent = 'N/A';
+                }
+                row.appendChild(avgTotalCountCell);
+
+                // 9) Avg Unid Count
+                const avgUnidCountCell = document.createElement('td');
+                if (item.average_unidentified_count !== null && item.average_unidentified_count !== undefined) {
+                    avgUnidCountCell.textContent = item.average_unidentified_count.toFixed(2);
+                } else {
+                    avgUnidCountCell.textContent = 'N/A';
+                }
+                row.appendChild(avgUnidCountCell);
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        // On window load, if there's an item in the URL, show its charts; also load the ranking table
+        window.onload = function () {
+            const itemName = '{{ item_name }}';
+            if (itemName && itemName !== 'None') {
+                const capitalizedItemName = capitalizeWords(itemName);
+                document.getElementById('itemSearch').value = capitalizedItemName;
+                handleSearch(capitalizedItemName);
+            } else {
+                initializeEmptyCharts();
+            }
+
+            // Fetch ranking for all items on page load
+            fetchRankingData();
+        };
+    </script>
 {% endblock %}
