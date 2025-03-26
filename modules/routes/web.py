@@ -72,3 +72,8 @@ def history(item_name):
     else:
         print("History was accessed via URL but the IP is not allowed.")
         abort(404)
+
+@web_bp.route("/ranking")
+def ranking():
+    return render_template("price_ranking.html")
+
