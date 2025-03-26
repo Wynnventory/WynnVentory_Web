@@ -124,7 +124,7 @@ def get_market_item_price_info(item_name):
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
 
-    user = request.args.get('playername')
+    # user = request.args.get('playername')
     # if user not in WHITELISTED_PLAYERS:
     #     return jsonify({"message": "Unauthorized"}), 401
     
