@@ -67,11 +67,7 @@ def players():
 @web_bp.route("/history/<item_name>")
 @web_bp.route("/history/<item_name>/")
 def history(item_name):
-    if is_allowed_ip():
-        return render_template("price_history.html", item_name=item_name)
-    else:
-        print("History was accessed via URL but the IP is not allowed.")
-        abort(404)
+    return render_template("price_history.html", item_name=item_name)
 
 @web_bp.route("/ranking")
 def ranking():
