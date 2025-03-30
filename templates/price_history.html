@@ -17,13 +17,14 @@
     <div class="row mb-3">
         <div class="col">
             <div class="btn-group" role="group" aria-label="Timeframe toggles">
-                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(7)">Last 7 days</button>
-                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(14)">Last 14 days</button>
-                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(30)">Last Month</button>
-                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(90)">Last 3 Months</button>
+                <button type="button" class="btn btn-primary active" onclick="updateTimeframe(7, this)">Last 7 days</button>
+                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(14, this)">Last 14 days</button>
+                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(30, this)">Last Month</button>
+                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(90, this)">Last 3 Months</button>
             </div>
         </div>
     </div>
+
 
     <div class="row">
         <div class="col" style="min-height: 28vh;">
@@ -414,8 +415,23 @@
         }
 
         // Update timeframe toggle
-        function updateTimeframe(days) {
+        function updateTimeframe(days, btn) {
             currentTimeframe = days;
+
+            // Remove active styling from all buttons in the group.
+            const buttons = document.querySelectorAll('.btn-group button');
+            buttons.forEach(function(button) {
+                button.classList.remove('active');
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+            });
+
+            // Highlight the clicked button.
+            btn.classList.add('active');
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-primary');
+
+            // Trigger data update if an item is selected.
             const itemName = document.getElementById('itemSearch').value.trim();
             if (itemName) {
                 handleSearch(itemName);
