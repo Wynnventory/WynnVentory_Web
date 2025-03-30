@@ -899,7 +899,7 @@ def get_price_history(item_name, environment="prod", days=None):
     # If a timeframe is provided, filter by date (assumes 'date' field is a datetime)
     if days:
         try:
-            days_int = int(days) + 7
+            days_int = int(days) + 8
             start_date = datetime.utcnow() - timedelta(days=days_int)
             query_filter['date'] = {'$gte': start_date}
         except ValueError:
