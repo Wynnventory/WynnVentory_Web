@@ -889,3 +889,21 @@ body.side-menu-open {
         right: 0;
     }
 }
+
+.discord-link {
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.discord-link:hover {
+    background-color: rgba(88, 101, 242, 0.1);
+    text-decoration: none;
+}
+
+.discord-link:hover i {
+    color: #7983f5;
+}
+
+.discord-cta small {
+    font-size: 0.75rem;
+    color: #aaa;
+}
