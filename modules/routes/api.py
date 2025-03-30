@@ -216,7 +216,17 @@ def save_pool(data, pool_type, env):
             if not collection_time or not utils.is_time_valid(pool_type, collection_time):
                 print(f"Item at index {idx} has an invalid collectionTime: {collection_time}")
             else:
-                request_queue.put((pool_type, item, env))
+                lootpoolItems = item.get('items')
+                shinyCount = 0
+
+                for lootpoolItem in lootpoolItems:
+                    if lootpoolItem.get('shiny'):
+                        shinyCount += 1
+
+                if shinyCount <= 1:
+                    request_queue.put((pool_type, item, env))
+                else:
+                    print(f"Lootpool contained too many shinies: {shinyCount}; DATA: {item}")
 
         return jsonify({"message": f"Items saved to {env} {pool_type} collection successfully"}), 200
 
