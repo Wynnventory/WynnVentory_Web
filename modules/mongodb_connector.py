@@ -889,20 +889,27 @@ def save_raidpool_item(raidpool, environment="prod"):
 
     return {"message": "Item saved successfully"}, 200
 
-def get_price_history(item_name, environment="prod"):
-    """ Retrieve the price history of an item from the trademarket collection
-    """
+def get_price_history(item_name, environment="prod", days=None):
+    """ Retrieve the price history of an item from the trademarket collection """
     collection = get_collection("trademarket_ARCH", environment)
 
-    filter={
-        'name': item_name
-    }
-    sort=list({
-        'date': 1
-    }.items())
+    # Base filter for item name
+    query_filter = { 'name': item_name }
+
+    # If a timeframe is provided, filter by date (assumes 'date' field is a datetime)
+    if days:
+        try:
+            days_int = int(days) + 7
+            start_date = datetime.utcnow() - timedelta(days=days_int)
+            query_filter['date'] = {'$gte': start_date}
+        except ValueError:
+            # If days is not an integer, ignore the filter or handle error as needed
+            pass
+
+    sort = list({ 'date': 1 }.items())
 
     result = collection.find(
-        filter=filter,
+        filter=query_filter,
         sort=sort,
         projection={'_id': 0}
     )
