@@ -21,8 +21,8 @@
                 <div
                     class="d-flex flex-row flex-sm-column justify-content-between h-100 w-100 align-items-center align-items-sm-start px-3 pt-2 pt-sm-4">
                     <a href="{{ url_for('web.items') }}"
-                        class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-decoration-none logo-div">
-                        <span class="fs-logo"><span class="d-none d-sm-inline">WynnVentory</span></span>
+                        class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-decoration-none logo-div d-none d-md-block">
+                        <span class="fs-logo"><span class="d-none d-sm-inline">Wynnventory</span></span>
                     </a>
                     <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start nav-div"
                         id="menu">
@@ -40,13 +40,13 @@
                         <li>
                             <a href="{{ url_for('web.raid_lootpool') }}" class="nav-link px-sm-0 px-2">
                                 <span class="sprite bg-mageaspect" style="vertical-align: middle;"></span>
-                                <span
-                                    class="ms-1 d-none d-sm-inline">Raidpool</span> </a>
+                                <span class="ms-1 d-none d-sm-inline">Raidpool</span> </a>
                         </li>
+                        <li class="w-100 border-top my-2 d-none d-md-block"></li>
                         <li>
                             <a href="{{ url_for('web.history') }}" class="nav-link px-sm-0 px-2">
-                                <i class="icon-minecraft icon-minecraft-emerald"></i><span
-                                    class="ms-1 d-none d-sm-inline">Price History</span>
+                                <i class="icon-minecraft icon-minecraft-spyglass"></i><span
+                                    class="ms-1 d-none d-sm-inline">Price Insights</span>
                             </a>
                         </li>
                         {# <li>
@@ -54,17 +54,27 @@
                                 <i class="icon-minecraft icon-minecraft-player-head"></i></i><span
                                     class="ms-1 d-none d-sm-inline">Players</span></a>
                         </li> #}
-                        <li>
+                        <li class="d-none d-md-block">
                             <a href="{{ url_for('web.ranking') }}" class="nav-link px-sm-0 px-2">
-                                <i class="icon-minecraft icon-minecraft-emerald"></i><span
+                                <i class="icon-minecraft icon-minecraft-totem-of-undying"></i><span
                                     class="ms-1 d-none d-sm-inline">Price Ranking</span>
                             </a>
                         </li>
                     </ul>
-                    <div class="py-sm-4 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1 btn-div" >
-                        <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
-                        <label class="form-check-label ps-2 fs-mobile fs-desktop" for="darkModeSwitch">Dark Mode</label>
-                    </div>
+                    <div class="py-sm-4 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1 btn-div d-flex flex-column align-items-center align-items-sm-start gap-2">
+                        <div class="d-flex align-items-center">
+                            <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
+                            <label class="form-check-label ps-2 fs-mobile fs-desktop" for="darkModeSwitch">Dark Mode</label>
+                        </div>
+                    
+                        <div class="d-none d-md-flex flex-column align-items-center align-items-sm-start w-100 pt-3 border-top discord-cta">
+                            <a href="https://discord.gg/b6ATfrePuR" target="_blank"
+                                class="d-flex align-items-center gap-2 w-100 text-decoration-none py-2 px-2 rounded discord-link">
+                                <i class="bi bi-discord" style="color: #5865F2; font-size: 1.3rem;"></i>
+                                <span class="small fw-medium d-none d-xl-inline">Join our Discord</span>
+                            </a>
+                        </div>                        
+                    </div>                    
                 </div>
             </div>
 

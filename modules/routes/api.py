@@ -1,15 +1,14 @@
-from flask import Blueprint, jsonify
-from flask import request
 import threading
 from queue import Queue
-import atexit
 
+from flask import Blueprint, jsonify
+from flask import request
+
+from modules import mongodb_connector
+from modules import utils
 from modules import wynn_api
 from modules.models import Weapon, Armour, Accessory, Item
 from modules.models.item_types import WeaponType, ArmorType, AccessoryType
-from modules import mongodb_connector
-from modules import utils
-
 
 api_bp = Blueprint('api', __name__)
 request_queue = Queue()
@@ -233,14 +232,17 @@ def save_pool(data, pool_type, env):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@api_bp.route("/api/trademarket/<item_name>/history/", methods=['GET'])
+@api_bp.route("/api/trademarket/history/<item_name>", methods=['GET'])
 def get_market_history(item_name):
-    """ Retrieve price history of an item from the trademarket archive collection
-    """
+    """ Retrieve price history of an item from the trademarket archive collection """
     env = request.args.get('env', 'prod')
-    result = mongodb_connector.get_price_history(item_name, env)
+    days = request.args.get('days', 14)
+    result = mongodb_connector.get_price_history(item_name, env, days)
 
+    print(f"Looking for {item_name} within range {days}")
+    print(f"Result: {result}")
     return result
+
 
 @api_bp.route("/api/trademarket/ranking/", methods=['GET'])
 def get_all_items_ranking():

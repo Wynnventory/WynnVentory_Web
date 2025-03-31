@@ -13,6 +13,19 @@
         </div>
     </div>
 
+    <!-- Timeframe toggles -->
+    <div class="row mb-3">
+        <div class="col">
+            <div class="btn-group" role="group" aria-label="Timeframe toggles">
+                <button type="button" class="btn btn-primary active" onclick="updateTimeframe(7, this)">Last 7 days</button>
+                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(14, this)">Last 14 days</button>
+                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(30, this)">Last Month</button>
+                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(90, this)">Last 3 Months</button>
+            </div>
+        </div>
+    </div>
+
+
     <div class="row">
         <div class="col" style="min-height: 28vh;">
             <canvas id="priceHistoryChart"></canvas>
@@ -28,7 +41,11 @@
             <canvas id="saturationChart"></canvas>
         </div>
     </div>
-
+    <div class="row">
+        <div class="col">
+            <p>* The data displayed on this page is always offset by 1 week. Live data can be viewed using in-game tooltips.</p>
+        </div>
+    </div>
     <!-- Add Chart.js and the date adapter -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
@@ -37,6 +54,8 @@
         let priceHistoryChart = null;
         let highestPriceChart = null;
         let saturationChart = null;
+        // Default timeframe (in days)
+        let currentTimeframe = 7;
 
         // Function to capitalize each word in the item name
         function capitalizeWords(str) {
@@ -94,7 +113,7 @@
                 }]
             };
 
-            // Added maintainAspectRatio: false
+            // Chart options (shared)
             const chartOptions = {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -174,10 +193,10 @@
             });
         }
 
-        // Fetch item-specific price data
-        async function fetchPriceData(itemName) {
+        // Fetch item-specific price data with the given timeframe (in days)
+        async function fetchPriceData(itemName, days) {
             try {
-                const response = await fetch(`/api/trademarket/${itemName}/history/`);
+                const response = await fetch(`/api/trademarket/history/${itemName}?days=${days}`);
                 const data = await response.json();
 
                 if (response.ok && data.length > 0) {
@@ -207,7 +226,7 @@
             if (highestPriceChart) highestPriceChart.destroy();
             if (saturationChart) saturationChart.destroy();
 
-            // 1) Price History Chart
+            // Price History Chart
             const ctx = document.getElementById('priceHistoryChart').getContext('2d');
             priceHistoryChart = new Chart(ctx, {
                 type: 'line',
@@ -286,7 +305,7 @@
                 }
             });
 
-            // 2) Highest Price Chart
+            // Highest Price Chart
             const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
             highestPriceChart = new Chart(ctx2, {
                 type: 'line',
@@ -335,7 +354,7 @@
                 }
             });
 
-            // 3) Saturation Chart
+            // Saturation Chart
             const ctx3 = document.getElementById('saturationChart').getContext('2d');
             saturationChart = new Chart(ctx3, {
                 type: 'line',
@@ -383,15 +402,39 @@
             });
         }
 
-        // Search item by name
+        // Search item by name and timeframe
         function handleSearch(itemName) {
             if (itemName && itemName !== 'None') {
                 itemName = capitalizeWords(itemName);
                 document.getElementById('itemSearch').value = itemName;
                 history.pushState(null, '', `/history/${itemName}`);
-                fetchPriceData(itemName);
+                fetchPriceData(itemName, currentTimeframe);
             } else {
                 initializeEmptyCharts();
+            }
+        }
+
+        // Update timeframe toggle
+        function updateTimeframe(days, btn) {
+            currentTimeframe = days;
+
+            // Remove active styling from all buttons in the group.
+            const buttons = document.querySelectorAll('.btn-group button');
+            buttons.forEach(function(button) {
+                button.classList.remove('active');
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-outline-primary');
+            });
+
+            // Highlight the clicked button.
+            btn.classList.add('active');
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-primary');
+
+            // Trigger data update if an item is selected.
+            const itemName = document.getElementById('itemSearch').value.trim();
+            if (itemName) {
+                handleSearch(itemName);
             }
         }
 
