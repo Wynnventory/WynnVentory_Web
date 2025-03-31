@@ -916,6 +916,28 @@ def get_price_history(item_name, environment="prod", days=None):
 
     return check_results(result, custom_message="No items found with that name")
 
+def get_latest_price_history(item_name, environment="prod"):
+    collection = get_collection("trademarket_ARCH", environment)
+
+    # Filter by item name only
+    query_filter = { 'name': item_name }
+
+    # Sort descending so the latest document comes first
+    sort = [('date', -1)]
+
+    result = collection.find(
+        filter=query_filter,
+        sort=sort,
+        projection={'_id': 0}
+    ).limit(1)
+
+    result_list = list(result)
+    if result_list:
+        return result_list[0]
+    else:
+        return check_results(result, custom_message="No items found with that name")
+
+
 def get_all_items_ranking(environment="prod"):
     """
     Retrieve ranking data for all items from the archive collection.
