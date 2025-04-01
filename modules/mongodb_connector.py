@@ -917,26 +917,54 @@ def get_price_history(item_name, environment="prod", days=None):
     return check_results(result, custom_message="No items found with that name")
 
 def get_latest_price_history(item_name, environment="prod"):
+    """Retrieve the averaged stats of an item from the trademarket collection using the 4 most recent documents."""
     collection = get_collection("trademarket_ARCH", environment)
 
-    # Filter by item name only
+    # Filter by the item name
     query_filter = { 'name': item_name }
 
-    # Sort descending so the latest document comes first
+    # Sort descending by date so that the most recent documents are first
     sort = [('date', -1)]
-
-    result = collection.find(
+    # Retrieve only the 4 most recent documents
+    cursor = collection.find(
         filter=query_filter,
         sort=sort,
-        projection={'_id': 0}
-    ).limit(1)
+        projection={'_id': 0}  # Exclude _id from results
+    ).limit(4)
 
-    result_list = list(result)
-    if result_list:
-        return result_list[0]
-    else:
-        return check_results(result, custom_message="No items found with that name")
+    docs = list(cursor)
+    if not docs:
+        return check_results(cursor, custom_message="No items found with that name")
 
+    # Define the fields to calculate averages for.
+    # (Excludes 'name' and 'date' since those are not numeric stats.)
+    stat_fields = [
+        "lowest_price",
+        "highest_price",
+        "average_price",
+        "total_count",
+        "average_mid_80_percent_price",
+        "unidentified_average_price",
+        "unidentified_average_mid_80_percent_price",
+        "unidentified_count"
+    ]
+
+    averages = {}
+    for field in stat_fields:
+        # Gather all non-null values for this field across the documents
+        values = [doc[field] for doc in docs if doc.get(field) is not None]
+        # Calculate the average if there are any valid values
+        if values:
+            averages[field] = sum(values) / len(values)
+        else:
+            averages[field] = None
+
+    averages["name"] = item_name
+
+    # Optionally include the count of documents used in the calculation
+    averages['document_count'] = len(docs)
+
+    return averages
 
 def get_all_items_ranking(environment="prod"):
     """
