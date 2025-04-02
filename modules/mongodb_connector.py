@@ -930,7 +930,7 @@ def get_latest_price_history(item_name, environment="prod"):
         filter=query_filter,
         sort=sort,
         projection={'_id': 0}  # Exclude _id from results
-    ).limit(4)
+    ).limit(7)
 
     docs = list(cursor)
     if not docs:
