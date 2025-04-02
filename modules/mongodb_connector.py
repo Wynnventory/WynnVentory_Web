@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from flask import jsonify
+import logging
+
 
 from modules.utils import get_lootpool_week, get_lootpool_week_for_timestamp, get_raidpool_week
 
@@ -14,6 +16,8 @@ PROD_RAID_DB = "raidpool_items_PROD"
 DEV_RAID_DB = "raidpool_items_DEV"
 PROD_MARKET_ARCH_DB = "tm_items_ARCH_PROD"
 DEV_MARKET_ARCH_DB = "tm_items_ARCH_DEV"
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Create a new client and connect to the server with SSL settings
 client = MongoClient(uri, server_api=ServerApi(
@@ -75,17 +79,24 @@ def get_trade_market_item(item_name):
     return check_results(result, custom_message="No items found with that name")
 
 
-def get_trade_market_item_price(item_name, environment="prod"):
+def get_trade_market_item_price(item_name, shiny: bool = False, environment="prod"):
     """ Retrieve price of item from the trademarket collection
     """
     collection = get_collection("trademarket", environment)
+
+    logging.info(f"shiny attribute {shiny}")
+
+    if shiny:
+        shinyStat = "$ne"
+    else:
+        shinyStat = "$eq"
 
     result = collection.aggregate(
         [
             {
                 "$match": {
                     "name": item_name,
-                    "shiny_stat": {"$eq": None}
+                    "shiny_stat": {shinyStat: None}
                 }
             },
             {"$sort": {"listing_price": 1}},
