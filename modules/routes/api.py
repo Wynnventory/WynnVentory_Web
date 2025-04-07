@@ -250,8 +250,14 @@ def get_market_history(item_name):
     days = request.args.get('days', 14)
     result = mongodb_connector.get_price_history(item_name, env, days)
 
-    print(f"Looking for {item_name} within range {days}")
-    print(f"Result: {result}")
+    return result
+
+@api_bp.route("/api/trademarket/history/<item_name>/latest", methods=['GET'])
+def get_latest_market_history(item_name):
+    """ Retrieve price history of an item from the trademarket archive collection """
+    env = request.args.get('env', 'prod')
+    result = mongodb_connector.get_latest_price_history(item_name, env)
+
     return result
 
 
