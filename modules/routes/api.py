@@ -17,6 +17,7 @@ SUPPORTED_VERSION = '0.9.0'
 # WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
 
 @api_bp.route("/api/aspect/<class_name>/<aspect_name>", methods=['GET'])
+@api_bp.route("/api/aspect/<class_name>/<aspect_name>/", methods=['GET'])
 def get_aspect_stats(class_name, aspect_name):
     """ Retrieve aspect stats from the Wynn API by aspect class and name
     """
@@ -24,6 +25,7 @@ def get_aspect_stats(class_name, aspect_name):
     return jsonify(aspect_data)
 
 @api_bp.route("/api/item/<item_name>", methods=['GET'])
+@api_bp.route("/api/item/<item_name>/", methods=['GET'])
 def get_item_stats(item_name):
     """ Retrieve item stats from the Wynn API by item name
     """
@@ -33,6 +35,7 @@ def get_item_stats(item_name):
 
 
 @api_bp.route("/api/items", methods=['POST'])
+@api_bp.route("/api/items/", methods=['POST'])
 def get_items():
     """ Search items on the Wynn API based on the provided query parameters
     """
@@ -77,6 +80,7 @@ def get_items():
 
 
 @api_bp.route("/api/trademarket/items", methods=['POST'])
+@api_bp.route("/api/trademarket/items/", methods=['POST'])
 def save_trade_market_items():
     """ Save items to the trademarket collection
     """
@@ -107,6 +111,7 @@ def save_trade_market_items():
 
 
 @api_bp.route("/api/trademarket/item/<item_name>", methods=['GET'])
+@api_bp.route("/api/trademarket/item/<item_name>/", methods=['GET'])
 def get_market_item_info(item_name):
     """ Retrieve items from the trademarket collection by name
     """
@@ -117,6 +122,7 @@ def get_market_item_info(item_name):
 
 
 @api_bp.route("/api/trademarket/item/<item_name>/price", methods=['GET'])
+@api_bp.route("/api/trademarket/item/<item_name>/price/", methods=['GET'])
 def get_market_item_price_info(item_name):
     """ Retrieve price information of items from the trademarket collection by name
     """
@@ -137,6 +143,7 @@ def get_market_item_price_info(item_name):
 
 
 @api_bp.route("/api/lootpool/items", methods=['POST'])
+@api_bp.route("/api/lootpool/items/", methods=['POST'])
 def save_lootpool_items():
     try:
         data = request.get_json()
@@ -152,6 +159,7 @@ def save_lootpool_items():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@api_bp.route("/api/lootpool/<pool>/items", methods=['GET'])
 @api_bp.route("/api/lootpool/<pool>/items/", methods=['GET'])
 def get_lootpool_items(pool):
     """ Retrieve lootpool items
@@ -164,6 +172,7 @@ def get_lootpool_items(pool):
 
     return result
 
+@api_bp.route("/api/lootpool/<pool>", methods=['GET'])
 @api_bp.route("/api/lootpool/<pool>/", methods=['GET'])
 def get_lootpool_items_raw(pool):
     """ Retrieve lootpool items
@@ -177,6 +186,7 @@ def get_lootpool_items_raw(pool):
     return result
 
 @api_bp.route("/api/raidpool/items", methods=['POST'])
+@api_bp.route("/api/raidpool/items/", methods=['POST'])
 def save_raidpool_items():
     """Save items to the raidpool collection."""
     try:
@@ -233,6 +243,7 @@ def save_pool(data, pool_type, env):
         return jsonify({"error": str(e)}), 500
 
 @api_bp.route("/api/trademarket/history/<item_name>", methods=['GET'])
+@api_bp.route("/api/trademarket/history/<item_name>/", methods=['GET'])
 def get_market_history(item_name):
     """ Retrieve price history of an item from the trademarket archive collection """
     env = request.args.get('env', 'prod')
@@ -244,6 +255,7 @@ def get_market_history(item_name):
     return result
 
 
+@api_bp.route("/api/trademarket/ranking", methods=['GET'])
 @api_bp.route("/api/trademarket/ranking/", methods=['GET'])
 def get_all_items_ranking():
     """
