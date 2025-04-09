@@ -138,7 +138,11 @@ def get_market_item_price_info(item_name):
         env = "dev"
     else:
         env = "prod"
-    result = mongodb_connector.get_trade_market_item_price(item_name, env)
+
+    shiny_str = request.args.get('shiny', 'false')  # default to 'false' if not provided
+    shiny = shiny_str.lower() == 'true'
+
+    result = mongodb_connector.get_trade_market_item_price(item_name, shiny, env)
     return result
 
 
