@@ -91,7 +91,7 @@ def save_trade_market_items():
 
         items = data if isinstance(data, list) else [data]
 
-        env = 'dev2' # request.args.get('env')
+        env = request.args.get('env')
         if not env or env == 'dev':
             for item in items:
                 formatted_item = format_item_for_db(item)
@@ -154,7 +154,7 @@ def save_lootpool_items():
         if not data:
             return jsonify({"message": "No items provided"}), 400
 
-        env = 'dev2' # request.args.get('env', 'prod')
+        env = request.args.get('env', 'prod')
         if env not in ['prod', 'dev', 'dev2']:
             return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
 
@@ -170,9 +170,9 @@ def get_lootpool_items(pool):
     """
     env = request.args.get('env', 'prod')
     if pool == "raidpool":
-        result = mongodb_connector.get_raidpool_items(environment="dev2")
+        result = mongodb_connector.get_raidpool_items(environment=env)
     else:
-        result = mongodb_connector.get_lootpool_items(environment="dev2")
+        result = mongodb_connector.get_lootpool_items(environment=env)
 
     return result
 
@@ -183,9 +183,9 @@ def get_lootpool_items_raw(pool):
     """
     env = request.args.get('env', 'prod')
     if pool == "raidpool":
-        result = mongodb_connector.get_raidpool_items_raw(environment="dev2")
+        result = mongodb_connector.get_raidpool_items_raw(environment=env)
     else:
-        result = mongodb_connector.get_lootpool_items_raw(environment="dev2")
+        result = mongodb_connector.get_lootpool_items_raw(environment=env)
 
     return result
 
