@@ -77,8 +77,6 @@ def get_trade_market_item_price(item_name, shiny: bool = False, environment="pro
     """
     collection = get_collection("trademarket", environment)
 
-    logging.info(f"shiny attribute {shiny}")
-
     if shiny:
         shinyStat = "$ne"
     else:

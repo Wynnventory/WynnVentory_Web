@@ -316,29 +316,16 @@ def format_item_for_db(item):
     item_data = item.get('item', {})
     formatted_item = {
         "name": item_data.get('name'),
-        "level": item_data.get('level'),
         "rarity": item_data.get('rarity'),
-        "powder_slots": item_data.get('powderSlots'),
-        "rerolls": item_data.get('rerollCount'),
-        # "required_class": item_data.get('requiredClass'),
         "unidentified": item_data.get('unidentified'),
         "shiny_stat": item_data.get('shinyStat'),
-        # "perfect": item_data.get('perfect'),
-        # "defective": item_data.get('defective'),
         "amount": item.get('amount'),
-        "overall_percentage": item_data.get('overallPercentage'),
         "listing_price": item.get('listingPrice'),
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
-        "actual_stats_with_percentage": [
-            {
-                "value": stat.get('value'),
-                "actual_roll_percentage": stat.get('actualRollPercentage'),
-                "stat_name": stat.get('statName'),
-                # "range": stat.get('range', {})
-            } for stat in item_data.get('actualStatsWithPercentage', [])
-        ]
+        "hash_code": item.get('hash_code')
     }
+
     return formatted_item
 
 
