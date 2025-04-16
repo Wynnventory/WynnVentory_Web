@@ -40,19 +40,12 @@ def save_trade_market_item(item, environment="prod"):
     # Extract relevant fields to check for duplicates (excluding timestamp)
     item_check = {
         "name": item.get("name"),
-        "level": item.get("level"),
         "rarity": item.get("rarity"),
-        "powder_slots": item.get("powder_slots"),
-        "rerolls": item.get("rerolls"),
-        # "required_class": item.get("required_class"),
         "unidentified": item.get("unidentified"),
         "shiny_stat": item.get("shiny_stat"),
-        # "perfect": item.get("perfect"),
-        # "defective": item.get("defective"),
         "amount": item.get("amount"),
-        "overall_percentage": item.get("overall_percentage"),
         "listing_price": item.get("listing_price"),
-        "actual_stats_with_percentage": item.get("actual_stats_with_percentage")
+        "hash_code": item.get("hash_code")
     }
 
     # Check for duplicate items
