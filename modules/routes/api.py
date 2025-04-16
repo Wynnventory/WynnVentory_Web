@@ -97,12 +97,14 @@ def save_trade_market_items():
         if not env or env == 'dev':
             for item in items:
                 formatted_item = format_item_for_db(item)
+                print(f"This is the formatted item: {data}")
                 request_queue.put(("trademarket", formatted_item, "prod"))
 
             return jsonify({"message": "Items received successfully"}), 200
         elif env == 'dev2':
             for item in items:
                 formatted_item = format_item_for_db(item)
+                print(f"This is the formatted item: {data}")
                 request_queue.put(("trademarket", formatted_item, "dev"))
 
             return jsonify({"message": "Items saved to dev collection"}), 200
