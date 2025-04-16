@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+from pymongo import MongoClient, UpdateOne
+
+MONGO_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
+DB_NAME = "wynnventory"
+
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
+
+def int32(x):
+    """Force a value into a 32-bit signed integer (simulate Java int arithmetic)."""
+    x = x & 0xFFFFFFFF
+    if x & 0x80000000:
+        return -((~x & 0xFFFFFFFF) + 1)
+    return x
+
+def java_hash(obj):
+    """
+    Recursively compute a hash code mimicking Java's Objects.hash() behavior.
+    Supports None, int, bool, str, list, and dict.
+    """
+    if obj is None:
+        return 0
+    if isinstance(obj, int):
+        return int32(obj)
+    if isinstance(obj, bool):
+        # Java Boolean.hashCode(): true -> 1231, false -> 1237.
+        return 1231 if obj else 1237
+    if isinstance(obj, str):
+        h = 0
+        for ch in obj:
+            h = int32(31 * h + ord(ch))
+        return h
+    if isinstance(obj, list):
+        result = 1
+        for elem in obj:
+            result = int32(31 * result + java_hash(elem))
+        return result
+    if isinstance(obj, dict):
+        # Special handling if this dict appears to be an ActualStatWithPercentage
+        if "stat_name" in obj and "actual_roll_percentage" in obj:
+            return java_hash([obj["stat_name"], obj["actual_roll_percentage"]])
+        # Otherwise, process the dict keys in sorted order.
+        result = 1
+        for key in sorted(obj.keys()):
+            result = int32(31 * result + java_hash(key))
+            result = int32(31 * result + java_hash(obj[key]))
+        return result
+    # Fallback: convert the object to a string and hash that.
+    return java_hash(str(obj))
+
+def compute_hash(doc):
+    """
+    Compute the hash code using this ordered list of fields:
+    name, rarity, unidentified, shiny_stat, amount, listing_price, actual_stats_with_percentage.
+    """
+    name = doc.get("name")
+    rarity = doc.get("rarity")
+    unidentified = doc.get("unidentified")
+    shiny_stat = doc.get("shiny_stat")
+    amount = doc.get("amount")
+    listing_price = doc.get("listing_price")
+    actual_stats = doc.get("actual_stats_with_percentage")
+    rerolls = doc.get("rerolls")
+
+    values = [name, rarity, unidentified, shiny_stat, amount, listing_price, actual_stats, rerolls]
+    return java_hash(values)
+
+def update_hash_codes():
+    """Process documents in batches and set the hash_code field."""
+    collection = db["trademarket_items_DEV"]
+
+    # Use projection to fetch only fields needed for hash computation.
+    projection = {
+        "name": 1,
+        "rarity": 1,
+        "unidentified": 1,
+        "shiny_stat": 1,
+        "amount": 1,
+        "listing_price": 1,
+        "actual_stats_with_percentage": 1,
+        "rerolls": 1
+    }
+
+    BATCH_SIZE = 1000
+    updates = []
+    count = 0
+
+    cursor = collection.find({}, projection)
+    for doc in cursor:
+        hash_code = compute_hash(doc)
+        updates.append(UpdateOne({"_id": doc["_id"]}, {"$set": {"hash_code": hash_code}}))
+        count += 1
+        if len(updates) >= BATCH_SIZE:
+            collection.bulk_write(updates, ordered=False)
+            updates = []
+            print(f"Processed {count} documents...")
+
+    if updates:
+        collection.bulk_write(updates, ordered=False)
+        print(f"Processed {count} documents in total.")
+
+def remove_duplicates():
+    """
+    Check for duplicate documents (those with the same hash_code) and
+    remove duplicates, keeping one document per unique hash_code.
+    """
+    collection = db["trademarket_items_DEV"]
+
+    # Aggregation pipeline to group by hash_code and collect document IDs.
+    pipeline = [
+        {"$group": {"_id": "$hash_code", "ids": {"$addToSet": "$_id"}, "count": {"$sum": 1}}},
+        {"$match": {"count": {"$gt": 1}}}
+    ]
+
+    duplicate_groups = list(collection.aggregate(pipeline))
+    total_removed = 0
+    for group in duplicate_groups:
+        ids = group["ids"]
+        # Keep the first document and remove the rest.
+        ids_to_remove = ids[1:]
+        if ids_to_remove:
+            result = collection.delete_many({"_id": {"$in": ids_to_remove}})
+            total_removed += result.deleted_count
+            print(f"Removed {result.deleted_count} duplicate documents for hash_code {group['_id']}")
+    print(f"Total duplicate documents removed: {total_removed}")
+
+def main():
+    # print("Updating hash codes...")
+    # update_hash_codes()
+    print("Removing duplicate documents...")
+    remove_duplicates()
+
+if __name__ == '__main__':
+    main()
