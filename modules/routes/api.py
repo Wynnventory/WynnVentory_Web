@@ -86,7 +86,9 @@ def save_trade_market_items():
     """
     try:
         data = request.get_json()
-        if not data or len(data) <= 1:
+        print(f"Formatting item data for database insertion: {data}")
+
+        if not data or len(data) < 1:
             return {"message": "No items provided"}, 400
 
         items = data if isinstance(data, list) else [data]
