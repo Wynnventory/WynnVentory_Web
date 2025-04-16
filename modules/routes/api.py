@@ -86,7 +86,7 @@ def save_trade_market_items():
     """
     try:
         data = request.get_json()
-        print(f"Formatting item data for database insertion: {data}")
+        print(f"Request Data: {data}")
 
         if not data or len(data) < 1:
             return {"message": "No items provided"}, 400
@@ -329,9 +329,11 @@ def format_item_for_db(item):
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
         "hash_code": item.get('hash_code'),
-        "item_type": item.get("item_Type"),
+        "item_type": item.get("item_type"),
         "type": item.get("type")
     }
+
+    print(f"Formatted item: {item}")
 
     return formatted_item
 
