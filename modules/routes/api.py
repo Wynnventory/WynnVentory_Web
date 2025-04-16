@@ -323,7 +323,9 @@ def format_item_for_db(item):
         "listing_price": item.get('listingPrice'),
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
-        "hash_code": item.get('hash_code')
+        "hash_code": item.get('hash_code'),
+        "item_type": item.get("item_type"),
+        "type": item.get("type")
     }
 
     return formatted_item

@@ -45,7 +45,9 @@ def save_trade_market_item(item, environment="prod"):
         "shiny_stat": item.get("shiny_stat"),
         "amount": item.get("amount"),
         "listing_price": item.get("listing_price"),
-        "hash_code": item.get("hash_code")
+        "hash_code": item.get("hash_code"),
+        "item_type": item.get("item_type"),
+        "type": item.get("type")
     }
 
     # Check for duplicate items
