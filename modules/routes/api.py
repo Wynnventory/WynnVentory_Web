@@ -125,25 +125,20 @@ def get_market_item_info(item_name):
 @api_bp.route("/api/trademarket/item/<item_name>/price", methods=['GET'])
 @api_bp.route("/api/trademarket/item/<item_name>/price/", methods=['GET'])
 def get_market_item_price_info(item_name):
-    """ Retrieve price information of items from the trademarket collection by name
-    """
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
 
-    # user = request.args.get('playername')
-    # if user not in WHITELISTED_PLAYERS:
-    #     return jsonify({"message": "Unauthorized"}), 401
-    
     env = request.args.get('env')
-    if env == 'dev2':
-        env = "dev"
-    else:
-        env = "prod"
+    env = "dev" if env == 'dev2' else "prod"
 
-    shiny_str = request.args.get('shiny', 'false')  # default to 'false' if not provided
+    shiny_str = request.args.get('shiny', 'false')  # default to 'false'
     shiny = shiny_str.lower() == 'true'
 
-    result = mongodb_connector.get_trade_market_item_price(item_name, shiny, env)
+    # Get tier from query parameters if provided.
+    tier_param = request.args.get('tier')
+    tier = int(tier_param) if tier_param is not None else None
+
+    result = mongodb_connector.get_trade_market_item_price(item_name, shiny, env, tier)
     return result
 
 

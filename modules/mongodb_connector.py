@@ -55,135 +55,103 @@ def get_trade_market_item(item_name):
     return check_results(result, custom_message="No items found with that name")
 
 
-def get_trade_market_item_price(item_name, shiny: bool = False, environment="prod"):
-    """ Retrieve price of item from the trademarket collection
-    """
+def get_trade_market_item_price(item_name, shiny: bool = False, environment="prod", tier: int = None):
     collection = get_collection("trademarket", environment)
+    shinyStat = "$ne" if shiny else "$eq"
 
-    if shiny:
-        shinyStat = "$ne"
-    else:
-        shinyStat = "$eq"
-
-    result = collection.aggregate(
-        [
-            {
-                "$match": {
-                    "name": item_name,
-                    "shiny_stat": {shinyStat: None}
-                }
-            },
-            {"$sort": {"listing_price": 1}},
-            {
-                "$facet": {
-                    "identified_prices": [
-                        {
-                            "$match": {
-                                "unidentified": False,
-                            }
-                        },
-                        {
-                            "$group": {
-                                "_id": None,
-                                "minPrice": {"$min": "$listing_price"},
-                                "maxPrice": {"$max": "$listing_price"},
-                                "avgPrice": {"$avg": "$listing_price"},
-                                "prices": {"$push": "$listing_price"}
-                            }
-                        },
-                        {
-                            "$project": {
-                                "_id": 0,
-                                "minPrice": {"$round": ["$minPrice", 2]},
-                                "maxPrice": {"$round": ["$maxPrice", 2]},
-                                "avgPrice": {"$round": ["$avgPrice", 2]},
-                                "mid_80_percent": {
-                                    "$cond": [
-                                        {"$gte": [{"$size": "$prices"}, 2]},
-                                        {
-                                            "$slice": [
-                                                "$prices",
-                                                {"$ceil": {"$multiply": [
-                                                    {"$size": "$prices"}, 0.1]}},
-                                                {"$floor": {"$multiply": [
-                                                    {"$size": "$prices"}, 0.8]}}
-                                            ]
-                                        },
-                                        "$prices"  # Use the full prices array if less than 2 entries
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            "$project": {
-                                "minPrice": 1,
-                                "maxPrice": 1,
-                                "avgPrice": 1,
-                                "average_mid_80_percent_price": {
-                                    "$round": [{"$avg": "$mid_80_percent"}, 2]
-                                }
-                            }
-                        }
-                    ],
-                    "unidentified_avg_price": [
-                        {
-                            "$match": {
-                                "unidentified": True
-                            }
-                        },
-                        {
-                            "$group": {
-                                "_id": None,
-                                "avgUnidentifiedPrice": {"$avg": "$listing_price"},
-                                "prices": {"$push": "$listing_price"}
-                            }
-                        },
-                        {
-                            "$project": {
-                                "_id": 0,
-                                "avgUnidentifiedPrice": {"$round": ["$avgUnidentifiedPrice", 2]},
-                                "mid_80_percent": {
-                                    "$cond": [
-                                        {"$gte": [{"$size": "$prices"}, 2]},
-                                        {
-                                            "$slice": [
-                                                "$prices",
-                                                {"$ceil": {"$multiply": [
-                                                    {"$size": "$prices"}, 0.1]}},
-                                                {"$floor": {"$multiply": [
-                                                    {"$size": "$prices"}, 0.8]}}
-                                            ]
-                                        },
-                                        "$prices"  # Use the full prices array if less than 2 entries
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            "$project": {
-                                "avgUnidentifiedPrice": 1,
-                                "average_mid_80_percent_price": {
-                                    "$round": [{"$avg": "$mid_80_percent"}, 2]
-                                }
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                "$project": {
-                    "lowest_price": {"$arrayElemAt": ["$identified_prices.minPrice", 0]},
-                    "highest_price": {"$arrayElemAt": ["$identified_prices.maxPrice", 0]},
-                    "average_price": {"$arrayElemAt": ["$identified_prices.avgPrice", 0]},
-                    "average_mid_80_percent_price": {"$arrayElemAt": ["$identified_prices.average_mid_80_percent_price", 0]},
-                    "unidentified_average_price": {"$arrayElemAt": ["$unidentified_avg_price.avgUnidentifiedPrice", 0]},
-                    "unidentified_average_mid_80_percent_price": {"$arrayElemAt": ["$unidentified_avg_price.average_mid_80_percent_price", 0]}
-                }
-            }
+    match_filter = {
+        "name": item_name,
+        "shiny_stat": {shinyStat: None}
+    }
+    if tier is not None:
+        match_filter["$or"] = [
+            {"item_type": {"$in": ["GearItem", "IngredientItem"]}},
+            {"item_type": "MaterialItem", "tier": tier}
         ]
-    )
+    print(f"DEBUG: MongoDB match filter: {match_filter}")
 
-    return check_results(result)
+    pipeline = [
+        {"$match": match_filter},
+        {"$sort": {"listing_price": 1}},
+        {
+            "$facet": {
+                "identified_prices": [
+                    {"$match": {"$or": [{"unidentified": False}, {"unidentified": None}]}},
+                    {"$group": {
+                        "_id": None,
+                        "minPrice": {"$min": "$listing_price"},
+                        "maxPrice": {"$max": "$listing_price"},
+                        "avgPrice": {"$avg": "$listing_price"},
+                        "prices": {"$push": "$listing_price"}
+                    }},
+                    {"$project": {
+                        "_id": 0,
+                        "minPrice": {"$round": ["$minPrice", 2]},
+                        "maxPrice": {"$round": ["$maxPrice", 2]},
+                        "avgPrice": {"$round": ["$avgPrice", 2]},
+                        "mid_80_percent": {
+                            "$cond": [
+                                {"$gte": [{"$size": "$prices"}, 2]},
+                                {"$slice": [
+                                    "$prices",
+                                    {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}},
+                                    {"$floor": {"$multiply": [{"$size": "$prices"}, 0.8]}}
+                                ]},
+                                "$prices"
+                            ]
+                        }
+                    }},
+                    {"$project": {
+                        "minPrice": 1,
+                        "maxPrice": 1,
+                        "avgPrice": 1,
+                        "average_mid_80_percent_price": {"$round": [{"$avg": "$mid_80_percent"}, 2]}
+                    }}
+                ],
+                "unidentified_avg_price": [
+                    {"$match": {"unidentified": True}},
+                    {"$group": {
+                        "_id": None,
+                        "avgUnidentifiedPrice": {"$avg": "$listing_price"},
+                        "prices": {"$push": "$listing_price"}
+                    }},
+                    {"$project": {
+                        "_id": 0,
+                        "avgUnidentifiedPrice": {"$round": ["$avgUnidentifiedPrice", 2]},
+                        "mid_80_percent": {
+                            "$cond": [
+                                {"$gte": [{"$size": "$prices"}, 2]},
+                                {"$slice": [
+                                    "$prices",
+                                    {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}},
+                                    {"$floor": {"$multiply": [{"$size": "$prices"}, 0.8]}}
+                                ]},
+                                "$prices"
+                            ]
+                        }
+                    }},
+                    {"$project": {
+                        "avgUnidentifiedPrice": 1,
+                        "average_mid_80_percent_price": {"$round": [{"$avg": "$mid_80_percent"}, 2]}
+                    }}
+                ]
+            }
+        },
+        {"$project": {
+            "lowest_price": {"$arrayElemAt": ["$identified_prices.minPrice", 0]},
+            "highest_price": {"$arrayElemAt": ["$identified_prices.maxPrice", 0]},
+            "average_price": {"$arrayElemAt": ["$identified_prices.avgPrice", 0]},
+            "average_mid_80_percent_price": {"$arrayElemAt": ["$identified_prices.average_mid_80_percent_price", 0]},
+            "unidentified_average_price": {"$arrayElemAt": ["$unidentified_avg_price.avgUnidentifiedPrice", 0]},
+            "unidentified_average_mid_80_percent_price": {"$arrayElemAt": ["$unidentified_avg_price.average_mid_80_percent_price", 0]}
+        }}
+    ]
+    print(f"DEBUG: Aggregation pipeline: {pipeline}")
+
+    results_list = list(collection.aggregate(pipeline))
+    print(f"DEBUG: Aggregation returned: {results_list}")
+
+    return check_results(results_list)
 
 
 def save_lootpool_item(lootpool, environment="prod"):
