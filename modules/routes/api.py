@@ -313,6 +313,9 @@ def process_item_data(item_data):
 def format_item_for_db(item):
     """ Format item data for database insertion
     """
+
+    print(f"Formatting item data for database insertion: {item}")
+
     item_data = item.get('item', {})
     formatted_item = {
         "name": item_data.get('name'),
@@ -324,7 +327,7 @@ def format_item_for_db(item):
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
         "hash_code": item.get('hash_code'),
-        "item_type": item.get("item_type"),
+        "item_type": item.get("item_Type"),
         "type": item.get("type")
     }
 

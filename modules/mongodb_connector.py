@@ -37,6 +37,8 @@ def save_trade_market_item(item, environment="prod"):
     """
     collection = get_collection("trademarket", environment)
 
+    print(f"Saving item data: {item}")
+
     # Extract relevant fields to check for duplicates (excluding timestamp)
     item_check = {
         "name": item.get("name"),
