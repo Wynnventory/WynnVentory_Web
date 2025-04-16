@@ -318,13 +318,14 @@ def format_item_for_db(item):
     item_data = item.get('item', {})
     formatted_item = {
         "name": item_data.get('name'),
+        "listing_price": item.get('listingPrice'),
+        "amount": item.get('amount'),
+        "item_type": item_data.get('item_type'),
+        "type": item_data.get('type'),
         "rarity": item_data.get('rarity'),
         "unidentified": item_data.get('unidentified'),
         "shiny_stat": item_data.get('shinyStat'),
-        "item_type": item_data.get('item_type'),
-        "type": item_data.get('type'),
-        "amount": item.get('amount'),
-        "listing_price": item.get('listingPrice'),
+        "tier": item_data.get('tier'),
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
         "hash_code": item.get('hash_code')
