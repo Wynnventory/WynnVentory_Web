@@ -86,7 +86,6 @@ def save_trade_market_items():
     """
     try:
         data = request.get_json()
-        print(f"Request Data: {data}")
 
         if not data or len(data) < 1:
             return {"message": "No items provided"}, 400
@@ -97,14 +96,12 @@ def save_trade_market_items():
         if not env or env == 'dev':
             for item in items:
                 formatted_item = format_item_for_db(item)
-                print(f"This is the formatted item: {data}")
                 request_queue.put(("trademarket", formatted_item, "prod"))
 
             return jsonify({"message": "Items received successfully"}), 200
         elif env == 'dev2':
             for item in items:
                 formatted_item = format_item_for_db(item)
-                print(f"This is the formatted item: {data}")
                 request_queue.put(("trademarket", formatted_item, "dev"))
 
             return jsonify({"message": "Items saved to dev collection"}), 200
@@ -318,24 +315,20 @@ def format_item_for_db(item):
     """ Format item data for database insertion
     """
 
-    print(f"Formatting item data for database insertion: {item}")
-
     item_data = item.get('item', {})
     formatted_item = {
         "name": item_data.get('name'),
         "rarity": item_data.get('rarity'),
         "unidentified": item_data.get('unidentified'),
         "shiny_stat": item_data.get('shinyStat'),
+        "item_type": item_data.get('item_type'),
+        "type": item_data.get('type'),
         "amount": item.get('amount'),
         "listing_price": item.get('listingPrice'),
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
-        "hash_code": item.get('hash_code'),
-        "item_type": item.get("item_type"),
-        "type": item.get("type")
+        "hash_code": item.get('hash_code')
     }
-
-    print(f"Formatted item: {item}")
 
     return formatted_item
 

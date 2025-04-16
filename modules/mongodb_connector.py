@@ -37,27 +37,6 @@ def save_trade_market_item(item, environment="prod"):
     """
     collection = get_collection("trademarket", environment)
 
-    print(f"Saving item data: {item}")
-
-    # Extract relevant fields to check for duplicates (excluding timestamp)
-    item_check = {
-        "name": item.get("name"),
-        "rarity": item.get("rarity"),
-        "unidentified": item.get("unidentified"),
-        "shiny_stat": item.get("shiny_stat"),
-        "amount": item.get("amount"),
-        "listing_price": item.get("listing_price"),
-        "hash_code": item.get("hash_code"),
-        "item_type": item.get("item_type"),
-        "type": item.get("type")
-    }
-
-    # Check for duplicate items
-    duplicate_item = collection.find_one(item_check)
-    if duplicate_item:
-        return {"message": "Duplicate item found, skipping insertion"}, 200
-
-    # Insert the new item if no duplicate is found
     item['timestamp'] = datetime.utcnow()
     collection.insert_one(item)
     return {"message": "Item saved successfully"}, 200
