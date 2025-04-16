@@ -126,8 +126,8 @@ def remove_duplicates():
     print(f"Total duplicate documents removed: {total_removed}")
 
 def main():
-    # print("Updating hash codes...")
-    # update_hash_codes()
+    print("Updating hash codes...")
+    update_hash_codes()
     print("Removing duplicate documents...")
     remove_duplicates()
 
