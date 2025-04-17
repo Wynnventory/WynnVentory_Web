@@ -14,8 +14,6 @@ api_bp = Blueprint('api', __name__)
 request_queue = Queue()
 SUPPORTED_VERSION = '0.9.0'
 
-# WHITELISTED_PLAYERS = ["Aruloci", "SiropBVST", "red_fire_storm"]
-
 @api_bp.route("/api/aspect/<class_name>/<aspect_name>", methods=['GET'])
 @api_bp.route("/api/aspect/<class_name>/<aspect_name>/", methods=['GET'])
 def get_aspect_stats(class_name, aspect_name):
@@ -248,7 +246,15 @@ def get_market_history(item_name):
     """ Retrieve price history of an item from the trademarket archive collection """
     env = request.args.get('env', 'prod')
     days = request.args.get('days', 14)
-    result = mongodb_connector.get_price_history(item_name, env, days)
+
+    shiny_str = request.args.get('shiny', 'false')  # default to 'false'
+    shiny = shiny_str.lower() == 'true'
+
+    # Get tier from query parameters if provided.
+    tier_param = request.args.get('tier')
+    tier = int(tier_param) if tier_param is not None else None
+
+    result = mongodb_connector.get_price_history(item_name, shiny, env, days, tier)
 
     return result
 

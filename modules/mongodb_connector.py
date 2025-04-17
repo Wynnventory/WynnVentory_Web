@@ -842,12 +842,23 @@ def save_raidpool_item(raidpool, environment="prod"):
 
     return {"message": "Item saved successfully"}, 200
 
-def get_price_history(item_name, environment="prod", days=None):
+def get_price_history(item_name, shiny: bool = False, environment="prod", days=None, tier: int = None):
     """ Retrieve the price history of an item from the trademarket collection """
     collection = get_collection("trademarket_ARCH", environment)
 
     # Base filter for item name
-    query_filter = { 'name': item_name }
+    shiny_stat = "$ne" if shiny else "$eq"
+
+    query_filter = {
+        "name": item_name,
+        "shiny_stat": {shiny_stat: None}
+    }
+
+    if tier >= 0 or tier is not None:
+        query_filter["$or"] = [
+            {"item_type": {"$in": ["GearItem", "IngredientItem"]}},
+            {"item_type": "MaterialItem", "tier": tier}
+        ]
 
     # If a timeframe is provided, filter by date (assumes 'date' field is a datetime)
     if days:
