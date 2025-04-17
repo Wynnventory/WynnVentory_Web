@@ -63,7 +63,7 @@ def get_trade_market_item_price(item_name, shiny: bool = False, environment="pro
         "name": item_name,
         "shiny_stat": {shinyStat: None}
     }
-    if tier >= 1 or tier is not None:
+    if tier >= 0 or tier is not None:
         match_filter["$or"] = [
             {"item_type": {"$in": ["GearItem", "IngredientItem"]}},
             {"item_type": "MaterialItem", "tier": tier}
