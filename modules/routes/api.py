@@ -261,8 +261,15 @@ def get_market_history(item_name):
 @api_bp.route("/api/trademarket/history/<item_name>/latest", methods=['GET'])
 def get_latest_market_history(item_name):
     """ Retrieve price history of an item from the trademarket archive collection """
+    shiny_str = request.args.get('shiny', 'false')  # default to 'false'
+    shiny = shiny_str.lower() == 'true'
+    
+    # Get tier from query parameters if provided.
+    tier_param = request.args.get('tier')
+    tier = int(tier_param) if tier_param is not None else None
+    
     env = request.args.get('env', 'prod')
-    result = mongodb_connector.get_latest_price_history(item_name, env)
+    result = mongodb_connector.get_latest_price_history(item_name, shiny, tier, env)
 
     return result
 
