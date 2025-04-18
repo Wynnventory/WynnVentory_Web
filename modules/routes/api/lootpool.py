@@ -21,7 +21,7 @@ def save_lootpool_items():
         return jsonify({'message': 'Items received successfully'}), 200
     except ValueError as ve:
         return jsonify({'error': str(ve)}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Internal server error'}), 500
 
 @lootpool_bp.get('/lootpool/items')
@@ -33,7 +33,7 @@ def get_lootpool_items():
     try:
         items = service.get_current_lootpool()
         return jsonify(items), 200
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Internal server error'}), 500
 
 @lootpool_bp.get('/lootpool/raw')
@@ -45,5 +45,5 @@ def get_lootpool_raw():
     try:
         raw = service.get_current_lootpool_raw()
         return jsonify(raw), 200
-    except Exception as e:
+    except Exception:
         return jsonify({'error': 'Internal server error'}), 500

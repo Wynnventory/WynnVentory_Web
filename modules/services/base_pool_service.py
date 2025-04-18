@@ -26,7 +26,7 @@ class BasePoolService:
         self.repo = repo
         self.supported_version = Config.MIN_VERSION
 
-    def save_items(
+    def save(
             self,
             raw_data: Union[Dict[str, Any], List[Dict[str, Any]]]
     ) -> None:

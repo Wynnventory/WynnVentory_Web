@@ -68,7 +68,6 @@ class Identification:
             "raw3rdSpellCost": "3rd Spell Cost",
             "4thSpellCost": "4th Spell Cost",
             "raw4thSpellCost": "4th Spell Cost",
-            "raw2ndSpellCost": "2nd Spell Cost",
             "rawSpellDamage": "Spell Damage",
             "healingEfficiency": "Healing Efficiency",
             "soulPointRegen": "Soul Point Regen",
@@ -119,7 +118,6 @@ class Identification:
             "damage": "Damage",
         }
         readable_name = mapping.get(name, name)
-        # return ' '.join(word.capitalize() for word in readable_name.split())
         return readable_name
 
     def format_value(self, value):

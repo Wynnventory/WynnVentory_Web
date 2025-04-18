@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from pymongo.collection import Collection as MongoCollection
 
@@ -20,7 +20,7 @@ class MarketRepository:
         """
         Insert a new market item into the live collection, stamping the UTC timestamp.
         """
-        item['timestamp'] = datetime.utcnow()
+        item['timestamp'] = datetime.now(timezone.utc)
         self._coll.insert_one(item)
 
     def get_trade_market_item(self, item_name: str) -> List[Dict[str, Any]]:
@@ -151,7 +151,7 @@ class MarketRepository:
                 {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
                 {'item_type': 'MaterialItem', 'tier': tier}
             ]
-        start_date = datetime.utcnow() - timedelta(days=days + 8)
+        start_date = datetime.now(timezone.utc) - timedelta(days=days + 8)
         query_filter['date'] = {'$gte': start_date}
 
         cursor = self._archive.find(

@@ -9,14 +9,17 @@ def _format_item_for_db(item: dict) -> dict:
     item_data = item.get('item', {})
     return {
         "name": item_data.get('name'),
-        "level": item_data.get('level'),
         "rarity": item_data.get('rarity'),
+        "item_type": item_data.get('item_type'),
+        "type": item_data.get('type'),
+        "tier": item_data.get('tier'),
         "unidentified": item_data.get('unidentified'),
         "shiny_stat": item_data.get('shinyStat'),
         "amount": item.get('amount'),
         "listing_price": item.get('listingPrice'),
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
+        "hash_code": item.get('hash_code'),
     }
 
 
