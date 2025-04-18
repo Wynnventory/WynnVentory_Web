@@ -1,7 +1,7 @@
 from .identification import Identification
 from .base import Base
 from .item_types import ItemType
-from modules.utils import map_local_icons
+from modules.utils.utils import map_local_icons
 
 class Item:
     def __init__(self, name, rarity, powder_slots, item_type, item_subtype, drop_restriction, base, identifications, requirements, drop_meta=None, lore=None):

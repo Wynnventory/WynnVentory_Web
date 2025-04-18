@@ -1,27 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-
-####################################################################################################
-# Change icon names to match the ones in the icons folder
-####################################################################################################
-def map_local_icons(icon_name):
-    mapping = {
-        "helmet.png": "icons/helmet_diamond.webp",
-        "leggings.png": "icons/leggings_diamond.webp",
-        "boots.png": "icons/boots_diamond.webp",
-        "chestplate.png": "icons/chestplate_diamond.webp",
-        "ring.png": "icons/ring.webp",
-        "bracelet.png": "icons/bracelet.webp",
-        "necklace.png": "icons/necklace.webp",
-        "helmet": "icons/helmet_diamond.webp",
-        "leggings": "icons/leggings_diamond.webp",
-        "boots": "icons/boots_diamond.webp",
-        "chestplate": "icons/chestplate_diamond.webp",
-        "ring": "icons/ring.webp",
-        "bracelet": "icons/bracelet.webp",
-        "necklace": "icons/necklace.webp"
-    }
-    return mapping.get(icon_name, icon_name)
+from modules.models.collection_types import Collection
 
 
 def get_lootpool_week():
@@ -77,11 +56,11 @@ def get_week_range(reset_day, reset_hour, now=None):
     return last_reset, next_reset
 
 
-def is_time_valid(type, time_str):
+def is_time_valid(pool_type: Collection, time_str):
     """Check if the provided timestamp belongs to the current Wynncraft week.
 
     Args:
-        type (str): The type of week ("RAID" or "LOOT").
+        pool_type (str): The type of week ("RAID" or "LOOT").
         time_str (str): The timestamp in 'YYYY-MM-DD HH:MM:SS' format.
 
     Returns:
@@ -90,10 +69,10 @@ def is_time_valid(type, time_str):
     # Parse the time string into a datetime object
     time = datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S')
 
-    if type == "raidpool":
+    if pool_type == Collection.RAID:
         reset_day = 4  # Friday
         reset_hour = 17  # 17:00 (5 PM) UTC
-    elif type == "lootpool":
+    elif pool_type == Collection.LOOT:
         reset_day = 4  # Friday
         reset_hour = 18  # 18:00 (6 PM) UTC
     else:

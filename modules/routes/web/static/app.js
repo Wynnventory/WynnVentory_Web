@@ -238,47 +238,55 @@ if (toggleContainer) {
 
 
 //lootrun_lootpool.html Javascript code
+document.addEventListener('DOMContentLoaded', () => {
+  const lootEl = document.getElementById('lootTime')
+  const raidEl = document.getElementById('raidTime')
 
-document.addEventListener('DOMContentLoaded', (event) => {
-    // Lootpool reset time
-    function getNextResetTime() {
-        const now = new Date();
-        const nextFriday = new Date();
+  // Returns the next Friday at given UTC hour (18 for loot, 17 for raid)
+  function getNextFridayAt(hourUTC) {
+    const now = new Date()
+    const next = new Date()
+    // days until Friday (5)
+    next.setUTCDate(
+      now.getUTCDate() + ((5 - now.getUTCDay() + 7) % 7)
+    )
+    next.setUTCHours(hourUTC, 0, 0, 0)
 
-        nextFriday.setUTCDate(now.getUTCDate() + ((5 - now.getUTCDay() + 7) % 7));
-        nextFriday.setUTCHours(18, 0, 0, 0); // 8 PM UTC
-
-        // If today is Friday and past 8 PM UTC, set to next week
-        if (now.getUTCDay() === 5 && now.getUTCHours() >= 20) {
-            nextFriday.setUTCDate(nextFriday.getUTCDate() + 7);
-        }
-
-        return nextFriday;
+    // if it’s already past that hour on Friday, bump a week
+    if (now.getUTCDay() === 5 && now.getUTCHours() >= hourUTC) {
+      next.setUTCDate(next.getUTCDate() + 7)
     }
+    return next
+  }
 
-    function updateCountdown() {
-        const now = new Date();
-        let nextResetTime = getNextResetTime();
-        let timeDiff = nextResetTime - now;
+  // Generic countdown starter: takes a “getNext” fn and an element to update
+  function startCountdown(getNextFn, el) {
+    function tick() {
+      const now = new Date()
+      let target = getNextFn()
+      let diff = target - now
 
-        // Handle negative time difference (after 8 PM on Friday)
-        if (timeDiff <= 0) {
-            nextResetTime.setUTCDate(nextResetTime.getUTCDate() + 7); // Set to the next Friday
-            timeDiff = nextResetTime - now; // Recalculate timeDiff
-        }
+      // if negative, roll over to next week
+      if (diff <= 0) {
+        target.setUTCDate(target.getUTCDate() + 7)
+        diff = target - now
+      }
 
-        const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+      const days    = Math.floor(diff / (1000*60*60*24))
+      const hours   = Math.floor((diff % (1000*60*60*24)) / (1000*60*60))
+      const minutes = Math.floor((diff % (1000*60*60))    / (1000*60))
+      const seconds = Math.floor((diff % (1000*60))       / 1000)
 
-        document.getElementById('time').innerHTML = `New items in: ${days}d ${hours}h ${minutes}m ${seconds}s`;
-
-        setTimeout(updateCountdown, 1000);
+      el.innerHTML = `New items in: ${days}d ${hours}h ${minutes}m ${seconds}s`
+      setTimeout(tick, 1000)
     }
+    tick()
+  }
 
-    updateCountdown();
-});
+  // Only start the one if its element is actually on the page
+  if (lootEl) startCountdown(() => getNextFridayAt(18), lootEl)
+  if (raidEl) startCountdown(() => getNextFridayAt(17), raidEl)
+})
 
 function displayItem(event, encodedItemName) {
     const itemName = decodeURIComponent(encodedItemName);
