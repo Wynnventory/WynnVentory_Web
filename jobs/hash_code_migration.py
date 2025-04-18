@@ -3,6 +3,7 @@ from pymongo import MongoClient, UpdateOne
 
 MONGO_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
 DB_NAME = "wynnventory"
+COLLECTION_NAME = "trademarket_items_DEV" # change if your archive collection is named differently
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
@@ -56,6 +57,9 @@ def compute_hash(doc):
     """
     name = doc.get("name")
     rarity = doc.get("rarity")
+    item_type = doc.get("item_type")
+    type_field = doc.get("type")
+    tier = doc.get("tier")
     unidentified = doc.get("unidentified")
     shiny_stat = doc.get("shiny_stat")
     amount = doc.get("amount")
@@ -63,7 +67,7 @@ def compute_hash(doc):
     actual_stats = doc.get("actual_stats_with_percentage")
     rerolls = doc.get("rerolls")
 
-    values = [name, rarity, unidentified, shiny_stat, amount, listing_price, actual_stats, rerolls]
+    values = [name, rarity, item_type, type_field, tier, unidentified, shiny_stat, amount, listing_price, actual_stats, rerolls]
     return java_hash(values)
 
 def update_hash_codes():
@@ -74,6 +78,9 @@ def update_hash_codes():
     projection = {
         "name": 1,
         "rarity": 1,
+        "item_type": 1,
+        "type": 1,
+        "tier": 1,
         "unidentified": 1,
         "shiny_stat": 1,
         "amount": 1,
@@ -105,7 +112,7 @@ def remove_duplicates():
     Check for duplicate documents (those with the same hash_code) and
     remove duplicates, keeping one document per unique hash_code.
     """
-    collection = db["trademarket_items_DEV"]
+    collection = db[COLLECTION_NAME]
 
     # Aggregation pipeline to group by hash_code and collect document IDs.
     pipeline = [
