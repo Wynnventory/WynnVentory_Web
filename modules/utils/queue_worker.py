@@ -3,9 +3,10 @@
 import logging
 from queue import Queue
 from threading import Thread
+
 from modules.models.collection_types import Collection
-from modules.repositories.market_repo    import MarketRepository
-from modules.repositories.lootpool_repo  import LootpoolRepository
+from modules.repositories.lootpool_repo import LootpoolRepository
+from modules.repositories.market_repo import MarketRepository
 from modules.repositories.raidpool_repo import RaidpoolRepository
 
 # ─── INTERNAL QUEUE & REPO MAPPING ─────────────────────────────────────────────
@@ -13,9 +14,10 @@ from modules.repositories.raidpool_repo import RaidpoolRepository
 _request_queue = Queue()
 _repo_map = {
     Collection.MARKET: MarketRepository(),
-    Collection.LOOT:   LootpoolRepository(),
-    Collection.RAID:   RaidpoolRepository(),
+    Collection.LOOT: LootpoolRepository(),
+    Collection.RAID: RaidpoolRepository(),
 }
+
 
 # ─── WORKER LOOP ────────────────────────────────────────────────────────────────
 
@@ -41,12 +43,14 @@ def _worker_loop():
             finally:
                 _request_queue.task_done()
 
+
 # ─── START UP WORKERS ──────────────────────────────────────────────────────────
 
 # You can start more threads here if you want parallelism:
 _worker_thread = Thread(target=_worker_loop, daemon=True)
 _worker_thread.start()
 logging.info("Background queue worker started")
+
 
 # ─── PUBLIC API ────────────────────────────────────────────────────────────────
 
@@ -58,6 +62,7 @@ def enqueue(collection_type: Collection, item: dict):
     :param item: formatted dict ready for insertion
     """
     _request_queue.put((collection_type, item))
+
 
 def shutdown_workers():
     """
