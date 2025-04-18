@@ -15,6 +15,7 @@ api_bp = Blueprint('api', __name__)
 request_queue = Queue()
 SUPPORTED_VERSION = '0.9.0'
 
+
 @api_bp.route("/api/aspect/<class_name>/<aspect_name>", methods=['GET'])
 @api_bp.route("/api/aspect/<class_name>/<aspect_name>/", methods=['GET'])
 def get_aspect_stats(class_name, aspect_name):
@@ -22,6 +23,7 @@ def get_aspect_stats(class_name, aspect_name):
     """
     aspect_data = wynn_api.get_aspect_by_name(class_name, aspect_name)
     return jsonify(aspect_data)
+
 
 @api_bp.route("/api/item/<item_name>", methods=['GET'])
 @api_bp.route("/api/item/<item_name>/", methods=['GET'])
@@ -96,7 +98,7 @@ def save_trade_market_items():
             request_queue.put((Collection.MARKET, formatted_item))
 
             return jsonify({"message": "Items received successfully"}), 200
-        
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -108,7 +110,7 @@ def get_market_item_info(item_name):
     """
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
-    result = mongodb_connector.get_trade_market_item(item_name)
+    result = db.get_trade_market_item(item_name)
     return result
 
 
@@ -125,7 +127,7 @@ def get_market_item_price_info(item_name):
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
 
-    result = mongodb_connector.get_trade_market_item_price(item_name, shiny, tier)
+    result = db.get_trade_market_item_price(item_name, shiny, tier)
     return result
 
 
@@ -137,10 +139,11 @@ def save_lootpool_items():
         if not data:
             return jsonify({"message": "No items provided"}), 400
 
-        return save_pool(data, "lootpool",)
+        return save_pool(data, "lootpool", )
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @api_bp.route("/api/lootpool/<pool>/items", methods=['GET'])
 @api_bp.route("/api/lootpool/<pool>/items/", methods=['GET'])
@@ -148,13 +151,14 @@ def get_lootpool_items(pool):
     """ Retrieve lootpool items
     """
     if pool == "raidpool":
-        result = mongodb_connector.get_raidpool_items()
+        result = db.get_raidpool_items()
     elif pool == "lootpool":
-        result = mongodb_connector.get_lootpool_items()
+        result = db.get_lootpool_items()
     else:
         return jsonify({"message": "No pool with this name exists"}), 404
 
     return result
+
 
 @api_bp.route("/api/lootpool/<pool>", methods=['GET'])
 @api_bp.route("/api/lootpool/<pool>/", methods=['GET'])
@@ -162,13 +166,14 @@ def get_lootpool_items_raw(pool):
     """ Retrieve lootpool items
     """
     if pool == "raidpool":
-        result = mongodb_connector.get_raidpool_items_raw()
+        result = db.get_raidpool_items_raw()
     elif pool == "lootpool":
-        result = mongodb_connector.get_lootpool_items_raw()
+        result = db.get_lootpool_items_raw()
     else:
         return jsonify({"message": "No pool with this name exists"}), 404
 
     return result
+
 
 @api_bp.route("/api/raidpool/items", methods=['POST'])
 @api_bp.route("/api/raidpool/items/", methods=['POST'])
@@ -183,6 +188,7 @@ def save_raidpool_items():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 def save_pool(data, pool_type):
     try:
@@ -220,6 +226,7 @@ def save_pool(data, pool_type):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @api_bp.route("/api/trademarket/history/<item_name>", methods=['GET'])
 @api_bp.route("/api/trademarket/history/<item_name>/", methods=['GET'])
 def get_market_history(item_name):
@@ -233,21 +240,22 @@ def get_market_history(item_name):
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
 
-    result = mongodb_connector.get_price_history(item_name, shiny, days, tier)
+    result = db.get_price_history(item_name, shiny, days, tier)
 
     return result
+
 
 @api_bp.route("/api/trademarket/history/<item_name>/latest", methods=['GET'])
 def get_latest_market_history(item_name):
     """ Retrieve price history of an item from the trademarket archive collection """
     shiny_str = request.args.get('shiny', 'false')  # default to 'false'
     shiny = shiny_str.lower() == 'true'
-    
+
     # Get tier from query parameters if provided.
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
-    
-    result = mongodb_connector.get_latest_price_history(item_name, shiny, tier)
+
+    result = db.get_latest_price_history(item_name, shiny, tier)
 
     return result
 
@@ -259,10 +267,11 @@ def get_all_items_ranking():
     Retrieve a ranking of items based on their archived price data.
     For example, you can rank them by average price.
     """
-    ranking_data = mongodb_connector.get_all_items_ranking()
+    ranking_data = db.get_all_items_ranking()
 
     # ranking_data should already be in a JSON-serializable format.
     return ranking_data
+
 
 def process_item_data(item_data):
     """Process item data from the Wynn API and store it in the appropriate model class."""
@@ -271,7 +280,7 @@ def process_item_data(item_data):
                                  item_data.get('armourType',
                                                item_data.get('accessoryType',
                                                              item_data.get('tome',
-                                                             'Unknown Subtype'))))
+                                                                           'Unknown Subtype'))))
 
     if item_type == 'weapon':
         if item_subtype in [wt.value for wt in WeaponType]:
@@ -328,16 +337,17 @@ def process_queue():
             break
         try:
             if request_type == Collection.MARKET:
-                mongodb_connector.save_trade_market_item(item)
+                db.save_trade_market_item(item)
             elif request_type == Collection.LOOT:
-                mongodb_connector.save_lootpool_item(item)
+                db.save_lootpool_item(item)
             elif request_type == Collection.RAID:
-                mongodb_connector.save_raidpool_item(item)
+                db.save_raidpool_item(item)
         except Exception as e:
             # Log the error so you can investigate it further.
             print(f"Error processing {request_type} item: {e}")
         finally:
             request_queue.task_done()
+
 
 def shutdown_worker():
     """ Shutdown the worker thread
@@ -346,10 +356,11 @@ def shutdown_worker():
     worker_thread.join()
     print("Shutting down worker thread")
 
+
 def compare_versions(version_a: str, version_b: str) -> bool:
     if version_a.lower().find("dev") != -1:
         return True
-    
+
     # Split the versions by dot and convert each part to an integer
     parts_a = list(map(int, version_a.split('.')))
     parts_b = list(map(int, version_b.split('.')))
@@ -361,6 +372,7 @@ def compare_versions(version_a: str, version_b: str) -> bool:
         elif a < b:
             return False
     return True
+
 
 worker_thread = threading.Thread(target=process_queue)
 worker_thread.daemon = True
