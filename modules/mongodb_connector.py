@@ -880,12 +880,23 @@ def get_price_history(item_name, shiny: bool = False, environment="prod", days=N
 
     return check_results(result, custom_message="No items found with that name")
 
-def get_latest_price_history(item_name, environment="prod"):
+def get_latest_price_history(item_name, shiny: bool = False, tier: int = None, environment="prod"):
     """Retrieve the averaged stats of an item from the trademarket collection using the 4 most recent documents."""
     collection = get_collection("trademarket_ARCH", environment)
 
     # Filter by the item name
-    query_filter = { 'name': item_name }
+    shiny_stat = "$ne" if shiny else "$eq"
+ 
+    query_filter = {
+        "name": item_name,
+        "shiny_stat": {shiny_stat: None}
+    }
+    
+    if tier >= 0 or tier is not None:
+         query_filter["$or"] = [
+             {"item_type": {"$in": ["GearItem", "IngredientItem"]}},
+             {"item_type": "MaterialItem", "tier": tier}
+         ]
 
     # Sort descending by date so that the most recent documents are first
     sort = [('date', -1)]
