@@ -97,7 +97,7 @@ def save_trade_market_items():
             formatted_item = format_item_for_db(item)
             request_queue.put((Collection.MARKET, formatted_item))
 
-            return jsonify({"message": "Items received successfully"}), 200
+        return jsonify({"message": "Items received successfully"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
