@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
 
-from modules.services.market_service import MarketService
+from modules.services.market_service import MarketService, save_items
 
 market_bp = Blueprint('market', __name__, url_prefix='/api')
 service = MarketService()
+
 
 @market_bp.post('/trademarket/items')
 def save_trade_market_items():
@@ -16,12 +17,13 @@ def save_trade_market_items():
         return jsonify({'message': 'No items provided'}), 400
 
     try:
-        service.save_items(data)
+        save_items(data)
         return jsonify({'message': 'Items received successfully'}), 200
     except ValueError as ve:
         return jsonify({'error': str(ve)}), 400
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @market_bp.get('/trademarket/item/<item_name>')
 def get_market_item_info(item_name):
@@ -36,6 +38,7 @@ def get_market_item_info(item_name):
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @market_bp.get('/trademarket/item/<item_name>/price')
 def get_market_item_price_info(item_name):
@@ -54,6 +57,7 @@ def get_market_item_price_info(item_name):
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @market_bp.get('/trademarket/history/<item_name>')
 def get_market_history(item_name):
@@ -77,6 +81,7 @@ def get_market_history(item_name):
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
 
+
 @market_bp.get('/trademarket/history/<item_name>/latest')
 def get_latest_market_history(item_name):
     """
@@ -94,6 +99,7 @@ def get_latest_market_history(item_name):
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
+
 
 @market_bp.get('/trademarket/ranking')
 def get_all_items_ranking():
