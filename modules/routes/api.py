@@ -9,6 +9,7 @@ from modules import utils
 from modules import wynn_api
 from modules.models import Weapon, Armour, Accessory, Item
 from modules.models.item_types import WeaponType, ArmorType, AccessoryType
+from modules.models.collection_types import Collection
 
 api_bp = Blueprint('api', __name__)
 request_queue = Queue()
@@ -90,21 +91,12 @@ def save_trade_market_items():
 
         items = data if isinstance(data, list) else [data]
 
-        env = request.args.get('env')
-        if not env or env == 'dev':
-            for item in items:
-                formatted_item = format_item_for_db(item)
-                request_queue.put(("trademarket", formatted_item, "prod"))
+        for item in items:
+            formatted_item = format_item_for_db(item)
+            request_queue.put(("trademarket", formatted_item))
 
             return jsonify({"message": "Items received successfully"}), 200
-        elif env == 'dev2':
-            for item in items:
-                formatted_item = format_item_for_db(item)
-                request_queue.put(("trademarket", formatted_item, "dev"))
-
-            return jsonify({"message": "Items saved to dev collection"}), 200
-        else:
-            return jsonify({"message": "Invalid environment specified. Only dev is allowed."}), 400
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -126,9 +118,6 @@ def get_market_item_price_info(item_name):
     if not item_name:
         return jsonify({"message": "No item name provided"}), 400
 
-    env = request.args.get('env')
-    env = "dev" if env == 'dev2' else "prod"
-
     shiny_str = request.args.get('shiny', 'false')  # default to 'false'
     shiny = shiny_str.lower() == 'true'
 
@@ -136,7 +125,7 @@ def get_market_item_price_info(item_name):
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
 
-    result = mongodb_connector.get_trade_market_item_price(item_name, shiny, env, tier)
+    result = mongodb_connector.get_trade_market_item_price(item_name, shiny, tier)
     return result
 
 
@@ -148,11 +137,7 @@ def save_lootpool_items():
         if not data:
             return jsonify({"message": "No items provided"}), 400
 
-        env = request.args.get('env', 'prod')
-        if env not in ['prod', 'dev', 'dev2']:
-            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
-
-        return save_pool(data, "lootpool", env)
+        return save_pool(data, "lootpool",)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -162,11 +147,12 @@ def save_lootpool_items():
 def get_lootpool_items(pool):
     """ Retrieve lootpool items
     """
-    env = request.args.get('env', 'prod')
     if pool == "raidpool":
-        result = mongodb_connector.get_raidpool_items(environment=env)
+        result = mongodb_connector.get_raidpool_items()
+    elif pool == "lootpool":
+        result = mongodb_connector.get_lootpool_items()
     else:
-        result = mongodb_connector.get_lootpool_items(environment=env)
+        return jsonify({"message": "No pool with this name exists"}), 404
 
     return result
 
@@ -175,11 +161,12 @@ def get_lootpool_items(pool):
 def get_lootpool_items_raw(pool):
     """ Retrieve lootpool items
     """
-    env = request.args.get('env', 'prod')
     if pool == "raidpool":
-        result = mongodb_connector.get_raidpool_items_raw(environment=env)
+        result = mongodb_connector.get_raidpool_items_raw()
+    elif pool == "lootpool":
+        result = mongodb_connector.get_lootpool_items_raw()
     else:
-        result = mongodb_connector.get_lootpool_items_raw(environment=env)
+        return jsonify({"message": "No pool with this name exists"}), 404
 
     return result
 
@@ -192,20 +179,13 @@ def save_raidpool_items():
         if not data:
             return jsonify({"message": "No items provided"}), 400
 
-        env = request.args.get('env', 'prod')
-        if env not in ['prod', 'dev', 'dev2']:
-            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
-
-        return save_pool(data, "raidpool", env)
+        return save_pool(data, Collection.RAID)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def save_pool(data, pool_type, env):
+def save_pool(data, pool_type):
     try:
-        if env not in ['prod', 'dev', 'dev2']:
-            return jsonify({"message": "Invalid environment specified. Only 'prod', 'dev' and 'dev2' are allowed."}), 400
-
         if not data:
             return jsonify({"message": "No items provided"}), 400
 
@@ -231,11 +211,11 @@ def save_pool(data, pool_type, env):
                         shinyCount += 1
 
                 if shinyCount <= 1:
-                    request_queue.put((pool_type, item, env))
+                    request_queue.put((pool_type, item))
                 else:
                     print(f"Lootpool contained too many shinies: {shinyCount}; DATA: {item}")
 
-        return jsonify({"message": f"Items saved to {env} {pool_type} collection successfully"}), 200
+        return jsonify({"message": f"Items saved to {pool_type} collection successfully"}), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -244,7 +224,6 @@ def save_pool(data, pool_type, env):
 @api_bp.route("/api/trademarket/history/<item_name>/", methods=['GET'])
 def get_market_history(item_name):
     """ Retrieve price history of an item from the trademarket archive collection """
-    env = request.args.get('env', 'prod')
     days = request.args.get('days', 14)
 
     shiny_str = request.args.get('shiny', 'false')  # default to 'false'
@@ -254,7 +233,7 @@ def get_market_history(item_name):
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
 
-    result = mongodb_connector.get_price_history(item_name, shiny, env, days, tier)
+    result = mongodb_connector.get_price_history(item_name, shiny, days, tier)
 
     return result
 
@@ -268,8 +247,7 @@ def get_latest_market_history(item_name):
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
     
-    env = request.args.get('env', 'prod')
-    result = mongodb_connector.get_latest_price_history(item_name, shiny, tier, env)
+    result = mongodb_connector.get_latest_price_history(item_name, shiny, tier)
 
     return result
 
@@ -281,8 +259,7 @@ def get_all_items_ranking():
     Retrieve a ranking of items based on their archived price data.
     For example, you can rank them by average price.
     """
-    env = request.args.get('env', 'prod')
-    ranking_data = mongodb_connector.get_all_items_ranking(env)
+    ranking_data = mongodb_connector.get_all_items_ranking()
 
     # ranking_data should already be in a JSON-serializable format.
     return ranking_data
@@ -344,18 +321,18 @@ def format_item_for_db(item):
 
 def process_queue():
     while True:
-        request_type, item, env = request_queue.get()
+        request_type, item = request_queue.get()
         if item is None:
             request_queue.task_done()
             print("Worker has finished task")
             break
         try:
-            if request_type == 'trademarket':
-                mongodb_connector.save_trade_market_item(item, env)
-            elif request_type == 'lootpool':
-                mongodb_connector.save_lootpool_item(item, env)
-            elif request_type == 'raidpool':
-                mongodb_connector.save_raidpool_item(item, env)
+            if request_type == Collection.MARKET:
+                mongodb_connector.save_trade_market_item(item)
+            elif request_type == Collection.LOOT:
+                mongodb_connector.save_lootpool_item(item)
+            elif request_type == Collection.RAID:
+                mongodb_connector.save_raidpool_item(item)
         except Exception as e:
             # Log the error so you can investigate it further.
             print(f"Error processing {request_type} item: {e}")

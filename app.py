@@ -1,8 +1,15 @@
 import os
 import logging
+from decouple import config
+
 from modules import create_app
+from modules.config import Config
+
 
 app = create_app()
+
+ENVIRONMENT = config("ENVIRONMENT_NAME")
+Config.set_environment(ENVIRONMENT)
 
 
 log = logging.getLogger('werkzeug')

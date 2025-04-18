@@ -4,38 +4,29 @@ from pymongo.server_api import ServerApi
 from flask import jsonify
 import logging
 
-
+from modules.config import Config
 from modules.utils import get_lootpool_week, get_lootpool_week_for_timestamp, get_raidpool_week
-
-uri = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
-PROD_MARKET_DB = "trademarket_items_PROD"
-DEV_MARKET_DB = "trademarket_items_DEV"
-PROD_LOOT_DB = "lootpool_items_PROD"
-DEV_LOOT_DB = "lootpool_items_DEV"
-PROD_RAID_DB = "raidpool_items_PROD"
-DEV_RAID_DB = "raidpool_items_DEV"
-PROD_MARKET_ARCH_DB = "tm_items_ARCH_PROD"
-DEV_MARKET_ARCH_DB = "tm_items_ARCH_DEV"
+from modules.models.collection_types import Collection
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Create a new client and connect to the server with SSL settings
-client = MongoClient(uri, server_api=ServerApi(
-    '1'), tls=True, tlsAllowInvalidCertificates=True)
-db = client["wynnventory"]
+
+def get_client():
+    uri = Config.get_current_uri()
+    return MongoClient(uri, server_api=ServerApi('1'), tls=True, tlsAllowInvalidCertificates=True)
 
 # Send a ping to confirm a successful connection
 try:
-    client.admin.command('ping')
+    get_client.admin.command('ping')
     print("Successfully connected to MongoDB!")
 except Exception as e:
     print("Could not connect to MongoDB!", e)
 
 
-def save_trade_market_item(item, environment="prod"):
+def save_trade_market_item(item):
     """ Save items to the trademarket collection
     """
-    collection = get_collection("trademarket", environment)
+    collection = get_collection(Collection.MARKET)
 
     item['timestamp'] = datetime.utcnow()
     collection.insert_one(item)
@@ -45,7 +36,7 @@ def save_trade_market_item(item, environment="prod"):
 def get_trade_market_item(item_name):
     """ Retrieve items from the trademarket collection by name
     """
-    collection = db[PROD_MARKET_DB]
+    collection = get_collection(Collection.MARKET)
 
     result = collection.find(
         filter={'name': item_name},
@@ -55,8 +46,8 @@ def get_trade_market_item(item_name):
     return check_results(result, custom_message="No items found with that name")
 
 
-def get_trade_market_item_price(item_name, shiny: bool = False, environment="prod", tier: int = None):
-    collection = get_collection("trademarket", environment)
+def get_trade_market_item_price(item_name, shiny: bool = False, tier: int = None):
+    collection = get_collection(Collection.MARKET)
     shinyStat = "$ne" if shiny else "$eq"
 
     match_filter = {
@@ -154,12 +145,11 @@ def get_trade_market_item_price(item_name, shiny: bool = False, environment="pro
     return check_results(results_list)
 
 
-def save_lootpool_item(lootpool, environment="prod"):
+def save_lootpool_item(lootpool):
     """ Save items to the lootpool collection
     """
-    collection = get_collection("lootpool", environment)
-    if collection is None:
-        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    collection = get_collection(Collection.LOOT)
+     
 
     # print(f"Received lootpool with {len(lootpool.get('items'))} items")
 
@@ -207,12 +197,12 @@ def save_lootpool_item(lootpool, environment="prod"):
 
     return {"message": "Item saved successfully"}, 200
 
-def get_lootpool_items(environment="prod"):
+
+def get_lootpool_items():
     """ Retrieve items from the lootpool collection
     """
-    collection = get_collection("lootpool", environment)
-    if collection is None:
-        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    collection = get_collection(Collection.LOOT)
+     
     loot_year, loot_week = get_lootpool_week()
 
     result = collection.aggregate([
@@ -475,12 +465,12 @@ def get_lootpool_items(environment="prod"):
 
     return check_results(result, custom_message="No lootpool items found for this week")
 
-def get_lootpool_items_raw(environment="prod"):
+
+def get_lootpool_items_raw():
     """ Retrieve items from the lootpool collection
     """
-    collection = get_collection("lootpool", environment)
-    if collection is None:
-        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    collection = get_collection(Collection.LOOT)
+     
     loot_year, loot_week = get_lootpool_week()
 
     result = collection.find(
@@ -490,12 +480,12 @@ def get_lootpool_items_raw(environment="prod"):
 
     return check_results(result, custom_message="No lootpool items found for this week")
 
-def get_raidpool_items_raw(environment="prod"):
+
+def get_raidpool_items_raw():
     """ Retrieve items from the raidpool collection
     """
-    collection = get_collection("raidpool", environment)
-    if collection is None:
-        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    collection = get_collection(Collection.RAID)
+     
     loot_year, loot_week = get_raidpool_week()
 
     result = collection.find(
@@ -505,12 +495,12 @@ def get_raidpool_items_raw(environment="prod"):
 
     return check_results(result, custom_message="No lootpool items found for this week")
 
-def get_raidpool_items(environment="prod"):
+
+def get_raidpool_items():
     """ Retrieve items from the raidpool collection
     """
-    collection = get_collection("raidpool", environment)
-    if collection is None:
-        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    collection = get_collection(Collection.RAID)
+     
     loot_year, loot_week = get_raidpool_week()
 
     result = collection.aggregate([
@@ -790,12 +780,11 @@ def get_raidpool_items(environment="prod"):
     return check_results(result, custom_message="No lootpool items found for this week")
 
 
-def save_raidpool_item(raidpool, environment="prod"):
+def save_raidpool_item(raidpool):
     """ Save items to the raidpool collection
     """
-    collection = get_collection("raidpool", environment)
-    if collection is None:
-        return jsonify({"message": "Invalid environment. Only prod and dev2 are allowed."}), 400
+    collection = get_collection(Collection.RAID)
+     
 
     # print(f"Received raidpool with {len(raidpool.get('items'))} items")
 
@@ -842,9 +831,10 @@ def save_raidpool_item(raidpool, environment="prod"):
 
     return {"message": "Item saved successfully"}, 200
 
-def get_price_history(item_name, shiny: bool = False, environment="prod", days=None, tier: int = None):
+
+def get_price_history(item_name, shiny: bool = False, days=None, tier: int = None):
     """ Retrieve the price history of an item from the trademarket collection """
-    collection = get_collection("trademarket_ARCH", environment)
+    collection = get_collection(Collection.MARKET_ARCHIVE)
 
     # Base filter for item name
     shiny_stat = "$ne" if shiny else "$eq"
@@ -880,9 +870,10 @@ def get_price_history(item_name, shiny: bool = False, environment="prod", days=N
 
     return check_results(result, custom_message="No items found with that name")
 
-def get_latest_price_history(item_name, shiny: bool = False, tier: int = None, environment="prod"):
+
+def get_latest_price_history(item_name, shiny: bool = False, tier: int = None):
     """Retrieve the averaged stats of an item from the trademarket collection using the 4 most recent documents."""
-    collection = get_collection("trademarket_ARCH", environment)
+    collection = get_collection(Collection.MARKET_ARCHIVE)
 
     # Filter by the item name
     shiny_stat = "$ne" if shiny else "$eq"
@@ -941,11 +932,12 @@ def get_latest_price_history(item_name, shiny: bool = False, tier: int = None, e
 
     return averages
 
-def get_all_items_ranking(environment="prod"):
+
+def get_all_items_ranking():
     """
     Retrieve ranking data for all items from the archive collection.
     """
-    collection = get_collection("trademarket_ARCH", environment)
+    collection = get_collection(Collection.MARKET_ARCHIVE)
 
     # Example aggregation pipeline:
     # 1) Group documents by item name, computing relevant stats
@@ -989,28 +981,11 @@ def check_results(result, custom_message="No items found"):
     return jsonify(result), 200
 
 
-def get_collection(collection, environment="prod"):
-    """ Get the collection based on the type and environment
-    """
-    if collection == "trademarket":
-        if environment == "prod":
-            return db[PROD_MARKET_DB]
-        elif environment == "dev" or environment == "dev2":
-            return db[DEV_MARKET_DB]
-    elif collection == "lootpool":
-        if environment == "prod":
-            return db[PROD_LOOT_DB]
-        elif environment == "dev" or environment == "dev2":
-            return db[DEV_LOOT_DB]
-    elif collection == "raidpool":
-        if environment == "prod":
-            return db[PROD_RAID_DB]
-        elif environment == "dev" or environment == "dev2":
-            return db[DEV_RAID_DB]
-    elif collection == "trademarket_ARCH":
-        if environment == "prod":
-            return db[PROD_MARKET_ARCH_DB]
-        elif environment == "dev" or environment == "dev2":
-            return db[DEV_MARKET_ARCH_DB]
-
-    return None
+def get_collection(collection: Collection):
+    client = get_client()
+    db = client["wynnventory" if Config.ENVIRONMENT == "prod" else "wynnventory_DEV"]
+    
+    if not isinstance(collection, Collection):
+        return None
+        
+    return db[collection.value]
