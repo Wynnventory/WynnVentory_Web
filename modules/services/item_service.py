@@ -15,18 +15,18 @@ class ItemService:
         return self._process(raw)
 
     def search_items(self, req: ItemSearchRequest) -> Dict:
-        # build only the non‑default filters
         criteria = {
             k: v
             for k, v in req.dict().items()
             if not (
                     v is None
                     or (isinstance(v, (list, tuple)) and len(v) == 0)
-                    or (k == "levelRange" and v == (0, 110))
+                    or (k == "levelRange" and v == (0, 110)
+                    or (k == "page"))
             )
         }
 
-        api_resp = wynncraft_api.search_item(criteria, req.page)
+        api_resp = wynncraft_api.search_items(criteria, req.page)
         if not api_resp:
             return {"items": [], "next_page": None}
 

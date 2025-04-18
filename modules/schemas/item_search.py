@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, conlist, conint
+from pydantic import BaseModel, Field, conint
 from typing import List, Optional, Tuple
 
 class ItemSearchRequest(BaseModel):

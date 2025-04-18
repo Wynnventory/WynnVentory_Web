@@ -55,14 +55,12 @@ class RaidpoolRepository:
             # No duplicate, insert fresh
             self.collection.insert_one(pool)
 
-    def fetch_raidpool_raw(self, col_type: Collection) -> List[dict]:
+    def fetch_raidpool_raw(self) -> List[dict]:
         """ Retrieve the raw lootpool documents for the current week/year.
         """
 
-        collection = get_collection(col_type)
-
         year, week = get_lootpool_week()
-        cursor = collection.find(
+        cursor = self.collection.find(
             {'year': year, 'week': week},
             projection={'_id': 0}
         )
@@ -70,6 +68,7 @@ class RaidpoolRepository:
 
 
     def fetch_raidpool(self):
+        print("I AM HERE")
         year, week = get_raidpool_week()
         pipeline = [
             # Match documents for the given week and year

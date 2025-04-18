@@ -39,7 +39,7 @@ def get_lootpool_items():
 @lootpool_bp.get('/lootpool/raw')
 def get_lootpool_raw():
     """
-    GET /api/lootpool
+    GET /api/lootpool/raw
     Retrieve the raw lootpool documents for the current week.
     """
     try:

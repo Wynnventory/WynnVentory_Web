@@ -20,7 +20,7 @@ def get_item_database():
         return None
     
 
-def search_item(payload, page=1):
+def search_items(payload, page=1):
     url = f"{BASE_URL}/item/search?page={page}"
     try:
         response = requests.post(url, json=payload)
@@ -34,7 +34,6 @@ def search_item(payload, page=1):
         return None
     
 def quick_search_item(item_name):
-    # url = f"{BASE_URL}item/search"
     url = f"{BASE_URL}/item/search"
     try:
         response = requests.get(f"{url}/{item_name}")

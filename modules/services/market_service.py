@@ -2,6 +2,7 @@ from typing import List, Union, Optional
 
 from modules.repositories.market_repo import MarketRepository
 from modules.utils.queue_worker import enqueue
+from modules.models.collection_types import Collection
 
 class MarketService:
     """

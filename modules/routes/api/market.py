@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify
 
 from modules.services.market_service import MarketService
 
-# Blueprint for trade-market API endpoints
 market_bp = Blueprint('market', __name__, url_prefix='/api')
 service = MarketService()
 

@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Union
 import logging
 
+from flask import jsonify
+
 from modules.config import Config
 from modules.models.collection_types import Collection
 from modules.utils.version import compare_versions
@@ -17,9 +19,11 @@ class BasePoolService:
     """
     def __init__(
             self,
+            repo,
             collection_type: Collection,
     ) -> None:
         self.collection_type = collection_type
+        self.repo = repo
         self.supported_version = Config.MIN_VERSION
 
     def save_items(
@@ -60,12 +64,18 @@ class BasePoolService:
             # All checks passed -> enqueue for DB save
             enqueue(self.collection_type, item)
 
+    def get_current_lootpool(self):
+        if self.collection_type == Collection.LOOT:
+            return self.repo.fetch_lootpool()
+        elif self.collection_type == Collection.RAID:
+            return self.repo.fetch_raidpool()
 
-# Example subclass for more specialized behavior
-class LootpoolService(BasePoolService):
-    def __init__(self):
-        super().__init__(Collection.LOOT)
+        return jsonify({"message": "No lootpool for type found"}), 404
 
-class RaidpoolService(BasePoolService):
-    def __init__(self):
-        super().__init__(Collection.RAID)
+    def get_current_lootpool_raw(self) -> List[dict]:
+        if self.collection_type == Collection.LOOT:
+            return self.repo.fetch_lootpool_raw()
+        elif self.collection_type == Collection.RAID:
+            return self.repo.fetch_raidpool_raw()
+
+        return []
