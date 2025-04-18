@@ -17,4 +17,6 @@ log = logging.getLogger('werkzeug')
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port) 
+    log.info("Starting application with environment: " + Config.ENVIRONMENT)
+    app.run(debug=True, host='0.0.0.0', port=port)
+

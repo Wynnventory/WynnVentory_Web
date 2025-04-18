@@ -17,7 +17,7 @@ def get_client():
 
 # Send a ping to confirm a successful connection
 try:
-    get_client.admin.command('ping')
+    get_client().admin.command('ping')
     print("Successfully connected to MongoDB!")
 except Exception as e:
     print("Could not connect to MongoDB!", e)

@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, abort
 from datetime import datetime, timezone
 
-from modules import wynn_api, is_allowed_ip
+from modules import wynn_api
 from modules.routes import api
 
 web_bp = Blueprint('web', __name__)
