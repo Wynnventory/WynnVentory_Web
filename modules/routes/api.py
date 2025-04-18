@@ -4,7 +4,7 @@ from queue import Queue
 from flask import Blueprint, jsonify
 from flask import request
 
-from modules import mongodb_connector
+from modules import db
 from modules import utils
 from modules import wynn_api
 from modules.models import Weapon, Armour, Accessory, Item

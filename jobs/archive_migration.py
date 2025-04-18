@@ -11,16 +11,14 @@ Adds the following fields to every document in the 'archive' collection:
 from pymongo import MongoClient
 import sys
 
+from modules.db import get_collection
+from modules.models.collection_types import Collection
+
 # Connection details
-MONGO_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
-DB_NAME = "wynnventory"
-COLLECTION_NAME = "tm_items_ARCH_DEV"  # change if your archive collection is named differently
 
 def main():
     try:
-        client = MongoClient(MONGO_URI)
-        db = client[DB_NAME]
-        collection = db[COLLECTION_NAME]
+        collection = get_collection(Collection.MARKET_ARCHIVE)
     except Exception as e:
         print(f"Error connecting to MongoDB: {e}", file=sys.stderr)
         sys.exit(1)

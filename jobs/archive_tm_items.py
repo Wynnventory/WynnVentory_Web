@@ -2,20 +2,19 @@ from pymongo import MongoClient
 from datetime import datetime, timedelta, timezone
 import logging
 
+from modules.db import get_collection
+from modules.models.collection_types import Collection
+
 # MongoDB connection settings
-MONGO_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/?retryWrites=true&w=majority&appName=wynnventory"
-DB_NAME = "wynnventory"
-ORIGINAL_COLLECTION = "trademarket_items_DEV"
-SUMMARY_COLLECTION = "tm_items_ARCH_DEV"
 DAY_OFFSET = 7
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-client = MongoClient(MONGO_URI)
-db = client[DB_NAME]
-
-
 def archive_and_summarize():
+    trademarket_collection = get_collection(Collection.MARKET)
+    archive_collection = get_collection(Collection.MARKET_ARCHIVE)
+
+
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     from_day = today - timedelta(days=DAY_OFFSET)
     to_day = today - timedelta(days=DAY_OFFSET + 1)
@@ -250,7 +249,7 @@ def archive_and_summarize():
     ]
 
     # run it
-    summaries = list(db[ORIGINAL_COLLECTION].aggregate(pipeline, allowDiskUse=True))
+    summaries = list(trademarket_collection.aggregate(pipeline, allowDiskUse=True))
     if not summaries:
         logging.info("No data to archive.")
         return
@@ -262,10 +261,10 @@ def archive_and_summarize():
     logging.info(f"Found {len(summaries)} unique groups to archive.")
 
     # write summaries & delete originals
-    db[SUMMARY_COLLECTION].insert_many(summaries)
+    archive_collection.insert_many(summaries)
     logging.info("Summaries inserted.")
 
-    db[ORIGINAL_COLLECTION].delete_many({
+    trademarket_collection.delete_many({
         "timestamp": {"$gte": to_day, "$lt": from_day}
     })
     logging.info("Original data older than 7 days deleted. Job complete.")

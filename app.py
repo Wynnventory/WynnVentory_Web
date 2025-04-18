@@ -8,7 +8,7 @@ from modules.config import Config
 
 app = create_app()
 
-ENVIRONMENT = config("ENVIRONMENT_NAME")
+ENVIRONMENT = config("ENVIRONMENT")
 Config.set_environment(ENVIRONMENT)
 
 
