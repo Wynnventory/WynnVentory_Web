@@ -35,11 +35,7 @@ def _worker_loop():
             logging.error(f"No repository configured for {collection_type!r}")
         else:
             try:
-                if collection_type == Collection.MARKET:
-                    repo.save_market_item(item)
-                if collection_type == Collection.RAID or collection_type == Collection.LOOT:
-                    repo.save(item)
-
+                repo.save(item)
                 logging.debug(f"Saved item to {collection_type}")
             except Exception as e:
                 logging.exception(f"Error saving to {collection_type}: {e}")

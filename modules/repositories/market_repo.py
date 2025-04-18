@@ -16,7 +16,7 @@ class MarketRepository:
         # Archived history
         self._archive: MongoCollection = get_collection(ColEnum.MARKET_ARCHIVE)
 
-    def save_market_item(self, item: Dict[str, Any]) -> None:
+    def save(self, item: Dict[str, Any]) -> None:
         """
         Insert a new market item into the live collection, stamping the UTC timestamp.
         """
