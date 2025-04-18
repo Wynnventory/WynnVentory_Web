@@ -14,6 +14,7 @@ import sys
 from modules.db import get_collection
 from modules.models.collection_types import Collection
 
+
 # Connection details
 
 def main():
@@ -41,6 +42,7 @@ def main():
 
     print(f"Matched {result.matched_count} documents.")
     print(f"Modified {result.modified_count} documents.")
+
 
 if __name__ == "__main__":
     main()

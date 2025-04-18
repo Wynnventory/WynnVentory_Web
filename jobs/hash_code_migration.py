@@ -6,12 +6,14 @@ from modules.models.collection_types import Collection
 
 COLLECTION = get_collection(Collection.MARKET)
 
+
 def int32(x):
     """Force a value into a 32-bit signed integer (simulate Java int arithmetic)."""
     x = x & 0xFFFFFFFF
     if x & 0x80000000:
         return -((~x & 0xFFFFFFFF) + 1)
     return x
+
 
 def java_hash(obj):
     """
@@ -48,6 +50,7 @@ def java_hash(obj):
     # Fallback: convert the object to a string and hash that.
     return java_hash(str(obj))
 
+
 def compute_hash(doc):
     """
     Compute the hash code using this ordered list of fields:
@@ -65,8 +68,10 @@ def compute_hash(doc):
     actual_stats = doc.get("actual_stats_with_percentage")
     rerolls = doc.get("rerolls")
 
-    values = [name, rarity, item_type, type_field, tier, unidentified, shiny_stat, amount, listing_price, actual_stats, rerolls]
+    values = [name, rarity, item_type, type_field, tier, unidentified, shiny_stat, amount, listing_price, actual_stats,
+              rerolls]
     return java_hash(values)
+
 
 def update_hash_codes():
     # Use projection to fetch only fields needed for hash computation.
@@ -102,6 +107,7 @@ def update_hash_codes():
         COLLECTION.bulk_write(updates, ordered=False)
         print(f"Processed {count} documents in total.")
 
+
 def remove_duplicates():
     """
     Check for duplicate documents (those with the same hash_code) and
@@ -125,11 +131,13 @@ def remove_duplicates():
             print(f"Removed {result.deleted_count} duplicate documents for hash_code {group['_id']}")
     print(f"Total duplicate documents removed: {total_removed}")
 
+
 def main():
     print("Updating hash codes...")
     update_hash_codes()
     print("Removing duplicate documents...")
     remove_duplicates()
+
 
 if __name__ == '__main__':
     main()

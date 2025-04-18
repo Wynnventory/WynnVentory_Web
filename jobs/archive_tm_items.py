@@ -10,10 +10,10 @@ DAY_OFFSET = 7
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+
 def archive_and_summarize():
     trademarket_collection = get_collection(Collection.MARKET)
     archive_collection = get_collection(Collection.MARKET_ARCHIVE)
-
 
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     from_day = today - timedelta(days=DAY_OFFSET)
@@ -29,7 +29,7 @@ def archive_and_summarize():
 
         # 2) explode each doc into `amount` copies
         {"$addFields": {
-            "amountArr": { "$range": [0, "$amount"] }
+            "amountArr": {"$range": [0, "$amount"]}
         }},
         {"$unwind": "$amountArr"},
 
@@ -42,21 +42,21 @@ def archive_and_summarize():
                 "item_type": "$item_type"
             },
             # Identified items (now includes null and false)
-            "minPrice":   {"$min": {
+            "minPrice": {"$min": {
                 "$cond": [
                     {"$ne": ["$unidentified", True]},
                     "$listing_price",
                     None
                 ]
             }},
-            "maxPrice":   {"$max": {
+            "maxPrice": {"$max": {
                 "$cond": [
                     {"$ne": ["$unidentified", True]},
                     "$listing_price",
                     None
                 ]
             }},
-            "sumPrice":   {"$sum": {
+            "sumPrice": {"$sum": {
                 "$cond": [
                     {"$ne": ["$unidentified", True]},
                     "$listing_price",
@@ -70,7 +70,7 @@ def archive_and_summarize():
                     0
                 ]
             }},
-            "prices":     {"$push": {
+            "prices": {"$push": {
                 "$cond": [
                     {"$ne": ["$unidentified", True]},
                     "$listing_price",
@@ -85,14 +85,14 @@ def archive_and_summarize():
                     0
                 ]
             }},
-            "countUnidentified":    {"$sum": {
+            "countUnidentified": {"$sum": {
                 "$cond": [
                     {"$eq": ["$unidentified", True]},
                     1,
                     0
                 ]
             }},
-            "unidentifiedPrices":   {"$push": {
+            "unidentifiedPrices": {"$push": {
                 "$cond": [
                     {"$eq": ["$unidentified", True]},
                     "$listing_price",
@@ -100,8 +100,8 @@ def archive_and_summarize():
                 ]
             }},
             # Totals
-            "totalCount":           {"$sum": 1},
-            "unidentifiedCount":    {"$sum": {
+            "totalCount": {"$sum": 1},
+            "unidentifiedCount": {"$sum": {
                 "$cond": [
                     {"$eq": ["$unidentified", True]},
                     1,
@@ -268,6 +268,7 @@ def archive_and_summarize():
         "timestamp": {"$gte": to_day, "$lt": from_day}
     })
     logging.info("Original data older than 7 days deleted. Job complete.")
+
 
 if __name__ == "__main__":
     archive_and_summarize()
