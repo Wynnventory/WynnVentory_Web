@@ -1,6 +1,7 @@
 from flask import Flask, redirect, url_for
 from decouple import config as env_config
 
+from auth import require_api_key
 from modules.config import Config
 from modules.db import get_client
 
@@ -14,19 +15,20 @@ def create_app():
     Config.ENVIRONMENT = env_config("ENVIRONMENT")
     Config.MIN_SUPPORTED_VERSION = env_config("MIN_SUPPORTED_VERSION")
 
-    # ROUTES
+    # WEB ROUTES
     from modules.routes.web.web import web_bp
+    app.register_blueprint(web_bp)
+
+    # WEB ROUTES
     from modules.routes.api.item import item_bp
     from modules.routes.api.aspect import aspect_bp
     from modules.routes.api.lootpool import lootpool_bp
     from modules.routes.api.raidpool import raidpool_bp
     from modules.routes.api.market import market_bp
-    app.register_blueprint(web_bp)
-    app.register_blueprint(item_bp)
-    app.register_blueprint(aspect_bp)
-    app.register_blueprint(lootpool_bp)
-    app.register_blueprint(raidpool_bp)
-    app.register_blueprint(market_bp)
+
+    for bp in (item_bp, aspect_bp, lootpool_bp, raidpool_bp, market_bp):
+        bp.before_request(require_api_key)
+        app.register_blueprint(bp)
 
     # Send a ping to confirm a successful connection
     try:
