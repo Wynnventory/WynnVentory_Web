@@ -1,7 +1,7 @@
 class Config:
 
     ENVIRONMENT = ''
-    MIN_VERSION = '1.0.0'
+    MIN_SUPPORTED_VERSION = '1.0.0'
 
     # Database URIs
     PROD_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/"

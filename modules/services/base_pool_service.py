@@ -24,7 +24,7 @@ class BasePoolService:
     ) -> None:
         self.collection_type = collection_type
         self.repo = repo
-        self.supported_version = Config.MIN_VERSION
+        self.supported_version = Config.MIN_SUPPORTED_VERSION
 
     def save(
             self,

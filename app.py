@@ -10,7 +10,7 @@ app = create_app()
 
 ENVIRONMENT = config("ENVIRONMENT")
 Config.set_environment(ENVIRONMENT)
-
+Config.MIN_SUPPORTED_VERSION = config("MIN_SUPPORTED_VERSION")
 
 log = logging.getLogger('werkzeug')
 # log.setLevel(logging.WARNING)

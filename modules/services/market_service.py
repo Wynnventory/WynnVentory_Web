@@ -1,8 +1,10 @@
 from typing import List, Optional, Any
 
+from modules.config import Config
 from modules.models.collection_types import Collection
 from modules.repositories.market_repo import MarketRepository
 from modules.utils.queue_worker import enqueue
+from modules.utils.version import compare_versions
 
 
 def _format_item_for_db(item: dict) -> dict:
@@ -31,6 +33,11 @@ def save_items(raw_items):
         raise ValueError("No items provided")
 
     for item in raw_items:
+        mod_version = item.get('modVersion')
+
+        if not mod_version or not compare_versions(mod_version, Config.MIN_SUPPORTED_VERSION):
+            raise ValueError(f"Item at index has unsupported mod version: {mod_version}")
+
         formatted = _format_item_for_db(item)
         enqueue(Collection.MARKET, formatted)
 
