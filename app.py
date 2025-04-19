@@ -1,22 +1,12 @@
 import os
-import logging
-from decouple import config
 
 from modules import create_app
 from modules.config import Config
 
-
 app = create_app()
 
-ENVIRONMENT = config("ENVIRONMENT")
-Config.set_environment(ENVIRONMENT)
-Config.MIN_SUPPORTED_VERSION = config("MIN_SUPPORTED_VERSION")
-
-log = logging.getLogger('werkzeug')
-# log.setLevel(logging.WARNING)
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    log.info("Starting application with environment: " + Config.ENVIRONMENT)
-    app.run(debug=True, host='0.0.0.0', port=port)
-
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 5000))
+    debug = Config.ENVIRONMENT != "prod"
+    app.logger.info(f"Starting in '{Config.ENVIRONMENT}' mode with min version '{Config.MIN_SUPPORTED_VERSION}')")
+    app.run(host="0.0.0.0", port=port, debug=debug)

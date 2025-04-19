@@ -1,5 +1,7 @@
 from flask import Flask, redirect, url_for
+from decouple import config as env_config
 
+from modules.config import Config
 from modules.db import get_client
 
 
@@ -8,6 +10,9 @@ def create_app():
                 static_url_path='',
                 static_folder='modules/routes/web/static',
                 template_folder='modules/routes/web/templates')
+
+    Config.ENVIRONMENT = env_config("ENVIRONMENT")
+    Config.MIN_SUPPORTED_VERSION = env_config("MIN_SUPPORTED_VERSION")
 
     # ROUTES
     from modules.routes.web.web import web_bp
