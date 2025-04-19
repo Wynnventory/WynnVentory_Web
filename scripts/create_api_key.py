@@ -1,3 +1,4 @@
+import base64
 import secrets
 import hashlib
 from datetime import datetime, timezone
@@ -27,9 +28,16 @@ def generate_and_store_key(owner: str, description: str) -> str:
     })
     return raw_token
 
+def obfuscate_key(raw_key: str) -> str:
+    mask = 0x5A
+    b   = raw_key.encode("utf-8")
+    ob  = bytes(byte ^ mask for byte in b)
+    return base64.b64encode(ob).decode("utf-8")
+
 
 if __name__ == "__main__":
     token = generate_and_store_key(OWNER, DESCRIPTION)
     print("\n=== NEW API KEY ===")
-    print(token)
+    print(f"Token:      {token}")
+    print(f"Obfuscated: {obfuscate_key(token)}")
     print("===================\n")
