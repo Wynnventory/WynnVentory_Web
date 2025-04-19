@@ -41,16 +41,13 @@ class BasePoolService:
 
         for idx, item in enumerate(items):
             mod_version = item.get('modVersion')
+            print(f"got version: {mod_version} vs {self.supported_version}")
             if not mod_version or not compare_versions(mod_version, self.supported_version):
-                raise ValueError(
-                    f"Item at index {idx} has unsupported mod version: {mod_version}"
-                )
+                raise ValueError(f"Item at index {idx} has unsupported mod version: {mod_version}")
 
             collection_time = item.get('collectionTime')
             if not collection_time or not is_time_valid(self.collection_type, collection_time):
-                logging.warning(
-                    f"Item at index {idx} has invalid collectionTime: {collection_time}; skipping"
-                )
+                logging.warning(f"Item at index {idx} has invalid collectionTime: {collection_time}; skipping")
                 continue
 
             loot_items = item.get('items', [])
