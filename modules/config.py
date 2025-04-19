@@ -1,5 +1,4 @@
 class Config:
-
     ENVIRONMENT = ''
     MIN_SUPPORTED_VERSION = ''
 

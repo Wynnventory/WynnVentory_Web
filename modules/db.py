@@ -23,7 +23,8 @@ def get_client(db: str = "current") -> MongoClient:
         tlsAllowInvalidCertificates=True
     )
 
+
 def get_collection(collection: Collection):
     client = get_client("admin" if collection is Collection.API_KEYS else "current")
-    db     = client.get_default_database()
+    db = client.get_default_database()
     return db[collection._value_]
