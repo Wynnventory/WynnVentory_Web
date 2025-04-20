@@ -55,19 +55,27 @@ def enqueue(collection_type: Collection, item: dict):
 
 def shutdown_workers():
     """
-    Flush any buffered repos (e.g. UsageRepository), then tell the
-    worker loop to exit, and wait for it.
+    1) Signal the worker loop to exit after it drains the queue.
+    2) Wait for it to finish processing all enqueued items.
+    3) Flush any buffered repos (e.g. UsageRepository).
     """
-    logger.info("shutdown_workers() called, flushing buffers…")
-    # 1) flush any repo that has a flush_all()
+    logger.info("shutdown_workers() called, stopping worker thread…")
+
+    # 1) tell the worker to stop once it's picked up everything
+    _request_queue.put((None, None))
+
+    # 2) wait for the worker to drain the queue and exit
+    _worker_thread.join()
+    logger.info("Worker thread has exited")
+
+    # 3) now flush any in‑memory buffers
     for repo in _repo_map.values():
         flush = getattr(repo, "flush_all", None)
         if callable(flush):
+            logger.info(f"Flushing buffer for repo {repo.__class__.__name__}")
             flush()
-    # 2) signal the worker loop to stop
-    _request_queue.put((None, None))
-    _worker_thread.join()
-    logger.info("All queue workers have shut down")
+
+    logger.info("All queue workers have shut down and buffers flushed")
 
 
 # ─── HOOK SIGTERM (Heroku only) ────────────────────────────────────────────────
