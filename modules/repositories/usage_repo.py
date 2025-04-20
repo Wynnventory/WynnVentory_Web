@@ -26,6 +26,7 @@ class UsageRepository:
         """
         Pop the buffered count & owner, then upsert into Mongo.
         """
+        print("FLUSHING KEY")
         count = self._buffer.pop(key, 0)
         owner = self._owners.get(key)
         if count and owner:
@@ -40,6 +41,7 @@ class UsageRepository:
 
     def flush_all(self):
         """Persist *all* leftover counts on shutdown."""
+        print("I AM BEING FLUSHED")
         with self._lock:
             for key in list(self._buffer):
                 self._flush_key(key)

@@ -69,6 +69,7 @@ def shutdown_workers():
     Call this at app shutdown.
     """
     # If you have N threads, enqueue N sentinels. Here we only have one:
+    print("WORKER JUST GOT KILLED")
     _request_queue.put((None, None))
     _worker_thread.join()
     logging.info("All queue workers have shut down")
