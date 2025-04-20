@@ -2,8 +2,8 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api    import ServerApi
 import logging
 
-from modules import Config
-from modules.models.collection_types import Collection
+from modules.config import Config
+from modules.models.collection_types import Collection as Coll
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +15,9 @@ def get_client(role: str = "current") -> MongoClient:
     logger.debug(f"[get_client] role={role} → URI={uri}")
     return MongoClient(uri, server_api=ServerApi("1"), tls=True, tlsAllowInvalidCertificates=True)
 
-def get_collection(collection: Collection):
+def get_collection(collection: Coll):
     # decide which client to use
-    role = "admin" if collection in (Collection.API_KEYS, Collection.API_USAGE) else "current"
+    role = "admin" if collection in (Coll.API_KEYS, Coll.API_USAGE) else "current"
     client = get_client(role)
     # get_default_database() honors the DB in the URI string
     db = client.get_default_database()
