@@ -4,7 +4,7 @@ from modules.models.collection_types import Collection
 
 
 class UsageRepository:
-    def __init__(self, batch_size: int = 5):
+    def __init__(self, batch_size: int = 250):
         self.coll = get_collection(Collection.API_USAGE)
         self.batch_size = batch_size
         self._buffer = {}
