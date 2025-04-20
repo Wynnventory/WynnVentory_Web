@@ -68,7 +68,6 @@ class RaidpoolRepository:
 
 
     def fetch_raidpool(self):
-        print("I AM HERE")
         year, week = get_raidpool_week()
         pipeline = [
             # Match documents for the given week and year
