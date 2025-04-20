@@ -26,9 +26,9 @@ class UsageRepository:
         """
         Pop the buffered count & owner, then upsert into Mongo.
         """
-        print("FLUSHING KEY")
         count = self._buffer.pop(key, 0)
         owner = self._owners.get(key)
+        print(f"FLUSHING KEY with owner={owner} and count={count}")
         if count and owner:
             self.coll.update_one(
                 {"key_hash": key},
