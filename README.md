@@ -16,5 +16,13 @@ Explore and interact with the API using the detailed documentation provided by P
 Visit the live site to see WynnVentory in action:
 [wynnventory.com](https://www.wynnventory.com/)
 
+## *</>* Setup
+- Create .env in root of the project
+- Paste the following code into .env
+```
+ENVIRONMENT=dev
+MIN_SUPPORTED_VERSION=1.0.0
+```
+
 ## Wynnventory Mod
 https://github.com/Aruloci/WynnVentory
