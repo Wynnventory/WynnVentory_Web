@@ -21,13 +21,10 @@ class UsageRepository:
             if new_count >= self.batch_size:
                 self._flush_key(key)
 
-
     def _flush_key(self, key: str):
         count = self._buffer.pop(key, 0)
         owner = self._owners.get(key)
-        dbname = self.coll.database.name
-        collname = self.coll.name
-        print(f"\nFLUSHING KEY → owner={owner!r}, count={count}, target={dbname}.{collname}")
+        print(f"FLUSHING KEY → owner={owner!r}, count={count}, target={self.coll.database.name}.{self.coll.name}")
         if not (count and owner):
             print("  → nothing to do")
             return
@@ -35,15 +32,12 @@ class UsageRepository:
         try:
             result = self.coll.update_one(
                 {"key_hash": key},
-                {
-                    "$inc": {"count": count},
-                    "$setOnInsert": {"owner": owner}
-                },
+                {"$inc": {"count": count}, "$setOnInsert": {"owner": owner}},
                 upsert=True
             )
             print("  → raw_result:", result.raw_result)
         except Exception as e:
-            print("  !!! write exception:", e)
+            print("  !!! write exception during flush:", repr(e))
 
     def flush_all(self):
         """Persist *all* leftover counts on shutdown."""
