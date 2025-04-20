@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for
 from decouple import config as env_config
 
-from auth import require_api_key
+from modules.auth import require_api_key
 from modules.config import Config
 from modules.db import get_client
 
