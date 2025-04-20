@@ -15,7 +15,7 @@ _repo_map = {
     Collection.MARKET: MarketRepository(),
     Collection.LOOT: LootpoolRepository(),
     Collection.RAID: RaidpoolRepository(),
-    Collection.API_USAGE: UsageRepository(batch_size=2)
+    Collection.API_USAGE: UsageRepository()
 }
 
 
