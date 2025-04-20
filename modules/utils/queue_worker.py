@@ -76,7 +76,3 @@ def shutdown_workers():
             flush()
 
     logger.info("All queue workers have shut down and buffers flushed")
-
-
-# ─── HOOK SIGTERM (Heroku only) ────────────────────────────────────────────────
-# signal.signal(signal.SIGTERM, lambda sig, frame: shutdown_workers())

@@ -4,7 +4,7 @@ from modules.models.collection_types import Collection
 
 
 class UsageRepository:
-    def __init__(self, batch_size: int = 2):
+    def __init__(self, batch_size: int = 5):
         self.coll = get_collection(Collection.API_USAGE)
         self.batch_size = batch_size
         self._buffer = {}
@@ -22,26 +22,23 @@ class UsageRepository:
                 self._flush_key(key)
 
     def _flush_key(self, key: str):
+        """
+        Pop the buffered count & owner, then upsert into Mongo.
+        """
         count = self._buffer.pop(key, 0)
         owner = self._owners.get(key)
-        print(f"FLUSHING KEY → owner={owner!r}, count={count}, target={self.coll.database.name}.{self.coll.name}")
-        if not (count and owner):
-            print("  → nothing to do")
-            return
-
-        try:
-            result = self.coll.update_one(
+        if count and owner:
+            self.coll.update_one(
                 {"key_hash": key},
-                {"$inc": {"count": count}, "$setOnInsert": {"owner": owner}},
+                {
+                    "$inc": {"count": count},
+                    "$setOnInsert": {"owner": owner}
+                },
                 upsert=True
             )
-            print("  → raw_result:", result.raw_result)
-        except Exception as e:
-            print("  !!! write exception during flush:", repr(e))
 
     def flush_all(self):
         """Persist *all* leftover counts on shutdown."""
-        print("I AM BEING FLUSHED")
         with self._lock:
             for key in list(self._buffer):
                 self._flush_key(key)

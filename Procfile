@@ -1,1 +1,1 @@
-web: gunicorn 'modules:create_app()' -c gunicorn_conf.py -w 2 --threads 4 -k sync
+web: gunicorn 'modules:create_app()' -c modules/gunicorn_config.py -w 2 --threads 4 -k sync
