@@ -12,7 +12,7 @@ if __name__ == "__main__":
     debug = Config.ENVIRONMENT != "prod"
     app.logger.info(f"Starting in '{Config.ENVIRONMENT}' mode with min version '{Config.MIN_SUPPORTED_VERSION}')")
 
-    atexit.register(shutdown_workers)
+    # atexit.register(shutdown_workers)
 
     app.run(
         host="0.0.0.0",
