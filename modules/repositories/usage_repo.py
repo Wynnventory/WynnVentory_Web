@@ -24,20 +24,14 @@ class UsageRepository:
     def _flush_key(self, key: str):
         count = self._buffer.pop(key, 0)
         owner = self._owners.get(key)
-        print(f"FLUSHING KEY with owner={owner} and count={count}")
-        if not (count and owner):
-            return
 
-        try:
-            result = self.coll.update_one(
-                {"key_hash": key},
-                {"$inc": {"count": count}, "$setOnInsert": {"owner": owner}},
-                upsert=True
-            )
-            print("→ update_one.raw_result:", result.raw_result)
-            print("→ collection:", self.coll.database.name, self.coll.name)
-        except Exception as e:
-            print("!!! Exception on write:", e)
+        print(f"FLUSHING KEY with owner={owner} count={count} to {self.coll.database.name}.{self.coll.name}")
+        result = self.coll.update_one(
+            {"key_hash": key},
+            {"$inc": {"count": count}, "$setOnInsert": {"owner": owner}},
+            upsert=True
+        )
+        print("→ raw_result:", result.raw_result)
 
     def flush_all(self):
         """Persist *all* leftover counts on shutdown."""
