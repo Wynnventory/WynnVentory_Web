@@ -79,4 +79,4 @@ def shutdown_workers():
 
 
 # ─── HOOK SIGTERM (Heroku only) ────────────────────────────────────────────────
-signal.signal(signal.SIGTERM, lambda sig, frame: shutdown_workers())
+# signal.signal(signal.SIGTERM, lambda sig, frame: shutdown_workers())
