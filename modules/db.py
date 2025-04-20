@@ -25,6 +25,6 @@ def get_client(db: str = "current") -> MongoClient:
 
 
 def get_collection(collection: Collection):
-    client = get_client("admin" if collection is Collection.API_KEYS else "current")
+    client = get_client("admin" if collection in (Collection.API_KEYS, Collection.API_USAGE) else "current")
     db = client.get_default_database()
     return db[collection._value_]

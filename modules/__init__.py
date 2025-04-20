@@ -1,7 +1,7 @@
 from flask import Flask, redirect, url_for
 from decouple import config as env_config
 
-from modules.auth import require_api_key
+from modules.auth import require_api_key, record_api_usage
 from modules.config import Config
 from modules.db import get_client
 
@@ -28,6 +28,7 @@ def create_app():
 
     for bp in (item_bp, aspect_bp, lootpool_bp, raidpool_bp, market_bp):
         bp.before_request(require_api_key)
+        bp.after_request(record_api_usage)
         app.register_blueprint(bp)
 
     # Send a ping to confirm a successful connection

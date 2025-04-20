@@ -1,5 +1,3 @@
-# modules/utils/queue_worker.py
-
 import logging
 from queue import Queue
 from threading import Thread
@@ -8,6 +6,7 @@ from modules.models.collection_types import Collection
 from modules.repositories.lootpool_repo import LootpoolRepository
 from modules.repositories.market_repo import MarketRepository
 from modules.repositories.raidpool_repo import RaidpoolRepository
+from modules.repositories.usage_repo import UsageRepository
 
 # ─── INTERNAL QUEUE & REPO MAPPING ─────────────────────────────────────────────
 
@@ -16,6 +15,7 @@ _repo_map = {
     Collection.MARKET: MarketRepository(),
     Collection.LOOT: LootpoolRepository(),
     Collection.RAID: RaidpoolRepository(),
+    Collection.API_USAGE: UsageRepository(batch_size=2)
 }
 
 
@@ -72,3 +72,4 @@ def shutdown_workers():
     _request_queue.put((None, None))
     _worker_thread.join()
     logging.info("All queue workers have shut down")
+    _repo_map.get(Collection.API_USAGE).flush_all()

@@ -1,7 +1,8 @@
 import hashlib
-from flask import request, jsonify
+from flask import request, jsonify, g
 from modules.db import get_collection
 from modules.models.collection_types import Collection
+from modules.utils.queue_worker import enqueue
 
 
 def require_api_key():
@@ -25,4 +26,19 @@ def require_api_key():
     if not key:
         return jsonify({"error": "Invalid or revoked API key"}), 403
 
+    g.api_key_hash = token_hash
+    g.owner = key["owner"]
+
     return None
+
+
+def record_api_usage(response):
+    if hasattr(g, "owner"):
+        enqueue(
+            Collection.API_USAGE,
+            {
+                "owner": g.owner,
+                "key_hash": g.api_key_hash
+            }
+        )
+    return response
