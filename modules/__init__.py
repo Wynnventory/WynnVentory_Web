@@ -7,6 +7,9 @@ from modules.db import get_client
 
 
 def create_app():
+    Config.ENVIRONMENT = env_config("ENVIRONMENT", default="prod")
+    Config.MIN_SUPPORTED_VERSION = env_config("MIN_SUPPORTED_VERSION", default="0.0.0")
+
     app = Flask(__name__,
                 static_url_path='',
                 static_folder='modules/routes/web/static',
@@ -28,12 +31,11 @@ def create_app():
         bp.after_request(record_api_usage)
         app.register_blueprint(bp)
 
-    # Send a ping to confirm a successful connection
-    try:
-        get_client().admin.command('ping')
-        print("Successfully connected to MongoDB!")
-    except Exception as e:
-        print("Could not connect to MongoDB!", e)
+    app.logger.warning(
+        "Successfully started in '%s' mode with min supported version '%s'",
+        Config.ENVIRONMENT,
+        Config.MIN_SUPPORTED_VERSION,
+    )
 
     # 404 Error
     @app.errorhandler(404)
