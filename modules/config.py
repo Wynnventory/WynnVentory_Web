@@ -1,6 +1,9 @@
+from decouple import config as env_config
+
+
 class Config:
-    ENVIRONMENT = ''
-    MIN_SUPPORTED_VERSION = ''
+    ENVIRONMENT = env_config("ENVIRONMENT")
+    MIN_SUPPORTED_VERSION = env_config("MIN_SUPPORTED_VERSION")
 
     # Database URIs
     PROD_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/wynnventory"

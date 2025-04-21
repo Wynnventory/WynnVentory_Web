@@ -1,5 +1,4 @@
 from flask import Flask, redirect, url_for
-from decouple import config as env_config
 
 from modules.auth import require_api_key, record_api_usage
 from modules.config import Config
@@ -7,9 +6,6 @@ from modules.db import get_client
 
 
 def create_app():
-    Config.ENVIRONMENT = env_config("ENVIRONMENT", default="prod")
-    Config.MIN_SUPPORTED_VERSION = env_config("MIN_SUPPORTED_VERSION", default="0.0.0")
-
     app = Flask(__name__,
                 static_url_path='',
                 static_folder='modules/routes/web/static',
