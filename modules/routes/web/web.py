@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template
 from datetime import datetime, timezone
 
-from modules.routes.api import lootpool
-from modules.routes.api import raidpool
+from flask import Blueprint, render_template, jsonify
+
+from modules.services.lootpool_service import LootpoolService
+from modules.services.raidpool_service import RaidpoolService
 
 web_bp = Blueprint(
     'web', __name__,
@@ -23,7 +24,7 @@ def items():
 
 @web_bp.route("/lootrun")
 def lootrun_lootpool():
-    loot_data = lootpool.get_lootpool_items()[0].get_json()
+    loot_data = jsonify(LootpoolService().get_current_lootpool()).get_json()
     loot_data = loot_data if isinstance(loot_data, list) else []
 
     now = datetime.now(timezone.utc)
@@ -42,8 +43,7 @@ def lootrun_lootpool():
 
 @web_bp.route("/raid")
 def raid_lootpool():
-    loot_data = raidpool.get_raidpool_items()[0].get_json()
-    print(loot_data)
+    loot_data = jsonify(RaidpoolService().get_current_lootpool()).get_json()
     loot_data = loot_data if isinstance(loot_data, list) else []
 
     now = datetime.now(timezone.utc)
