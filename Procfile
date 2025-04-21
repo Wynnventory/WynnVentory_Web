@@ -1,1 +1,1 @@
-web: gunicorn 'modules:create_app()' -c modules/gunicorn_config.py -w 1 --threads 8
+web: gunicorn 'modules:create_app()' -c modules/gunicorn_config.py -w 2
