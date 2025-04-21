@@ -40,7 +40,8 @@ class MarketRepository:
             tier: Optional[int] = None
     ) -> Dict[str, Any]:
         """
-        Compute price statistics (min, max, avg, mid-80%) for identified and unidentified listings.
+        Compute price statistics (min, max, avg, mid-80%) for identified and unidentified listings,
+        taking each 'amount' into account (so a listing of amount=4 counts as four data points).
         """
         shiny_stat = '$ne' if shiny else '$eq'
         match_filter: Dict[str, Any] = {
@@ -55,6 +56,13 @@ class MarketRepository:
 
         pipeline = [
             {'$match': match_filter},
+
+            # explode each doc into 'amount' copies
+            {'$addFields': {
+                'unitIndex': {'$range': [0, '$amount']}
+            }},
+            {'$unwind': '$unitIndex'},
+
             {'$sort': {'listing_price': 1}},
             {'$facet': {
                 'identified_prices': [
@@ -122,9 +130,11 @@ class MarketRepository:
                 'lowest_price': {'$arrayElemAt': ['$identified_prices.minPrice', 0]},
                 'highest_price': {'$arrayElemAt': ['$identified_prices.maxPrice', 0]},
                 'average_price': {'$arrayElemAt': ['$identified_prices.avgPrice', 0]},
-                'average_mid_80_percent_price': {'$arrayElemAt': ['$identified_prices.average_mid_80_percent_price', 0]},
+                'average_mid_80_percent_price': {
+                    '$arrayElemAt': ['$identified_prices.average_mid_80_percent_price', 0]},
                 'unidentified_average_price': {'$arrayElemAt': ['$unidentified_avg_price.avgUnidentifiedPrice', 0]},
-                'unidentified_average_mid_80_percent_price': {'$arrayElemAt': ['$unidentified_avg_price.average_mid_80_percent_price', 0]}
+                'unidentified_average_mid_80_percent_price':
+                    {'$arrayElemAt': ['$unidentified_avg_price.average_mid_80_percent_price', 0]}
             }}
         ]
 
