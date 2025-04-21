@@ -62,10 +62,6 @@ def shutdown_workers():
     logger.info("Worker thread has exited")
 
     # 3) now flush any in‑memory buffers
-    for repo in _repo_map.values():
-        flush = getattr(repo, "flush_all", None)
-        if callable(flush):
-            logger.info(f"Flushing buffer for repo {repo.__class__.__name__}")
-            flush()
+    UsageRepository().flush_all()
 
     logger.info("All queue workers have shut down and buffers flushed")
