@@ -129,7 +129,7 @@ class MarketRepository:
         ]
 
         result = list(self._coll.aggregate(pipeline))
-        return result[0] if result else None
+        return result[0] if result else {}
 
     def get_price_history(
             self,
