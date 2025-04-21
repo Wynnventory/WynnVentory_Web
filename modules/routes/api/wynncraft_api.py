@@ -1,5 +1,6 @@
 import requests
 import time
+import logging
 from functools import wraps
 from typing import Dict, Any, Callable, Optional
 
@@ -56,92 +57,72 @@ def cached(ttl: int = 300):
             return result
         return wrapper
     return decorator
+
+def api_request(func):
+    """Decorator to handle API requests and error handling"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except requests.exceptions.HTTPError as http_err:
+            logging.error(f"HTTP error occurred: {http_err}")
+        except requests.exceptions.Timeout:
+            logging.error("Request timed out")
+        except Exception as err:
+            logging.error(f"Other error occurred: {err}")
+        return None
+    return wrapper
 @cached(ttl=3600)  # Cache for 1 hour
+@api_request
 def get_item_database():
     url = f"{BASE_URL}/item/database?fullResult"
-    try:
-        # Add timeout to prevent hanging requests
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-        if isinstance(data, dict):
-            return data
-        else:
-            print("Unexpected data format received:", type(data))
-            return None
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-    except requests.exceptions.Timeout:
-        print("Request timed out")
-        return None
-    except Exception as err:
-        print(f"Other error occurred: {err}")
+    # Add timeout to prevent hanging requests
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+    if isinstance(data, dict):
+        return data
+    else:
+        logging.warning("Unexpected data format received: %s", type(data))
         return None
 
 
 @cached(ttl=300)  # Cache for 5 minutes
+@api_request
 def search_items(payload, page=1):
     url = f"{BASE_URL}/item/search?page={page}"
-    try:
-        # Add timeout to prevent hanging requests
-        response = requests.post(url, json=payload, timeout=10)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-        return None
-    except requests.exceptions.Timeout:
-        print("Request timed out")
-        return None
-    except Exception as err:
-        print(f"Other error occurred: {err}")
-        return None
+    # Add timeout to prevent hanging requests
+    response = requests.post(url, json=payload, timeout=10)
+    response.raise_for_status()
+    return response.json()
 
 @cached(ttl=1800)  # Cache for 30 minutes
+@api_request
 def quick_search_item(item_name):
     url = f"{BASE_URL}/item/search"
-    try:
-        # Add timeout to prevent hanging requests
-        response = requests.get(f"{url}/{item_name}", timeout=10)
-        response.raise_for_status()
-        data = response.json()
+    # Add timeout to prevent hanging requests
+    response = requests.get(f"{url}/{item_name}", timeout=10)
+    response.raise_for_status()
+    data = response.json()
 
-        if item_name in data:
-            return data[item_name]
+    if item_name in data:
+        return data[item_name]
 
-        # If no match is found, return None or an appropriate message
-        print(f"Item not found: {item_name}")
-        return None
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-        return None
-    except requests.exceptions.Timeout:
-        print("Request timed out")
-        return None
-    except Exception as err:
-        print(f"Other error occurred: {err}")
-        return None
+    # If no match is found, return None or an appropriate message
+    logging.warning(f"Item not found: {item_name}")
+    return None
 
 @cached(ttl=1800)  # Cache for 30 minutes
+@api_request
 def get_aspect_by_name(class_name, aspect_name):
     url = f"{BASE_URL}/aspects/{class_name}"
-    try:
-        # Add timeout to prevent hanging requests
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        data = response.json()
+    # Add timeout to prevent hanging requests
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    data = response.json()
 
-        if aspect_name in data:
-            return data[aspect_name]
+    if aspect_name in data:
+        return data[aspect_name]
 
-        print(f"Aspect not found: {aspect_name}")
-        return None
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")
-        return None
-    except requests.exceptions.Timeout:
-        print("Request timed out")
-        return None
-    except Exception as err:
-        print(f"Other error occurred: {err}")
-        return None
+    logging.warning(f"Aspect not found: {aspect_name}")
+    return None
