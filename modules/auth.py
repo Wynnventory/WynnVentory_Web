@@ -1,13 +1,33 @@
 import hashlib
 from functools import wraps
+import inspect
 
-from flask import request, jsonify, g
+from flask import request, jsonify, g, current_app
 from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.utils.queue_worker import enqueue
 
 
+# Set to store public endpoint names
+_public_endpoints = set()
+
+def public_endpoint(f):
+    """
+    Decorator to mark an endpoint as public (no API key required)
+    """
+    # Store the function name which will match the endpoint name
+    endpoint_name = f.__name__
+    _public_endpoints.add(endpoint_name)
+    return f
+
 def require_api_key():
+    # Check if the current endpoint is marked as public
+    if request.endpoint and '.' in request.endpoint:
+        blueprint_name, endpoint_name = request.endpoint.split('.', 1)
+        # Check if the endpoint name is in the public endpoints set
+        if endpoint_name in _public_endpoints:
+            return None
+
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Api-Key "):
         token = auth.split(" ", 1)[1].strip()

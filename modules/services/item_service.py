@@ -52,7 +52,9 @@ def search_items(req: ItemSearchRequest) -> Dict:
         )
     }
 
+    print(criteria)
     api_resp = wynncraft_api.search_items(criteria, req.page)
+    print(api_resp)
     if not api_resp:
         return {"items": [], "next_page": None}
 
