@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 
+from modules.auth import require_scope
 from modules.services.lootpool_service import LootpoolService
 
 # Blueprint for lootpool API endpoints
@@ -7,6 +8,7 @@ lootpool_bp = Blueprint('lootpool', __name__, url_prefix='/api')
 service = LootpoolService()
 
 @lootpool_bp.post('/lootpool/items')
+@require_scope('write:lootpool')
 def save_lootpool_items():
     """
     POST /api/lootpool/items

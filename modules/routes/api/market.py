@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 
+from modules.auth import require_scope
 from modules.services.market_service import MarketService, save_items
 
 market_bp = Blueprint('market', __name__, url_prefix='/api')
@@ -7,6 +8,7 @@ service = MarketService()
 
 
 @market_bp.post('/trademarket/items')
+@require_scope('write:market')
 def save_trade_market_items():
     """
     POST /api/trademarket/items

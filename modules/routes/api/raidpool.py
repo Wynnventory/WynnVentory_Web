@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify
 
+from modules.auth import require_scope
 from modules.services.raidpool_service import RaidpoolService
 
 raidpool_bp = Blueprint('raidpool', __name__, url_prefix='/api')
 service = RaidpoolService()
 
 @raidpool_bp.post('/raidpool/items')
+@require_scope('write:raidpool')
 def save_raidpool_items():
     """
     POST /api/raidpool/items
