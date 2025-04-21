@@ -4,21 +4,13 @@ from queue import Queue
 from threading import Thread
 
 from modules.models.collection_types import Collection
-from modules.repositories.lootpool_repo import LootpoolRepository
-from modules.repositories.market_repo import MarketRepository
-from modules.repositories.raidpool_repo import RaidpoolRepository
+from modules.repositories import market_repo, lootpool_repo, raidpool_repo, usage_repo
 from modules.repositories.usage_repo import UsageRepository
 
 logger = logging.getLogger(__name__)
 
 # ─── INTERNAL QUEUE & REPO MAPPING ─────────────────────────────────────────────
 _request_queue = Queue()
-_repo_map = {
-    Collection.MARKET: MarketRepository(),
-    Collection.LOOT: LootpoolRepository(),
-    Collection.RAID: RaidpoolRepository(),
-    Collection.API_USAGE: UsageRepository()
-}
 
 
 # ─── WORKER LOOP ────────────────────────────────────────────────────────────────
@@ -30,13 +22,14 @@ def _worker_loop():
             logger.info(f"Worker for {collection_type} shutting down")
             break
 
-        repo = _repo_map.get(collection_type)
-        if repo:
-            try:
-                repo.save(item)
-                logger.debug(f"Saved item to {collection_type}")
-            except Exception:
-                logger.exception(f"Error saving to {collection_type}")
+        if collection_type == Collection.MARKET:
+            market_repo.save(item)
+        elif collection_type == Collection.LOOT:
+            lootpool_repo.save(item)
+        elif collection_type == Collection.RAID:
+            raidpool_repo.save(item)
+        elif collection_type == Collection.API_USAGE:
+            UsageRepository().save(item)
         else:
             logger.error(f"No repository configured for {collection_type!r}")
         _request_queue.task_done()

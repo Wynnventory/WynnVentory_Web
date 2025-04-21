@@ -1,10 +1,9 @@
 from flask import Blueprint, request, jsonify
 
 from modules.auth import require_scope
-from modules.services.market_service import MarketService, save_items
+from modules.services.market_service import save_items
 
 market_bp = Blueprint('market', __name__, url_prefix='/api')
-service = MarketService()
 
 
 @market_bp.post('/trademarket/items')
@@ -37,7 +36,7 @@ def get_market_item_info(item_name):
     if not item_name:
         return jsonify({'message': 'No item name provided'}), 400
     try:
-        result = service.get_item(item_name)
+        result = get_item(item_name)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
@@ -57,7 +56,7 @@ def get_market_item_price_info(item_name):
     tier = int(tier_param) if tier_param is not None else None
 
     try:
-        result = service.get_price(item_name, shiny, tier)
+        result = get_price(item_name, shiny, tier)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
@@ -81,7 +80,7 @@ def get_market_history(item_name):
     tier = int(tier_param) if tier_param is not None else None
 
     try:
-        result = service.get_history(item_name, shiny, days, tier)
+        result = get_history(item_name, shiny, days, tier)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
@@ -101,7 +100,7 @@ def get_latest_market_history(item_name):
     tier = int(tier_param) if tier_param is not None else None
 
     try:
-        result = service.get_latest_history(item_name, shiny, tier)
+        result = get_latest_history(item_name, shiny, tier)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
@@ -115,7 +114,7 @@ def get_all_items_ranking():
     Retrieve a ranking of items by average price.
     """
     try:
-        ranking = service.get_ranking()
+        ranking = get_ranking()
         return jsonify(ranking), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500

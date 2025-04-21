@@ -2,7 +2,7 @@ from typing import List, Optional, Any
 
 from modules.config import Config
 from modules.models.collection_types import Collection
-from modules.repositories.market_repo import MarketRepository
+from modules.repositories.market_repo import get_trade_market_item, get_trade_market_item_price, get_price_history, get_latest_price_history, get_all_items_ranking
 from modules.utils.queue_worker import enqueue
 from modules.utils.version import compare_versions
 
@@ -42,57 +42,49 @@ def save_items(raw_items):
         enqueue(Collection.MARKET, formatted)
 
 
-class MarketService:
+def get_latest_history(
+        item_name: str,
+        shiny: bool = False,
+        tier: Optional[int] = None
+) -> dict:
     """
-    Service layer for trade market operations: formatting, delegating to repository,
-    and any additional business logic (e.g., enrichment).
+    Retrieve aggregated statistics from the most recent price history documents.
     """
+    return get_latest_price_history(item_name, shiny, tier)
 
-    def __init__(self):
-        self.repo = MarketRepository()
 
-    def get_item(self, item_name: str) -> list[dict[str, Any]]:
-        """
-        Retrieve market item info by name.
-        """
-        return self.repo.get_trade_market_item(item_name)
+def get_history(
+        item_name: str,
+        shiny: bool = False,
+        days: int = 14,
+        tier: Optional[int] = None
+) -> List[dict]:
+    """
+    Retrieve historical price data for a market item over a specified window.
+    """
+    return get_price_history(item_name, shiny, days, tier)
 
-    def get_price(
-            self,
-            item_name: str,
-            shiny: bool = False,
-            tier: Optional[int] = None
-    ) -> dict:
-        """
-        Retrieve price statistics for a market item.
-        """
-        return self.repo.get_trade_market_item_price(item_name, shiny, tier)
 
-    def get_history(
-            self,
-            item_name: str,
-            shiny: bool = False,
-            days: int = 14,
-            tier: Optional[int] = None
-    ) -> List[dict]:
-        """
-        Retrieve historical price data for a market item over a specified window.
-        """
-        return self.repo.get_price_history(item_name, shiny, days, tier)
+def get_price(
+        item_name: str,
+        shiny: bool = False,
+        tier: Optional[int] = None
+) -> dict:
+    """
+    Retrieve price statistics for a market item.
+    """
+    return get_trade_market_item_price(item_name, shiny, tier)
 
-    def get_latest_history(
-            self,
-            item_name: str,
-            shiny: bool = False,
-            tier: Optional[int] = None
-    ) -> dict:
-        """
-        Retrieve aggregated statistics from the most recent price history documents.
-        """
-        return self.repo.get_latest_price_history(item_name, shiny, tier)
 
-    def get_ranking(self) -> List[dict]:
-        """
-        Retrieve a ranking of items based on archived price data.
-        """
-        return self.repo.get_all_items_ranking()
+def get_item(item_name: str) -> list[dict[str, Any]]:
+    """
+    Retrieve market item info by name.
+    """
+    return get_trade_market_item(item_name)
+
+
+def get_ranking() -> List[dict]:
+    """
+    Retrieve a ranking of items based on archived price data.
+    """
+    return get_all_items_ranking()

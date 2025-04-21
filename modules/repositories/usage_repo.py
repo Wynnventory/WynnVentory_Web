@@ -5,7 +5,6 @@ from modules.models.collection_types import Collection
 
 class UsageRepository:
     def __init__(self, batch_size: int = 250):
-        self.coll = get_collection(Collection.API_USAGE)
         self.batch_size = batch_size
         self._buffer = {}
         self._owners = {}
@@ -28,7 +27,7 @@ class UsageRepository:
         count = self._buffer.pop(key, 0)
         owner = self._owners.get(key)
         if count and owner:
-            self.coll.update_one(
+            get_collection(Collection.API_USAGE).update_one(
                 {"key_hash": key},
                 {
                     "$inc": {"count": count},
