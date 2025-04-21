@@ -35,7 +35,7 @@ def create_app():
 
     # 404 Error
     @app.errorhandler(404)
-    def page_not_found():
-        return redirect(url_for('web.index'), 404)
+    def page_not_found(error):
+        return redirect(url_for('web.index'))
 
     return app
