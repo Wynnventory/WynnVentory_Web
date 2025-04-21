@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 
 # ─── INTERNAL QUEUE & REPO MAPPING ─────────────────────────────────────────────
 _request_queue = Queue()
+_repo_map = {
+    Collection.MARKET: MarketRepository(),
+    Collection.LOOT: LootpoolRepository(),
+    Collection.RAID: RaidpoolRepository(),
+    Collection.API_USAGE: UsageRepository()
+}
 
 
 # ─── WORKER LOOP ────────────────────────────────────────────────────────────────
@@ -24,7 +30,7 @@ def _worker_loop():
             logger.info(f"Worker for {collection_type} shutting down")
             break
 
-        repo = collection_type.repo
+        repo = _repo_map.get(collection_type)
         if repo:
             try:
                 repo.save(item)
