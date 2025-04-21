@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 migrate_archives.py
 
@@ -8,7 +7,6 @@ Adds the following fields to every document in the 'archive' collection:
   - item_type: "GearItem"
 """
 
-from pymongo import MongoClient
 import sys
 
 from modules.db import get_collection

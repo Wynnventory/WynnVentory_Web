@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from pymongo import MongoClient, UpdateOne
 
 from modules.db import get_collection
