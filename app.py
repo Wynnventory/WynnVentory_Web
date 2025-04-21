@@ -21,6 +21,7 @@ if __name__ == "__main__":
         Config.ENVIRONMENT,
         Config.MIN_SUPPORTED_VERSION
     )
+    print(f"Starting in '{Config.ENVIRONMENT}' environment")
 
     app.run(
         host="0.0.0.0",
