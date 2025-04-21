@@ -28,6 +28,7 @@ def save_trade_market_items():
 
 
 @market_bp.get('/trademarket/item/<item_name>')
+@require_scope('read:market')
 def get_market_item_info(item_name):
     """
     GET /api/trademarket/item/<item_name>
@@ -43,6 +44,7 @@ def get_market_item_info(item_name):
 
 
 @market_bp.get('/trademarket/item/<item_name>/price')
+@require_scope('read:market')
 def get_market_item_price_info(item_name):
     """
     GET /api/trademarket/item/<item_name>/price
@@ -62,6 +64,7 @@ def get_market_item_price_info(item_name):
 
 
 @market_bp.get('/trademarket/history/<item_name>')
+@require_scope('read:market_archive')
 def get_market_history(item_name):
     """
     GET /api/trademarket/history/<item_name>
@@ -85,6 +88,7 @@ def get_market_history(item_name):
 
 
 @market_bp.get('/trademarket/history/<item_name>/latest')
+@require_scope('read:market_archive')
 def get_latest_market_history(item_name):
     """
     GET /api/trademarket/history/<item_name>/latest
@@ -104,6 +108,7 @@ def get_latest_market_history(item_name):
 
 
 @market_bp.get('/trademarket/ranking')
+@require_scope('read:market_archive')
 def get_all_items_ranking():
     """
     GET /api/trademarket/ranking

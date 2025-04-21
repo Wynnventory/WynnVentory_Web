@@ -27,6 +27,7 @@ def save_lootpool_items():
         return jsonify({'error': 'Internal server error'}), 500
 
 @lootpool_bp.get('/lootpool/items')
+@require_scope('read:lootpool')
 def get_lootpool_items():
     """
     GET /api/lootpool/items
@@ -39,6 +40,7 @@ def get_lootpool_items():
         return jsonify({'error': 'Internal server error'}), 500
 
 @lootpool_bp.get('/lootpool/raw')
+@require_scope('read:lootpool')
 def get_lootpool_raw():
     """
     GET /api/lootpool/raw

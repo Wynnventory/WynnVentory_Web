@@ -26,6 +26,7 @@ def save_raidpool_items():
         return jsonify({'error': 'Internal server error'}), 500
 
 @raidpool_bp.get('/raidpool/items')
+@require_scope('read:raidpool')
 def get_raidpool_items():
     """
     GET /api/raidpool/items
@@ -38,6 +39,7 @@ def get_raidpool_items():
         return jsonify({'error': 'Internal server error'}), 500
 
 @raidpool_bp.get('/raidpool/raw')
+@require_scope('read:raidpool')
 def get_raidpool_raw():
     """
     GET /api/raidpool
