@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 
-from modules.auth import require_scope
+from modules.auth import require_scope, public_endpoint
 from modules.services.market_service import save_items, get_price, get_item, get_history, get_latest_history, \
     get_ranking
 
@@ -64,7 +64,7 @@ def get_market_item_price_info(item_name):
 
 
 @market_bp.get('/trademarket/history/<item_name>')
-@require_scope('read:market_archive')
+@public_endpoint
 def get_market_history(item_name):
     """
     GET /api/trademarket/history/<item_name>
