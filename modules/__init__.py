@@ -12,9 +12,6 @@ def create_app():
                 static_folder='modules/routes/web/static',
                 template_folder='modules/routes/web/templates')
 
-    Config.ENVIRONMENT = env_config("ENVIRONMENT")
-    Config.MIN_SUPPORTED_VERSION = env_config("MIN_SUPPORTED_VERSION")
-
     # WEB ROUTES
     from modules.routes.web.web import web_bp
     app.register_blueprint(web_bp)
