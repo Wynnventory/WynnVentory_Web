@@ -22,7 +22,7 @@ def public_endpoint(f):
 def require_api_key():
     # Check if the current endpoint is marked as public
     if request.endpoint and '.' in request.endpoint:
-        blueprint_name, endpoint_name = request.endpoint.split('.', 1)
+        _,endpoint_name = request.endpoint.split('.', 1)
         # Check if the endpoint name is in the public endpoints set
         if endpoint_name in _public_endpoints:
             return None

@@ -1,5 +1,4 @@
 import logging
-import signal
 from queue import Queue
 from threading import Thread
 
