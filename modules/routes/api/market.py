@@ -96,12 +96,18 @@ def get_latest_market_history(item_name):
     """
     if not item_name:
         return jsonify({'message': 'No item name provided'}), 400
+
+    try:
+        days = int(request.args.get('days', 7))
+    except ValueError:
+        days = 7
+
     shiny = request.args.get('shiny', 'false').lower() == 'true'
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
 
     try:
-        result = get_latest_history(item_name, shiny, tier)
+        result = get_latest_history(item_name=item_name, shiny=shiny, tier=tier, days=days)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500

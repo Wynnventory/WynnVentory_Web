@@ -10,7 +10,12 @@ item_bp = Blueprint('item', __name__, url_prefix='/api')
 @item_bp.get('/item/<item_name>')
 @public_endpoint
 def get_item(item_name):
-    return jsonify(item_service.fetch_item(item_name))
+    data = item_service.fetch_item(item_name)
+
+    if data:
+        return jsonify(data), 200
+
+    return jsonify({'message': 'Item not found'}), 404
 
 @item_bp.post('/items')
 @public_endpoint

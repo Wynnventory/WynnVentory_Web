@@ -45,12 +45,13 @@ def save_items(raw_items):
 def get_latest_history(
         item_name: str,
         shiny: bool = False,
-        tier: Optional[int] = None
+        tier: Optional[int] = None,
+        days: int = 7,
 ) -> dict:
     """
     Retrieve aggregated statistics from the most recent price history documents.
     """
-    return get_latest_price_history(item_name, shiny, tier)
+    return get_latest_price_history(item_name=item_name, shiny=shiny, tier=tier, days=days)
 
 
 def get_history(

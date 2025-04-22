@@ -114,14 +114,14 @@ def quick_search_item(item_name):
     url = f"{BASE_URL}/item/search"
     # Add timeout to prevent hanging requests
     response = requests.get(f"{url}/{item_name}", timeout=10)
-    response.raise_for_status()
     data = response.json()
+
+    if response.status_code != 200:
+        return None
 
     if item_name in data:
         return data[item_name]
 
-    # If no match is found, return None or an appropriate message
-    logging.warning(f"Item not found: {item_name}")
     return None
 
 

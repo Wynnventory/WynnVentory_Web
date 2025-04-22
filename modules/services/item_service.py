@@ -1,5 +1,7 @@
 from typing import Dict
 
+from flask import Response
+
 from modules.models.accessory import Accessory
 from modules.models.armour import Armour
 from modules.models.item import Item
@@ -83,7 +85,7 @@ def search_items(req: ItemSearchRequest) -> Dict:
     }
 
 
-def fetch_item(name: str) -> dict:
+def fetch_item(name: str) -> tuple[dict, int] | tuple[Response, int]:
     """
     Fetch a single item by name from the Wynncraft API.
 
@@ -93,5 +95,5 @@ def fetch_item(name: str) -> dict:
     Returns:
         dict: The processed item data as a dictionary
     """
-    raw = wynncraft_api.quick_search_item(name)
-    return _process(raw)
+    return wynncraft_api.quick_search_item(name)
+

@@ -165,7 +165,8 @@ def get_price_history(
 def get_latest_price_history(
         item_name: str,
         shiny: bool = False,
-        tier: Optional[int] = None
+        tier: Optional[int] = None,
+        days: int = 7,
 ) -> Dict[str, Any]:
     """
     Aggregate the last N documents (default 7) to compute averages.
@@ -184,7 +185,7 @@ def get_latest_price_history(
         filter=query_filter,
         sort=[('date', -1)],
         projection={'_id': 0}
-    ).limit(7)
+    ).limit(days)
     docs = list(cursor)
     stats: Dict[str, Any] = {}
     if docs:
