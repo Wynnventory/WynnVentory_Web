@@ -73,7 +73,6 @@ def compute_hash(doc):
 
 
 def update_hash_codes_and_migrate():
-    # We still only project the fields we need for both hash and migration:
     projection = {
         "name": 1,
         "rarity": 1,
@@ -86,8 +85,6 @@ def update_hash_codes_and_migrate():
         "listing_price": 1,
         "actual_stats_with_percentage": 1,
         "rerolls": 1,
-        # plus any fields you might need to drop—
-        # but you don't need to project dropped fields to unset them
     }
 
     BATCH_SIZE = 1000
