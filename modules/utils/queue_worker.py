@@ -3,7 +3,7 @@ from queue import Queue
 from threading import Thread
 
 from modules.models.collection_types import Collection
-from modules.repositories import market_repo, lootpool_repo, raidpool_repo, usage_repo
+from modules.repositories import market_repo, lootpool_repo, raidpool_repo
 from modules.repositories.usage_repo import UsageRepository
 
 logger = logging.getLogger(__name__)
@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 # ─── INTERNAL QUEUE & REPO MAPPING ─────────────────────────────────────────────
 _request_queue = Queue()
 
+_usage_repo = UsageRepository()
 
 # ─── WORKER LOOP ────────────────────────────────────────────────────────────────
 def _worker_loop():
@@ -28,7 +29,7 @@ def _worker_loop():
         elif collection_type == Collection.RAID:
             raidpool_repo.save(item)
         elif collection_type == Collection.API_USAGE:
-            UsageRepository().save(item)
+            _usage_repo.save(item)
         else:
             logger.error(f"No repository configured for {collection_type!r}")
         _request_queue.task_done()
