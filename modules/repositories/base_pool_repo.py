@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Tuple, Dict, Any, Callable
+from typing import List, Tuple, Dict, Any
 
 from modules.db import get_collection
 from modules.models.collection_types import Collection

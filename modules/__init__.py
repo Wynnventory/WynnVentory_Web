@@ -2,7 +2,6 @@ from flask import Flask, redirect, url_for
 
 from modules.auth import require_api_key, record_api_usage
 from modules.config import Config
-from modules.db import get_client
 
 
 def create_app():

@@ -1,8 +1,6 @@
 import logging
 from typing import Any, Dict, List, Union
 
-from flask import jsonify
-
 from modules.config import Config
 from modules.models.collection_types import Collection
 from modules.repositories import lootpool_repo, raidpool_repo
@@ -61,15 +59,15 @@ class BasePoolService:
             # All checks passed -> enqueue for DB save
             enqueue(self.collection_type, item)
 
-    def get_current_lootpool(self):
+    def get_current_pools(self) -> List[Dict[str, Any]]:
         if self.collection_type == Collection.LOOT:
             return lootpool_repo.fetch_lootpool()
         elif self.collection_type == Collection.RAID:
             return raidpool_repo.fetch_raidpool()
 
-        return jsonify({"message": "No lootpool for type found"}), 404
+        return []
 
-    def get_current_lootpool_raw(self) -> List[dict]:
+    def get_current_pools_raw(self) -> List[dict]:
         if self.collection_type == Collection.LOOT:
             return lootpool_repo.fetch_lootpool_raw()
         elif self.collection_type == Collection.RAID:

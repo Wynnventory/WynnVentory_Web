@@ -1,4 +1,4 @@
-from pymongo import MongoClient, UpdateOne
+from pymongo import UpdateOne
 
 from modules.db import get_collection
 from modules.models.collection_types import Collection

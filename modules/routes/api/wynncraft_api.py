@@ -1,11 +1,12 @@
-import requests
-import time
 import logging
+import time
 from functools import wraps
 from typing import Dict, Any, Callable, Optional
 
+import requests
 
 BASE_URL = "https://api.wynncraft.com/v3"
+
 
 # Simple in-memory cache with TTL
 class Cache:
@@ -33,11 +34,14 @@ class Cache:
         """Clear all cache entries"""
         self.cache.clear()
 
+
 # Initialize cache
 _cache = Cache()
 
+
 def cached(ttl: int = 300):
     """Decorator to cache function results with TTL in seconds"""
+
     def decorator(func: Callable):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -55,11 +59,15 @@ def cached(ttl: int = 300):
                 _cache.set(key, result, ttl)
 
             return result
+
         return wrapper
+
     return decorator
+
 
 def api_request(func):
     """Decorator to handle API requests and error handling"""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -71,7 +79,10 @@ def api_request(func):
         except Exception as err:
             logging.error(f"Other error occurred: {err}")
         return None
+
     return wrapper
+
+
 @cached(ttl=3600)  # Cache for 1 hour
 @api_request
 def get_item_database():
@@ -96,6 +107,7 @@ def search_items(payload, page=1):
     response.raise_for_status()
     return response.json()
 
+
 @cached(ttl=1800)  # Cache for 30 minutes
 @api_request
 def quick_search_item(item_name):
@@ -111,6 +123,7 @@ def quick_search_item(item_name):
     # If no match is found, return None or an appropriate message
     logging.warning(f"Item not found: {item_name}")
     return None
+
 
 @cached(ttl=1800)  # Cache for 30 minutes
 @api_request

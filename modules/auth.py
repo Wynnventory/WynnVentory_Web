@@ -1,12 +1,11 @@
 import hashlib
 from functools import wraps
-import inspect
 
-from flask import request, jsonify, g, current_app
+from flask import request, jsonify, g
+
 from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.utils.queue_worker import enqueue
-
 
 # Set to store public endpoint names
 _public_endpoints = set()

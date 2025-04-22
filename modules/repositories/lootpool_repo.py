@@ -1,6 +1,5 @@
 from typing import List, Dict, Any
 
-from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.repositories.base_pool_repo import BasePoolRepo, BasePoolAggregator
 from modules.utils.time_validation import get_lootpool_week
