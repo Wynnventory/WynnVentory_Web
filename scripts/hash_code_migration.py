@@ -72,8 +72,8 @@ def compute_hash(doc):
     return java_hash(values)
 
 
-def update_hash_codes():
-    # Use projection to fetch only fields needed for hash computation.
+def update_hash_codes_and_migrate():
+    # We still only project the fields we need for both hash and migration:
     projection = {
         "name": 1,
         "rarity": 1,
@@ -85,7 +85,9 @@ def update_hash_codes():
         "amount": 1,
         "listing_price": 1,
         "actual_stats_with_percentage": 1,
-        "rerolls": 1
+        "rerolls": 1,
+        # plus any fields you might need to drop—
+        # but you don't need to project dropped fields to unset them
     }
 
     BATCH_SIZE = 1000
@@ -94,17 +96,41 @@ def update_hash_codes():
 
     cursor = COLLECTION.find({}, projection)
     for doc in cursor:
+        # 1) compute the new hash
         hash_code = compute_hash(doc)
-        updates.append(UpdateOne({"_id": doc["_id"]}, {"$set": {"hash_code": hash_code}}))
+
+        # 2) build a single update spec that:
+        #    - sets hash_code + new schema fields
+        #    - unsets the old schema fields
+        update_spec = {
+            "$set": {
+                "hash_code": hash_code,
+                "item_type": "GearItem",
+                "type": None,
+                "tier": None,
+            },
+            "$unset": {
+                "level": "",
+                "powder_slots": "",
+                "rerolls": "",
+                "overall_percentage": "",
+                "actual_stats_with_percentage": "",
+            }
+        }
+
+        updates.append(
+            UpdateOne({"_id": doc["_id"]}, update_spec)
+        )
+
         count += 1
         if len(updates) >= BATCH_SIZE:
             COLLECTION.bulk_write(updates, ordered=False)
             updates = []
-            print(f"Processed {count} documents...")
+            print(f"Processed & migrated {count} documents...")
 
     if updates:
         COLLECTION.bulk_write(updates, ordered=False)
-        print(f"Processed {count} documents in total.")
+        print(f"Processed & migrated {count} documents in total.")
 
 
 def remove_duplicates():
@@ -133,7 +159,7 @@ def remove_duplicates():
 
 def main():
     print("Updating hash codes...")
-    update_hash_codes()
+    update_hash_codes_and_migrate()
     print("Removing duplicate documents...")
     remove_duplicates()
 
