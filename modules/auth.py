@@ -10,6 +10,7 @@ from modules.utils.queue_worker import enqueue
 # Set to store public endpoint names
 _public_endpoints = set()
 
+
 def public_endpoint(f):
     """
     Decorator to mark an endpoint as public (no API key required)
@@ -19,10 +20,11 @@ def public_endpoint(f):
     _public_endpoints.add(endpoint_name)
     return f
 
+
 def require_api_key():
     # Check if the current endpoint is marked as public
     if request.endpoint and '.' in request.endpoint:
-        _,endpoint_name = request.endpoint.split('.', 1)
+        _, endpoint_name = request.endpoint.split('.', 1)
         # Check if the endpoint name is in the public endpoints set
         if endpoint_name in _public_endpoints:
             return None
@@ -38,7 +40,7 @@ def require_api_key():
 
     token_hash = hashlib.sha256(token.encode()).hexdigest()
     key_doc = get_collection(Collection.API_KEYS).find_one({"key_hash": token_hash, "revoked": False},
-                            {"owner": 1, "scopes": 1})
+                                                           {"owner": 1, "scopes": 1})
     if not key_doc:
         return jsonify({"error": "Invalid or revoked API key"}), 403
 

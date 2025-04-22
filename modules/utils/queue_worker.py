@@ -52,7 +52,6 @@ def shutdown_workers():
     2) Wait for it to finish processing all enqueued items.
     3) Flush any buffered repos (e.g. UsageRepository).
     """
-    print("GOING DOWN")
     logger.info("shutdown_workers() called, stopping worker thread…")
 
     # 1) tell the worker to stop once it's picked up everything
