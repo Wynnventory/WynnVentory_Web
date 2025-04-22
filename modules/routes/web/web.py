@@ -24,7 +24,7 @@ def items():
 
 @web_bp.route("/lootrun")
 def lootrun_lootpool():
-    loot_data = jsonify(LootpoolService().get_current_lootpool()).get_json()
+    loot_data = jsonify(LootpoolService().get_current_pools()).get_json()
     loot_data = loot_data if isinstance(loot_data, list) else []
 
     now = datetime.now(timezone.utc)
@@ -43,7 +43,7 @@ def lootrun_lootpool():
 
 @web_bp.route("/raid")
 def raid_lootpool():
-    loot_data = jsonify(RaidpoolService().get_current_lootpool()).get_json()
+    loot_data = jsonify(RaidpoolService().get_current_pools()).get_json()
     loot_data = loot_data if isinstance(loot_data, list) else []
 
     now = datetime.now(timezone.utc)
