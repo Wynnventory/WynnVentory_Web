@@ -43,6 +43,7 @@ class UsageRepository:
 
     def flush_all(self):
         """Persist *all* leftover counts on shutdown."""
+        print("FLUSHING ALL")
         with self._lock:
             for key in list(self._buffer):
                 self._flush_key(key)

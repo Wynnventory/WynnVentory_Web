@@ -63,6 +63,6 @@ def shutdown_workers():
     logger.info("Worker thread has exited")
 
     # 3) now flush any in‑memory buffers
-    UsageRepository().flush_all()
+    _usage_repo.flush_all()
 
     logger.info("All queue workers have shut down and buffers flushed")
