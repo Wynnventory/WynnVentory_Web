@@ -1,1 +1,0 @@
-- Set maxPoolSize to 50 to handle concurrent connections efficiently
