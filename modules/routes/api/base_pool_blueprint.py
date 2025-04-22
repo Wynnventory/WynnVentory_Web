@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from typing import Any
 
 from modules.auth import require_scope
+from modules.models.collection_types import Collection
+from modules.services import base_pool_service
 
 
 class BasePoolBlueprint:
@@ -10,7 +12,7 @@ class BasePoolBlueprint:
     Provides common endpoint definitions and error handling.
     """
 
-    def __init__(self, name: str, service: Any):
+    def __init__(self, name: str, collection_type: Collection):
         """
         Initialize the blueprint with a name and service instance.
 
@@ -19,7 +21,7 @@ class BasePoolBlueprint:
             service (Any): The service instance to use for operations
         """
         self.name = name
-        self.service = service
+        self.collection_type = collection_type
         self.blueprint = Blueprint(name, __name__, url_prefix='/api')
 
         # Register the endpoints
@@ -40,7 +42,7 @@ class BasePoolBlueprint:
                 return jsonify({'message': 'No items provided'}), 400
 
             try:
-                self.service.save(data)
+                base_pool_service.save(collection_type=self.collection_type, raw_data=data)
                 return jsonify({'message': 'Items received successfully'}), 200
             except ValueError as ve:
                 return jsonify({'error': str(ve)}), 400
@@ -55,7 +57,7 @@ class BasePoolBlueprint:
             Retrieve the processed pool items for the current week.
             """
             try:
-                items = self.service.get_current_pools()
+                items = base_pool_service.get_current_pools(self.collection_type)
                 return jsonify(items), 200
             except Exception:
                 return jsonify({'error': 'Internal server error'}), 500
@@ -68,7 +70,7 @@ class BasePoolBlueprint:
             Retrieve the raw pool documents for the current week.
             """
             try:
-                raw = self.service.get_current_pools_raw()
+                raw = base_pool_service.get_current_pools_raw(self.collection_type)
                 return jsonify(raw), 200
             except Exception:
                 return jsonify({'error': 'Internal server error'}), 500
