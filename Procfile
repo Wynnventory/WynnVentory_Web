@@ -1,1 +1,1 @@
-web: gunicorn -w 8 -b 0.0.0.0:$PORT 'modules:create_app()'
+web: gunicorn 'modules:create_app()' -c modules/gunicorn_config.py -w 8

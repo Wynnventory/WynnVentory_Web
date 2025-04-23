@@ -1,44 +1,40 @@
-from flask import Flask, redirect, url_for, request
+from flask import Flask, redirect, url_for
 
-ALLOWED_IPS = ["127.0.0.1",
-               "83.76.209.66", # Pfister PC
-               "178.197.215.137", # Tim Handy
-               "85.2.46.237", # Tim PC
-               "178.197.211.252", # Pfister Handy
-               "213.55.243.96" # Säm PC
-               ]
-
-
-def is_allowed_ip():
-    """Returns True if the user's IP is in the allowed list."""
-    if request.headers.getlist("X-Forwarded-For"):
-        user_ip = request.headers.getlist("X-Forwarded-For")[0]
-    else:
-        user_ip = request.remote_addr  # Fallback to remote address
-
-    return user_ip in ALLOWED_IPS
+from modules.auth import require_api_key, record_api_usage
+from modules.config import Config
 
 
 def create_app():
     app = Flask(__name__,
                 static_url_path='',
-                static_folder='../templates/static',
-                template_folder='../templates')
+                static_folder='modules/routes/web/static',
+                template_folder='modules/routes/web/templates')
 
-    # ROUTES
-    from modules.routes.web import web_bp
-    from modules.routes.api import api_bp
+    # WEB ROUTES
+    from modules.routes.web.web import web_bp
     app.register_blueprint(web_bp)
-    app.register_blueprint(api_bp)
+
+    # WEB ROUTES
+    from modules.routes.api.item import item_bp
+    from modules.routes.api.aspect import aspect_bp
+    from modules.routes.api.lootpool import lootpool_bp
+    from modules.routes.api.raidpool import raidpool_bp
+    from modules.routes.api.market import market_bp
+
+    for bp in (item_bp, aspect_bp, lootpool_bp, raidpool_bp, market_bp):
+        bp.before_request(require_api_key)
+        bp.after_request(record_api_usage)
+        app.register_blueprint(bp)
+
+    app.logger.warning(
+        "Successfully started in '%s' mode with min supported version '%s'",
+        Config.ENVIRONMENT,
+        Config.MIN_SUPPORTED_VERSION,
+    )
 
     # 404 Error
     @app.errorhandler(404)
-    def page_not_found(e):
-        return redirect(url_for('web.index'), 404)
+    def page_not_found(error):
+        return redirect(url_for('web.index'))
 
-    @app.context_processor
-    def inject_ip_check():
-        """Injects whether the current user's IP is allowed into all templates."""
-        show_price_history = is_allowed_ip()  # Perform IP check
-        return dict(show_price_history=show_price_history)
     return app

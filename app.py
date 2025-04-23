@@ -1,13 +1,21 @@
 import os
-import logging
+
 from modules import create_app
+from modules.config import Config
 
 app = create_app()
 
+# Enable JSON compact mode (reduces response size)
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
-log = logging.getLogger('werkzeug')
-# log.setLevel(logging.WARNING)
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 5000))
+    debug = Config.ENVIRONMENT != "prod"
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, host='0.0.0.0', port=port) 
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=debug,
+        use_reloader=False,
+        threaded=True
+    )

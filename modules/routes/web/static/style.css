@@ -594,7 +594,7 @@ li .SET:hover {
     width: 32px;
     height: 32px;
     display: inline-block;
-    background-image: url('/icons/wynn_sprites.png');
+    background-image: url('icons/wynn_sprites.png');
     background-repeat: no-repeat;
     background-size: initial; /* Ensure the background size is set */
     flex-shrink: 0; /* Prevent the sprite from shrinking */

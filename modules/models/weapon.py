@@ -13,7 +13,6 @@ class Weapon(Item):
     def __init__(self, name, rarity, powder_slots, item_subtype, drop_restriction, attack_speed, base, identifications, requirements, drop_meta=None, lore=None):
         super().__init__(name, rarity, powder_slots, ItemType.WEAPON.value, item_subtype, drop_restriction, base, identifications, requirements, drop_meta, lore)
         self.attack_speed = ' '.join(word.capitalize() for word in attack_speed.replace('_', ' ').split())
-        # self.average_dps = average_dps
         self.class_req = self.WEAPON_CLASS_REQUIREMENTS.get(self.item_subtype, 'Unknown Class')
 
     @staticmethod
@@ -29,7 +28,6 @@ class Weapon(Item):
             item_subtype=data.get('weaponType', 'Unknown Subtype'),  # Use 'weaponType' as per the new structure
             drop_restriction=item.drop_restriction,
             attack_speed=data.get('attackSpeed', 'Unknown Speed'),
-            # average_dps=data.get('averageDps'),
             base=item.base,
             identifications=item.identifications,
             requirements=item.requirements,
@@ -40,6 +38,5 @@ class Weapon(Item):
     def to_dict(self):
         data = super().to_dict()
         data['attack_speed'] = self.attack_speed
-        # data['average_dps'] = self.average_dps
         data['class_req'] = self.class_req
         return data
