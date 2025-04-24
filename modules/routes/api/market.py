@@ -114,7 +114,7 @@ def get_latest_market_history(item_name):
 
 
 @market_bp.get('/trademarket/ranking')
-@require_scope('read:market_archive')
+@public_endpoint
 def get_all_items_ranking():
     """
     GET /api/trademarket/ranking
