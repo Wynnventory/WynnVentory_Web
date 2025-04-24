@@ -85,7 +85,7 @@ def search_items(req: ItemSearchRequest) -> Dict:
     }
 
 
-def fetch_item(name: str) -> tuple[dict, int] | tuple[Response, int]:
+def fetch_item(name: str) -> dict:
     """
     Fetch a single item by name from the Wynncraft API.
 
@@ -95,5 +95,5 @@ def fetch_item(name: str) -> tuple[dict, int] | tuple[Response, int]:
     Returns:
         dict: The processed item data as a dictionary
     """
-    return wynncraft_api.quick_search_item(name)
+    return _process(wynncraft_api.quick_search_item(name))
 
