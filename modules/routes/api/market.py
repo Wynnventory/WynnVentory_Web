@@ -2,6 +2,7 @@ import logging
 
 from flask import Blueprint, request, jsonify
 
+from modules import Config
 from modules.auth import require_scope, public_endpoint
 from modules.services.market_service import save_items, get_price, get_item, get_history, get_latest_history, \
     get_ranking, delete_all_items
@@ -158,6 +159,8 @@ def delete_trademarket_items():
     POST /api/admin/trademarket/items/delete-all
     Completely clears out the trademarket_items collection.
     """
+    if Config.ENVIRONMENT != "dev":
+        return jsonify({"error": "This endpoint is only available in development environments"}), 403
     try:
         deleted = delete_all_items()
         return jsonify({
