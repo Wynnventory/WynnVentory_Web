@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 
 from modules.auth import require_scope, public_endpoint
 from modules.services.market_service import save_items, get_price, get_item, get_history, get_latest_history, \
-    get_ranking
+    get_ranking, delete_all_items
 
 logging.basicConfig(
     level=logging.INFO,
@@ -149,3 +149,19 @@ def get_all_items_ranking():
         return jsonify(ranking), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
+
+
+@market_bp.post('/trademarket/items/delete')
+@require_scope('write:market')
+def delete_trademarket_items():
+    """
+    POST /api/admin/trademarket/items/delete-all
+    Completely clears out the trademarket_items collection.
+    """
+    try:
+        deleted = delete_all_items()
+        return jsonify({
+            "message": f"Deleted {deleted} market item{'s' if deleted != 1 else ''}."
+        }), 200
+    except Exception as e:
+        return jsonify({"error": "Could not delete market items"}), 500

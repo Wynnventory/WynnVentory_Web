@@ -229,3 +229,12 @@ def get_all_items_ranking() -> List[Dict[str, Any]]:
         dict(name=doc['_id'], **{k: doc[k] for k in doc if k != '_id'})
         for doc in cursor
     ]
+
+
+def delete_all() -> int:
+    """
+    Delete every document in the live market collection.
+    Returns the number of documents deleted.
+    """
+    result = get_collection(ColEnum.MARKET).delete_many({})
+    return result.deleted_count

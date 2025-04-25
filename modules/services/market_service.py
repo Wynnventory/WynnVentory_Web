@@ -3,7 +3,8 @@ from typing import List, Optional, Any
 
 from modules.config import Config
 from modules.models.collection_types import Collection
-from modules.repositories.market_repo import get_trade_market_item, get_trade_market_item_price, get_price_history, get_latest_price_history, get_all_items_ranking
+from modules.repositories.market_repo import get_trade_market_item, get_trade_market_item_price, get_price_history, \
+    get_latest_price_history, get_all_items_ranking, delete_all
 from modules.utils.queue_worker import enqueue
 from modules.utils.version import compare_versions
 
@@ -129,3 +130,11 @@ def get_ranking() -> List[dict]:
     Retrieve a ranking of items based on archived price data.
     """
     return get_all_items_ranking()
+
+
+def delete_all_items() -> int:
+    """
+    Wipe out all current market items.
+    Returns how many were deleted.
+    """
+    return delete_all()
