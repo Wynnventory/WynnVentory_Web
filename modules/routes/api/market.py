@@ -1,8 +1,18 @@
+import logging
+
 from flask import Blueprint, request, jsonify
 
 from modules.auth import require_scope, public_endpoint
 from modules.services.market_service import save_items, get_price, get_item, get_history, get_latest_history, \
     get_ranking
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s"
+)
+
+# Get module-specific logger
+logger = logging.getLogger(__name__)
 
 market_bp = Blueprint('market', __name__, url_prefix='/api')
 
@@ -14,16 +24,30 @@ def save_trade_market_items():
     POST /api/trademarket/items
     Save one or more market items.
     """
+    logger.info("Received request to /trademarket/items endpoint")
     data = request.get_json()
+
     if not data or (isinstance(data, list) and len(data) == 0):
+        logger.warning("No items provided in request")
         return jsonify({'message': 'No items provided'}), 400
 
     try:
+        # Log the number of items and a sample of the data for debugging
+        if isinstance(data, list):
+            item_count = len(data)
+            logger.info(f"Processing {item_count} items from request")
+        else:
+            logger.info(f"Processing single item from request")
+
         save_items(data)
+        logger.info(f"Successfully processed items from request")
         return jsonify({'message': 'Items received successfully'}), 200
     except ValueError as ve:
-        return jsonify({'error': str(ve)}), 400
-    except Exception:
+        error_msg = str(ve)
+        logger.warning(f"Validation error: {error_msg}")
+        return jsonify({'error': error_msg}), 400
+    except Exception as e:
+        logger.error(f"Error processing items: {str(e)}", exc_info=True)
         return jsonify({'error': 'Internal server error'}), 500
 
 

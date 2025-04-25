@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional, Any
 
 from modules.config import Config
@@ -6,10 +7,23 @@ from modules.repositories.market_repo import get_trade_market_item, get_trade_ma
 from modules.utils.queue_worker import enqueue
 from modules.utils.version import compare_versions
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s"
+)
+
+# Get module-specific logger
+logger = logging.getLogger(__name__)
+
 
 def _format_item_for_db(item: dict) -> dict:
+    logger.info(f"Formatting item for database: {item.get('hash_code', 'no_hash')}")
+
     item_data = item.get('item', {})
-    return {
+    if not item_data:
+        logger.warning(f"Item has no 'item' data: {item}")
+
+    formatted_item = {
         "name": item_data.get('name'),
         "rarity": item_data.get('rarity'),
         "item_type": item_data.get('item_type'),
@@ -24,22 +38,48 @@ def _format_item_for_db(item: dict) -> dict:
         "hash_code": item.get('hash_code'),
     }
 
+    # Log any missing critical fields
+    if not formatted_item["name"]:
+        logger.warning(f"Item missing name: {item.get('hash_code', 'no_hash')}")
+    if formatted_item["listing_price"] is None:
+        logger.warning(f"Item missing listing price: {formatted_item['name'] or item.get('hash_code', 'no_hash')}")
+
+    logger.info(f"Formatted item: {formatted_item}")
+    return formatted_item
+
 
 def save_items(raw_items):
     """
     raw_items: list of dicts coming from the Flask controller
     """
     if not raw_items:
+        logger.warning("No items provided to save_items")
         raise ValueError("No items provided")
 
-    for item in raw_items:
+    logger.info(f"Processing {len(raw_items) if isinstance(raw_items, list) else 1} items in save_items")
+
+    for index, item in enumerate(raw_items if isinstance(raw_items, list) else [raw_items]):
+        item_id = item.get('hash_code', f'item_{index}')
+        logger.info(f"Processing item {index}: {item_id}")
+
         mod_version = item.get('modVersion')
+        logger.info(f"Item {item_id} mod version: {mod_version}")
 
         if not mod_version or not compare_versions(mod_version, Config.MIN_SUPPORTED_VERSION):
-            raise ValueError(f"Item at index has unsupported mod version: {mod_version}")
+            error_msg = f"Item at index {index} has unsupported mod version: {mod_version}"
+            logger.warning(error_msg)
+            raise ValueError(error_msg)
 
-        formatted = _format_item_for_db(item)
-        enqueue(Collection.MARKET, formatted)
+        try:
+            formatted = _format_item_for_db(item)
+            logger.info(f"Enqueueing item {item_id} for database save")
+            enqueue(Collection.MARKET, formatted)
+            logger.info(f"Successfully enqueued item {item_id}")
+        except Exception as e:
+            logger.error(f"Error formatting/enqueueing item {item_id}: {str(e)}", exc_info=True)
+            raise
+
+    logger.info(f"Successfully processed all {len(raw_items) if isinstance(raw_items, list) else 1} items")
 
 
 def get_latest_history(
