@@ -2,11 +2,13 @@ import logging
 from typing import Any, Dict, List, Union
 
 from modules.config import Config
+from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
 from modules.repositories import lootpool_repo, raidpool_repo
 from modules.utils.queue_worker import enqueue
 from modules.utils.time_validation import is_time_valid
 from modules.utils.version import compare_versions
+
 
 def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[str, Any]]]) -> None:
     """
@@ -17,6 +19,8 @@ def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[
     items = raw_data if isinstance(raw_data, list) else [raw_data]
     if not items:
         raise ValueError("No items provided")
+
+    valid_items = []
 
     for idx, item in enumerate(items):
         mod_version = item.get('modVersion')
@@ -36,8 +40,11 @@ def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[
             )
             continue
 
-        # All checks passed -> enqueue for DB save
-        enqueue(collection_type, item)
+        valid_items.append(item)
+
+    # Enqueue all valid items at once
+    if valid_items:
+        enqueue(CollectionRequest(type=collection_type, items=valid_items))
 
 def get_current_pools(collection_type: Collection) -> List[Dict[str, Any]]:
     if collection_type == Collection.LOOT:

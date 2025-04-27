@@ -4,6 +4,7 @@ from functools import wraps
 from flask import request, jsonify, g
 
 from modules.db import get_collection
+from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
 from modules.utils.queue_worker import enqueue
 
@@ -67,11 +68,10 @@ def require_scope(scope):
 
 def record_api_usage(response):
     if hasattr(g, "owner"):
-        enqueue(
-            Collection.API_USAGE,
-            {
-                "owner": g.owner,
-                "key_hash": g.api_key_hash
-            }
-        )
+        item =  [{
+                    "owner": g.owner,
+                    "key_hash": g.api_key_hash
+                }]
+
+        enqueue(CollectionRequest(type=Collection.API_USAGE, items=item))
     return response

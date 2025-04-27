@@ -1,4 +1,6 @@
 from threading import Lock
+from typing import Dict, List, Any
+
 from modules.db import get_collection
 from modules.models.collection_types import Collection
 
@@ -10,15 +12,26 @@ class UsageRepository:
         self._owners = {}
         self._lock = Lock()
 
-    def save(self, record: dict):
-        key = record["key_hash"]
-        owner = record["owner"]
+    def save(self, records: List[Dict[str, Any]]) -> None:
+        """
+        Process a list of records: update owner and buffer counts,
+        flushing any key whose count reaches batch_size.
+        """
         with self._lock:
-            self._owners[key] = owner
-            new_count = self._buffer.get(key, 0) + 1
-            self._buffer[key] = new_count
-            if new_count >= self.batch_size:
-                self._flush_key(key)
+            for record in records:
+                key = record["key_hash"]
+                owner = record["owner"]
+
+                # Update owner mapping
+                self._owners[key] = owner
+
+                # Increment buffer count
+                new_count = self._buffer.get(key, 0) + 1
+                self._buffer[key] = new_count
+
+                # Flush if we've reached the batch size
+                if new_count >= self.batch_size:
+                    self._flush_key(key)
 
     def _flush_key(self, key: str):
         """

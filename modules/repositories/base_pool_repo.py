@@ -15,44 +15,49 @@ class BasePoolRepo:
     def __init__(self, collection_type: Collection):
         self.collection_type = collection_type
 
-    def save(self, pool: dict) -> None:
+    def save(self, pools: List[Dict]) -> None:
         """
-        Insert or update a pool document for the given region/week/year,
+        Insert or update pool documents for each dict in the given list,
         applying duplicate checks and timestamp logic.
         """
-        # Compute week/year from the payload's collectionTime
-        year, week = get_lootpool_week_for_timestamp(pool.get('collectionTime'))
-        pool['week'] = week
-        pool['year'] = year
-        pool['timestamp'] = datetime.now(timezone.utc)
-
-        # Build a filter for existing documents in same region/week/year
-        region = pool.get('region')
-        filter_q = {'region': region, 'week': week, 'year': year}
         collection = get_collection(self.collection_type)
-        existing = collection.find_one(filter_q)
 
-        if existing:
-            # Apply replacement rules
-            existing_ts = existing['timestamp']
-            age = datetime.now() - existing_ts
-            new_items = pool.get('items', [])
-            old_items = existing.get('items', [])
+        for pool in pools:
+            # Compute week/year from the payload's collectionTime
+            year, week = get_lootpool_week_for_timestamp(pool.get('collectionTime'))
+            pool['week'] = week
+            pool['year'] = year
+            pool['timestamp'] = datetime.now(timezone.utc)
 
-            has_more = len(new_items) > len(old_items)
-            has_enough_and_stale = age > timedelta(hours=1) and len(new_items) >= len(old_items)
-            is_older_week = (existing['year'], existing['week']) < (year, week)
+            # Build a filter for existing documents in same region/week/year
+            region = pool.get('region')
+            filter_q = {'region': region, 'week': week, 'year': year}
+            existing = collection.find_one(filter_q)
 
-            if has_more or has_enough_and_stale or is_older_week:
-                # Replace the old document
-                collection.delete_one(filter_q)
-                collection.insert_one(pool)
+            if existing:
+                # Apply replacement rules
+                existing_ts = existing['timestamp']
+                if existing_ts.tzinfo is None:
+                    existing_ts = existing_ts.replace(tzinfo=timezone.utc)
+
+                age = datetime.now(timezone.utc) - existing_ts
+                new_items = pool.get('items', [])
+                old_items = existing.get('items', [])
+
+                has_more = len(new_items) > len(old_items)
+                has_enough_and_stale = age > timedelta(hours=1) and len(new_items) >= len(old_items)
+                is_older_week = (existing['year'], existing['week']) < (year, week)
+
+                if has_more or has_enough_and_stale or is_older_week:
+                    # Replace the old document
+                    collection.delete_one(filter_q)
+                    collection.insert_one(pool)
+                else:
+                    # Skip insertion
+                    continue
             else:
-                # Skip insertion
-                return
-        else:
-            # No duplicate, insert fresh
-            collection.insert_one(pool)
+                # No duplicate, insert fresh
+                collection.insert_one(pool)
 
     def fetch_pool_raw(self) -> List[dict]:
         """

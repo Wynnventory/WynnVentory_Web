@@ -25,7 +25,6 @@ def save_trade_market_items():
     POST /api/trademarket/items
     Save one or more market items.
     """
-    logger.info("Received request to /trademarket/items endpoint")
     data = request.get_json()
 
     if not data or (isinstance(data, list) and len(data) == 0):
@@ -34,14 +33,7 @@ def save_trade_market_items():
 
     try:
         # Log the number of items and a sample of the data for debugging
-        if isinstance(data, list):
-            item_count = len(data)
-            logger.info(f"Processing {item_count} items from request")
-        else:
-            logger.info(f"Processing single item from request")
-
         save_items(data)
-        logger.info(f"Successfully processed items from request")
         return jsonify({'message': 'Items received successfully'}), 200
     except ValueError as ve:
         error_msg = str(ve)
