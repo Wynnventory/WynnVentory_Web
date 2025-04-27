@@ -6,7 +6,7 @@ from modules.models.collection_types import Collection
 
 
 class UsageRepository:
-    def __init__(self, batch_size: int = 2):
+    def __init__(self, batch_size: int = 1000):
         self.batch_size = batch_size
         self._buffer = {}
         self._owners = {}
