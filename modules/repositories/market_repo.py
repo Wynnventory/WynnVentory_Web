@@ -1,16 +1,39 @@
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Dict, Any
+from datetime import datetime, timezone
+from datetime import timedelta
+from typing import List, Dict, Any
+from typing import Optional
 
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 
 
-def save(item: Dict[str, Any]) -> None:
+from datetime import datetime, timezone
+from pymongo.errors import BulkWriteError
+
+def save(items: List[Dict[str, Any]]) -> None:
     """
-    Insert a new market item into the live collection, stamping the UTC timestamp.
+    Insert multiple market items into the live collection,
+    stamping each with the same UTC timestamp.
+    Any duplicates (by hash_code) will be skipped,
+    but the rest will succeed.
     """
-    item['timestamp'] = datetime.now(timezone.utc)
-    get_collection(ColEnum.MARKET).insert_one(item)
+    if not items:
+        return
+
+    ts = datetime.now(timezone.utc)
+    for it in items:
+        it['timestamp'] = ts
+
+    collection = get_collection(ColEnum.MARKET)
+    try:
+        # ordered=False => fire off all inserts;
+        # duplicate-key errors don’t stop the rest.
+        collection.insert_many(items, ordered=False)
+    except BulkWriteError as bwe:
+        # Optionally inspect bwe.details['writeErrors'] for logging,
+        # but you can safely ignore duplicate-key errors here.
+        pass
+
 
 
 def get_trade_market_item(item_name: str) -> List[Dict[str, Any]]:
