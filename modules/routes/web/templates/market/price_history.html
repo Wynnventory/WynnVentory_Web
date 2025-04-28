@@ -8,7 +8,7 @@
     <div class="row">
         <div class="input-group mb-3">
             <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch"
-                   placeholder="Enter item name...">
+                   placeholder="Search Item: Hero, Dernic Ingot 3 ...">
             <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
         </div>
     </div>
@@ -194,12 +194,32 @@
         }
 
         // Fetch item-specific price data with the given timeframe (in days)
+        // If itemName ends with digits, strip them off and pass them as ?tier=…
         async function fetchPriceData(itemName, days) {
             try {
-                const response = await fetch(`/api/trademarket/history/${itemName}?days=${days}`);
-                const data = await response.json();
+                // check for trailing digits
+                const match = itemName.match(/^(.*?)(\d+)$/);
+                let baseName = itemName;
+                let tier;
 
-                if (response.ok && data.length > 0) {
+                if (match) {
+                    baseName = match[1].trim();    // "itemName" without trailing numbers
+                    tier     = match[2].trim();    // the numeric suffix
+                }
+
+                // build query string
+                const params = new URLSearchParams({ days: String(days) });
+                if (tier) params.append('tier', tier);
+
+                // safe-encode the path and params
+                const url = `/api/trademarket/history/${encodeURIComponent(baseName)}?${params.toString()}`;
+
+                console.log(url);
+
+                const response = await fetch(url);
+                const data     = await response.json();
+
+                if (response.ok && Array.isArray(data) && data.length > 0) {
                     updateCharts(data);
                 } else {
                     initializeEmptyCharts();
