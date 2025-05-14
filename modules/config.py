@@ -6,10 +6,6 @@ class Config:
     MIN_SUPPORTED_VERSION = env_config("MIN_SUPPORTED_VERSION")
 
     # Database URIs
-    # PROD_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/wynnventory"
-    # DEV_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/wynnventory_DEV"
-    # ADMIN_URI = "mongodb+srv://Test1234:Test1234@wynnventory.9axarep.mongodb.net/wynnventory_admin"
-
     PROD_URI = env_config("PROD_MONGO_URI")
     DEV_URI = env_config("DEV_MONGO_URI")
     ADMIN_URI = env_config("ADMIN_MONGO_URI")
