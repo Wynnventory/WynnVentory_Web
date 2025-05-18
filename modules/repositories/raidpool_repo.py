@@ -24,10 +24,10 @@ def fetch_raidpool_raw() -> Dict:
         # 1) match this week/year
         {"$match": {"week": week, "year": year}},
 
-        # 3) unwind the items array
+        # 2) unwind the items array
         {"$unwind": "$items"},
 
-        # 4) tag each item with category & subtype
+        # 3) tag each item with category & subtype
         {"$set": {
             "items.subtype": "$items.type",
             "items.category": {
@@ -42,7 +42,7 @@ def fetch_raidpool_raw() -> Dict:
             }
         }},
 
-        # 5) group by region+category, building itemName→itemDetails KV pairs
+        # 4) group by region+category, building itemName→itemDetails KV pairs
         {"$group": {
             "_id": {
                 "year": "$year",
@@ -63,7 +63,7 @@ def fetch_raidpool_raw() -> Dict:
             }}
         }},
 
-        # 6) assemble each region’s categories into categoryName→(itemObject)
+        # 5) assemble each region’s categories into categoryName→(itemObject)
         {"$group": {
             "_id": {
                 "year": "$_id.year",
@@ -77,7 +77,7 @@ def fetch_raidpool_raw() -> Dict:
             }}
         }},
 
-        # 7) project region‐level docs flat so we can group them
+        # 6) project region‐level docs flat so we can group them
         {"$project": {
             "year": "$_id.year",
             "week": "$_id.week",
@@ -86,7 +86,7 @@ def fetch_raidpool_raw() -> Dict:
             "categories": 1
         }},
 
-        # 8) gather all regions under each year/week, merging ts+categories
+        # 7) gather all regions under each year/week, merging ts+categories
         {"$group": {
             "_id": {"year": "$year", "week": "$week"},
             "regions": {"$push": {
@@ -98,7 +98,7 @@ def fetch_raidpool_raw() -> Dict:
             }}
         }},
 
-        # 9) replace with { year, week, <region>:{…}, … }
+        # 8) replace with { year, week, <region>:{…}, … }
         {"$replaceWith": {
             "$mergeObjects": [
                 {"year": "$_id.year", "week": "$_id.week"},
