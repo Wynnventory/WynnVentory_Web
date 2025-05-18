@@ -16,11 +16,100 @@ def save(pool: dict) -> None:
     _repo.save(pool)
 
 
-def fetch_lootpool_raw() -> List[dict]:
-    """
-    Retrieve the raw lootpool documents for the current week/year.
-    """
-    return _repo.fetch_pool_raw()
+def fetch_lootpool_raw() -> Dict:
+    year, week = get_lootpool_week()
+    coll = get_collection(Collection.LOOT)
+
+    pipeline = [
+        # 1) match this week/year
+        {"$match": {"week": week, "year": year}},
+
+        # 2) unwind the items array
+        {"$unwind": "$items"},
+
+        # 3) tag each item with category = "Shiny" if shiny, else by rarity; copy type→subtype
+        {"$set": {
+            "items.subtype":  "$items.type",
+            "items.category": {
+                "$cond": [
+                    "$items.shiny",
+                    "Shiny",
+                    "$items.rarity"
+                ]
+            }
+        }},
+
+        # 4) group by region+category, building itemName→itemDetails KV pairs
+        {"$group": {
+            "_id": {
+                "year":     "$year",
+                "week":     "$week",
+                "region":   "$region",
+                "timestamp":"$timestamp",
+                "category": "$items.category"
+            },
+            "itemsKV": {"$push": {
+                "k": "$items.name",
+                "v": {
+                    "amount":   "$items.amount",
+                    "rarity":   "$items.rarity",
+                    "shiny":    "$items.shiny",
+                    "itemType": "$items.itemType",
+                    "subtype":  "$items.subtype",
+                    "shinyStat": "$items.shinyStat"
+                }
+            }}
+        }},
+
+        # 5) assemble each region’s categories into categoryName→(itemObject)
+        {"$group": {
+            "_id": {
+                "year":     "$_id.year",
+                "week":     "$_id.week",
+                "region":   "$_id.region",
+                "timestamp":"$_id.timestamp"
+            },
+            "categories": {"$push": {
+                "k": "$_id.category",
+                "v": {"$arrayToObject": "$itemsKV"}
+            }}
+        }},
+
+        # 6) project region‐level docs flat so we can group them
+        {"$project": {
+            "year":      "$_id.year",
+            "week":      "$_id.week",
+            "region":    "$_id.region",
+            "timestamp": "$_id.timestamp",
+            "categories":1
+        }},
+
+        # 7) gather all regions under each year/week, merging ts+categories
+        {"$group": {
+            "_id": {"year": "$year", "week": "$week"},
+            "regions": {"$push": {
+                "k": "$region",
+                "v": {"$mergeObjects": [
+                    {"timestamp": "$timestamp"},
+                    {"$arrayToObject": "$categories"}
+                ]}
+            }}
+        }},
+
+        # 8) replace with { year, week, <region>:{…}, … }
+        {"$replaceWith": {
+            "$mergeObjects": [
+                {"year": "$_id.year", "week": "$_id.week"},
+                {"$arrayToObject": "$regions"}
+            ]
+        }}
+    ]
+
+    cursor = coll.aggregate(pipeline)
+    try:
+        return cursor.next()
+    except StopIteration:
+        return {}
 
 
 def fetch_lootpool() -> List[dict]:
