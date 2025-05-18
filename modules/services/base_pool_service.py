@@ -6,7 +6,7 @@ from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
 from modules.repositories import lootpool_repo, raidpool_repo
 from modules.utils.queue_worker import enqueue
-from modules.utils.time_validation import is_time_valid
+from modules.utils.time_validation import is_time_valid, get_lootpool_week, get_raidpool_week
 from modules.utils.version import compare_versions
 
 
@@ -54,10 +54,19 @@ def get_current_pools(collection_type: Collection) -> List[Dict[str, Any]]:
 
     return []
 
-def get_current_pools_raw(collection_type: Collection) -> List[dict]:
+def get_pools(collection_type: Collection) -> List[Dict]:
     if collection_type == Collection.LOOT:
-        return lootpool_repo.fetch_lootpool_raw()
+        return lootpool_repo.fetch_lootpools()
     elif collection_type == Collection.RAID:
-        return raidpool_repo.fetch_raidpool_raw()
+        return raidpool_repo.fetch_raidpools()
 
     return []
+
+
+def get_specific_pool(collection_type: Collection, year: int, week: int) -> Dict:
+    if collection_type == Collection.LOOT:
+        return lootpool_repo.fetch_lootpools(year, week)
+    elif collection_type == Collection.RAID:
+        return raidpool_repo.fetch_raidpools(year, week)
+
+    return {}
