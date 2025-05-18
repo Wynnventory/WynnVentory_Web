@@ -24,7 +24,7 @@ def fetch_raidpools(
     If neither is passed, returns a List of every year/week doc.
     """
     pipeline = _build_raidpool_pipeline(year, week)
-    cursor = get_collection(Collection.LOOT).aggregate(pipeline)
+    cursor = get_collection(Collection.RAID).aggregate(pipeline)
 
     # single‐object case
     if year is not None and week is not None:
