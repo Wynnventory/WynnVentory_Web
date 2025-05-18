@@ -1,8 +1,8 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional, Union
 
 from modules.db import get_collection
 from modules.models.collection_types import Collection
-from modules.repositories.base_pool_repo import BasePoolRepo
+from modules.repositories.base_pool_repo import BasePoolRepo, build_pool_pipeline
 from modules.utils.time_validation import get_lootpool_week
 
 # Initialize the base repository and aggregator with the LOOT collection type
@@ -16,13 +16,27 @@ def save(pool: dict) -> None:
     _repo.save(pool)
 
 
-def fetch_lootpool_raw() -> List[dict]:
+def fetch_lootpools(year: Optional[int] = None, week: Optional[int] = None) -> Union[Dict, List[Dict]]:
     """
-    Retrieve the raw lootpool documents for the current week/year.
+    If both year and week are passed, returns a single dict (or {} if none found).
+    If neither is passed, returns a List of every year/week doc.
     """
-    return _repo.fetch_pool_raw()
+
+    pipeline = build_pool_pipeline(year, week)
+    cursor = get_collection(Collection.LOOT).aggregate(pipeline)
+
+    # single‐object case
+    if year is not None and week is not None:
+        try:
+            return cursor.next()
+        except StopIteration:
+            return {}
+
+    # “all” case
+    return list(cursor)
 
 
+# OLD GROUPED FORMAT
 def fetch_lootpool() -> List[dict]:
     """
     Retrieve the processed lootpool items for the current week/year,
@@ -290,3 +304,4 @@ def fetch_lootpool() -> List[dict]:
 
     cursor = get_collection(Collection.LOOT).aggregate(pipeline)
     return list(cursor)
+
