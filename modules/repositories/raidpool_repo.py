@@ -24,14 +24,6 @@ def fetch_raidpool_raw() -> Dict:
         # 1) match this week/year
         {"$match": {"week": week, "year": year}},
 
-        # 2) convert the Date → epoch‐ms string
-        {"$addFields": {
-            "fTimestamp": "$timestamp",
-            "timestamp": {
-                "$toString": { "$toLong": "$timestamp" }
-            }
-        }},
-
         # 3) unwind the items array
         {"$unwind": "$items"},
 
@@ -57,7 +49,6 @@ def fetch_raidpool_raw() -> Dict:
                 "week": "$week",
                 "region": "$region",
                 "timestamp": "$timestamp",
-                "fTimestamp": "$fTimestamp",
                 "category": "$items.category"
             },
             "itemsKV": {"$push": {
@@ -79,7 +70,6 @@ def fetch_raidpool_raw() -> Dict:
                 "week": "$_id.week",
                 "region": "$_id.region",
                 "timestamp": "$_id.timestamp",
-                "fTimestamp": "$_id.fTimestamp"
             },
             "categories": {"$push": {
                 "k": "$_id.category",
@@ -93,7 +83,6 @@ def fetch_raidpool_raw() -> Dict:
             "week": "$_id.week",
             "region": "$_id.region",
             "timestamp": "$_id.timestamp",
-            "fTimestamp": "$_id.fTimestamp",
             "categories": 1
         }},
 
@@ -103,7 +92,7 @@ def fetch_raidpool_raw() -> Dict:
             "regions": {"$push": {
                 "k": "$region",
                 "v": {"$mergeObjects": [
-                    {"timestamp": "$timestamp", "fTimestamp": "$fTimestamp"},
+                    {"timestamp": "$timestamp"},
                     {"$arrayToObject": "$categories"}
                 ]}
             }}
