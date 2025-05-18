@@ -16,11 +16,113 @@ def save(pool: dict) -> None:
     _repo.save(pool)
 
 
-def fetch_raidpool_raw() -> List[dict]:
-    """
-    Retrieve the raw raidpool documents for the current week/year.
-    """
-    return _repo.fetch_pool_raw()
+def fetch_raidpool_raw() -> Dict:
+    year, week = get_raidpool_week()
+    coll = get_collection(Collection.RAID)
+
+    pipeline = [
+        # 1) match this week/year
+        {"$match": {"week": week, "year": year}},
+
+        # 2) convert the Date → epoch‐ms string
+        {"$addFields": {
+            "fTimestamp": "$timestamp",
+            "timestamp": {
+                "$toString": { "$toLong": "$timestamp" }
+            }
+        }},
+
+        # 3) unwind the items array
+        {"$unwind": "$items"},
+
+        # 4) tag each item with category & subtype
+        {"$set": {
+            "items.subtype": "$items.type",
+            "items.category": {
+                "$switch": {
+                    "branches": [
+                        {"case": {"$eq": ["$items.itemType", "AspectItem"]}, "then": "Aspects"},
+                        {"case": {"$eq": ["$items.itemType", "TomeItem"]}, "then": "Tomes"},
+                        {"case": {"$eq": ["$items.itemType", "GearItem"]}, "then": "Gear"}
+                    ],
+                    "default": "Misc"
+                }
+            }
+        }},
+
+        # 5) group by region+category, building itemName→itemDetails KV pairs
+        {"$group": {
+            "_id": {
+                "year": "$year",
+                "week": "$week",
+                "region": "$region",
+                "timestamp": "$timestamp",
+                "fTimestamp": "$fTimestamp",
+                "category": "$items.category"
+            },
+            "itemsKV": {"$push": {
+                "k": "$items.name",
+                "v": {
+                    "amount": "$items.amount",
+                    "rarity": "$items.rarity",
+                    "shiny": "$items.shiny",
+                    "itemType": "$items.itemType",
+                    "subtype": "$items.subtype"
+                }
+            }}
+        }},
+
+        # 6) assemble each region’s categories into categoryName→(itemObject)
+        {"$group": {
+            "_id": {
+                "year": "$_id.year",
+                "week": "$_id.week",
+                "region": "$_id.region",
+                "timestamp": "$_id.timestamp",
+                "fTimestamp": "$_id.fTimestamp"
+            },
+            "categories": {"$push": {
+                "k": "$_id.category",
+                "v": {"$arrayToObject": "$itemsKV"}
+            }}
+        }},
+
+        # 7) project region‐level docs flat so we can group them
+        {"$project": {
+            "year": "$_id.year",
+            "week": "$_id.week",
+            "region": "$_id.region",
+            "timestamp": "$_id.timestamp",
+            "fTimestamp": "$_id.fTimestamp",
+            "categories": 1
+        }},
+
+        # 8) gather all regions under each year/week, merging ts+categories
+        {"$group": {
+            "_id": {"year": "$year", "week": "$week"},
+            "regions": {"$push": {
+                "k": "$region",
+                "v": {"$mergeObjects": [
+                    {"timestamp": "$timestamp", "fTimestamp": "$fTimestamp"},
+                    {"$arrayToObject": "$categories"}
+                ]}
+            }}
+        }},
+
+        # 9) replace with { year, week, <region>:{…}, … }
+        {"$replaceWith": {
+            "$mergeObjects": [
+                {"year": "$_id.year", "week": "$_id.week"},
+                {"$arrayToObject": "$regions"}
+            ]
+        }}
+    ]
+
+    cursor = coll.aggregate(pipeline)
+    try:
+        return cursor.next()
+    except StopIteration:
+        return {}
 
 
 def fetch_raidpool():
