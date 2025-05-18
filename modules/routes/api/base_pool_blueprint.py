@@ -63,7 +63,7 @@ class BasePoolBlueprint:
             except Exception:
                 return jsonify({'error': 'Internal server error'}), 500
 
-        @self.blueprint.get(f'/{self.name}/raw')
+        @self.blueprint.get(f'/{self.name}/current')
         @require_scope(f'read:{self.name}')
         def get_raw():
             """
@@ -82,7 +82,7 @@ class BasePoolBlueprint:
             except Exception:
                 return jsonify({'error': 'Internal server error'}), 500
 
-        @self.blueprint.get(f'/{self.name}/history')
+        @self.blueprint.get(f'/{self.name}/all')
         @require_scope(f'read:{self.name}')
         def get_pools():
             """
@@ -95,7 +95,7 @@ class BasePoolBlueprint:
             except Exception:
                 return jsonify({'error': 'Internal server error'}), 500
 
-        @self.blueprint.get(f'/{self.name}/history/<int:year>/<int:week>')
+        @self.blueprint.get(f'/{self.name}/<int:year>/<int:week>')
         @require_scope(f'read:{self.name}')
         def get_specific_pool(year, week):
             """
