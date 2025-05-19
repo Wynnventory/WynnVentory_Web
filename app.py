@@ -16,6 +16,6 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=port,
         debug=debug,
-        use_reloader=False,
+        use_reloader=debug,
         threaded=True
     )
