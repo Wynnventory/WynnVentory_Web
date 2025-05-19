@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Optional, Union
 
 from modules.db import get_collection
 from modules.models.collection_types import Collection
