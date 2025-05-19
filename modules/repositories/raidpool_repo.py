@@ -15,10 +15,7 @@ def save(pool: dict) -> None:
     """
     _repo.save(pool)
 
-def fetch_raidpools(
-    year: Optional[int] = None,
-    week: Optional[int] = None
-) -> Union[Dict, List[Dict]]:
+def fetch_raidpools(year: Optional[int] = None, week: Optional[int] = None) -> Union[Dict, List[Dict]]:
     """
     If both year and week are passed, returns a single dict (or {} if none found).
     If neither is passed, returns a List of every year/week doc.
@@ -36,6 +33,8 @@ def fetch_raidpools(
     # “all” case
     return list(cursor)
 
+
+# OLD GROUPED FORMAT
 def fetch_raidpool():
     year, week = get_raidpool_week()
     pipeline = [

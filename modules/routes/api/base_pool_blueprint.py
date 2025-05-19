@@ -67,8 +67,8 @@ class BasePoolBlueprint:
         @require_scope(f'read:{self.name}')
         def get_raw():
             """
-            GET /api/{name}/raw
-            Retrieve the raw pool documents for the current week.
+            GET /api/{name}/current
+            Retrieve the pools for the current week.
             """
             try:
                 if self.collection_type == Collection.LOOT:
@@ -86,8 +86,8 @@ class BasePoolBlueprint:
         @require_scope(f'read:{self.name}')
         def get_pools():
             """
-            GET /api/{name}/history
-            Retrieve all raidpools
+            GET /api/{name}/all
+            Retrieve all pools
             """
             try:
                 raw = base_pool_service.get_pools(self.collection_type)
@@ -99,8 +99,8 @@ class BasePoolBlueprint:
         @require_scope(f'read:{self.name}')
         def get_specific_pool(year, week):
             """
-            GET /api/{name}/history
-            Retrieve all raidpools
+            GET /api/{name}/year/week
+            Retrieve a specific pool
             """
             try:
                 raw = base_pool_service.get_specific_pool(self.collection_type, year, week)

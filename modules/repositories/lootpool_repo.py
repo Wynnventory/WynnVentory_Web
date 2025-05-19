@@ -16,10 +16,7 @@ def save(pool: dict) -> None:
     _repo.save(pool)
 
 
-def fetch_lootpools(
-    year: Optional[int] = None,
-    week: Optional[int] = None
-) -> Union[Dict, List[Dict]]:
+def fetch_lootpools(year: Optional[int] = None, week: Optional[int] = None) -> Union[Dict, List[Dict]]:
     """
     If both year and week are passed, returns a single dict (or {} if none found).
     If neither is passed, returns a List of every year/week doc.
@@ -39,6 +36,7 @@ def fetch_lootpools(
     return list(cursor)
 
 
+# OLD GROUPED FORMAT
 def fetch_lootpool() -> List[dict]:
     """
     Retrieve the processed lootpool items for the current week/year,
