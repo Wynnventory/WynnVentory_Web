@@ -314,108 +314,73 @@ def fetch_raidpool():
     cursor = get_collection(Collection.RAID).aggregate(pipeline)
     return list(cursor)
 
-def _build_raidpool_pipeline(year: Optional[int] = None,
-                             week: Optional[int] = None) -> List[Dict]:
+def _build_lootpool_pipeline(year: Optional[int] = None, week: Optional[int] = None) -> List[Dict]:
     pipeline: List[Dict] = []
 
     # 1) optionally match this week/year
     if year is not None and week is not None:
         pipeline.append({"$match": {"year": year, "week": week}})
     elif (year is None) ^ (week is None):
-        # one without the other is invalid
         raise ValueError("Both year and week must be provided, or neither.")
 
     # 2) unwind the items array
     pipeline.append({"$unwind": "$items"})
 
-    # 3) tag each item with category & subtype
+    # 3) copy type → subtype
     pipeline.append({
-        "$set": {
-            "items.subtype": "$items.type",
-            "items.category": {
-                "$switch": {
-                    "branches": [
-                        {"case": {"$eq": ["$items.itemType", "AspectItem"]}, "then": "Aspects"},
-                        {"case": {"$eq": ["$items.itemType", "TomeItem"]},   "then": "Tomes"},
-                        {"case": {"$eq": ["$items.itemType", "GearItem"]},   "then": "Gear"}
-                    ],
-                    "default": "Misc"
-                }
-            }
-        }
+        "$set": {"items.subtype": "$items.type"}
     })
 
-    # 4) group by region+category, building itemName→itemDetails KV pairs
+    # 4) group by region only, collecting all items in one list
     pipeline.append({
         "$group": {
             "_id": {
-                "year":     "$year",
-                "week":     "$week",
-                "region":   "$region",
-                "timestamp":"$timestamp",
-                "category": "$items.category"
+                "year": "$year",
+                "week": "$week",
+                "region": "$region",
+                "timestamp": "$timestamp"
             },
-            "itemsKV": {"$push": {
-                "k": "$items.name",
-                "v": {
-                    "amount":   "$items.amount",
-                    "rarity":   "$items.rarity",
-                    "shiny":    "$items.shiny",
-                    "itemType": "$items.itemType",
-                    "subtype":  "$items.subtype"
-                }
+            "items": {"$push": {
+                "name": "$items.name",
+                "amount": "$items.amount",
+                "rarity": "$items.rarity",
+                "shiny": "$items.shiny",
+                "shinyStat": "$items.shinyStat",
+                "itemType": "$items.itemType",
+                "subtype": "$items.subtype"
             }}
         }
     })
 
-    # 5) assemble each region’s categories into categoryName→(itemObject)
-    pipeline.append({
-        "$group": {
-            "_id": {
-                "year":     "$_id.year",
-                "week":     "$_id.week",
-                "region":   "$_id.region",
-                "timestamp":"$_id.timestamp"
-            },
-            "categories": {"$push": {
-                "k": "$_id.category",
-                "v": {"$arrayToObject": "$itemsKV"}
-            }}
-        }
-    })
-
-    # 6) project region‐level docs flat so we can group them
+    # 5) project region-level docs
     pipeline.append({
         "$project": {
-            "year":      "$_id.year",
-            "week":      "$_id.week",
-            "region":    "$_id.region",
+            "year": "$_id.year",
+            "week": "$_id.week",
+            "region": "$_id.region",
             "timestamp": "$_id.timestamp",
-            "categories": 1
+            "items": 1
         }
     })
 
-    # 7) gather all regions under each year/week, merging ts+categories
+    # 6) gather all regions under each year/week into "regions" list
     pipeline.append({
         "$group": {
             "_id": {"year": "$year", "week": "$week"},
             "regions": {"$push": {
-                "k": "$region",
-                "v": {"$mergeObjects": [
-                    {"timestamp": "$timestamp"},
-                    {"$arrayToObject": "$categories"}
-                ]}
+                "region": "$region",
+                "timestamp": "$timestamp",
+                "items": "$items"
             }}
         }
     })
 
-    # 8) replace with { year, week, <region>:{…}, … }
+    # 7) replace root with { year, week, regions }
     pipeline.append({
         "$replaceWith": {
-            "$mergeObjects": [
-                {"year": "$_id.year", "week": "$_id.week"},
-                {"$arrayToObject": "$regions"}
-            ]
+            "year": "$_id.year",
+            "week": "$_id.week",
+            "regions": "$regions"
         }
     })
 
