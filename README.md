@@ -13,7 +13,7 @@ To interact with the database, you'll need MongoDB Compass. Follow the steps bel
 Explore and interact with the API using the detailed documentation provided by Postman:
 [API Endpoints](https://documenter.getpostman.com/view/30826165/2sB2j69qVC)
 
-## 🌐 Heroku
+## 🌐 Website
 Visit the live site to see WynnVentory in action:
 [wynnventory.com](https://www.wynnventory.com/)
 
