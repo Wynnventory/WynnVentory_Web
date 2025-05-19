@@ -1,1 +1,1 @@
-web: gunicorn 'modules:create_app()' -c modules/gunicorn_config.py -w 6
+web: gunicorn 'modules:create_app()' -c modules/gunicorn_config.py -w 8
