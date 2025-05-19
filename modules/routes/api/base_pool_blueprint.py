@@ -4,6 +4,7 @@ from typing import Any
 from modules.auth import require_scope
 from modules.models.collection_types import Collection
 from modules.services import base_pool_service
+from modules.utils.time_validation import get_lootpool_week, get_raidpool_week
 
 
 class BasePoolBlueprint:
@@ -62,15 +63,47 @@ class BasePoolBlueprint:
             except Exception:
                 return jsonify({'error': 'Internal server error'}), 500
 
-        @self.blueprint.get(f'/{self.name}/raw')
+        @self.blueprint.get(f'/{self.name}/current')
         @require_scope(f'read:{self.name}')
         def get_raw():
             """
-            GET /api/{name}/raw
-            Retrieve the raw pool documents for the current week.
+            GET /api/{name}/current
+            Retrieve the pools for the current week.
             """
             try:
-                raw = base_pool_service.get_current_pools_raw(self.collection_type)
+                if self.collection_type == Collection.LOOT:
+                    year, week = get_lootpool_week()
+                    return get_specific_pool(year, week)
+                elif self.collection_type == Collection.RAID:
+                    year, week = get_raidpool_week()
+                    return get_specific_pool(year, week)
+
+                return jsonify({'message': 'No data found'}), 404
+            except Exception:
+                return jsonify({'error': 'Internal server error'}), 500
+
+        @self.blueprint.get(f'/{self.name}/all')
+        @require_scope(f'read:{self.name}')
+        def get_pools():
+            """
+            GET /api/{name}/all
+            Retrieve all pools
+            """
+            try:
+                raw = base_pool_service.get_pools(self.collection_type)
+                return jsonify(raw), 200
+            except Exception:
+                return jsonify({'error': 'Internal server error'}), 500
+
+        @self.blueprint.get(f'/{self.name}/<int:year>/<int:week>')
+        @require_scope(f'read:{self.name}')
+        def get_specific_pool(year, week):
+            """
+            GET /api/{name}/year/week
+            Retrieve a specific pool
+            """
+            try:
+                raw = base_pool_service.get_specific_pool(self.collection_type, year, week)
                 return jsonify(raw), 200
             except Exception:
                 return jsonify({'error': 'Internal server error'}), 500
