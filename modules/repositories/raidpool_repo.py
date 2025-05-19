@@ -314,7 +314,7 @@ def fetch_raidpool():
     cursor = get_collection(Collection.RAID).aggregate(pipeline)
     return list(cursor)
 
-def _build_lootpool_pipeline(year: Optional[int] = None, week: Optional[int] = None) -> List[Dict]:
+def _build_raidpool_pipeline(year: Optional[int] = None, week: Optional[int] = None) -> List[Dict]:
     pipeline: List[Dict] = []
 
     # 1) optionally match this week/year
