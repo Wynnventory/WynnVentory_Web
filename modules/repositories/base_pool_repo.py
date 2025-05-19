@@ -76,6 +76,11 @@ def build_pool_pipeline(year: Optional[int] = None, week: Optional[int] = None) 
         }
     })
 
+    # 8) sort descending by year then week (newest first)
+    pipeline.append({
+        "$sort": {"year": -1, "week": -1}
+    })
+
     return pipeline
 
 
