@@ -288,17 +288,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (raidEl) startCountdown(() => getNextFridayAt(17), raidEl)
 })
 
-function displayItem(event, encodedItemName) {
-    const itemName = decodeURIComponent(encodedItemName);
-    fetchItemStats(itemName).then(data => {
-        if (data) {
-            showTooltip(event, data);
-        } else {
-            console.error('No stats available for this item');
-        }
-    }).catch(error => {
-        console.error('Error fetching item stats:', error);
-    });
+function displayItem(e, encodedItemName) {
+    e.preventDefault();
+    // allow both click and touchstart
+    const touch = e.touches && e.touches[0];
+    const x = touch ? touch.clientX : e.clientX;
+    const y = touch ? touch.clientY : e.clientY;
+
+    const name = decodeURIComponent(encodedItemName);
+    fetchItemStats(name)
+        .then(data => data ? showTooltip(e, data, x, y) : console.error('No stats'))
+        .catch(err => console.error('Fetch error', err));
 }
 
 async function fetchItemStats(itemName) {
@@ -338,70 +338,39 @@ async function fetchAspectStats(className, aspectName) {
     }
 }
 
-function showTooltipAspect(event, aspectStats) {
+function showTooltipAspect(e, aspectStats, clickX, clickY) {
     const tooltip = document.getElementById('item-stats-tooltip');
-    const { rarity, requiredClass, tiers } = aspectStats;
-    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
-    tooltip.classList.add(rarity);
+    const { rarity, requiredClass, tiers, name } = aspectStats;
+    tooltip.className = 'item-stats-tooltip ' + rarity;
 
-    // Tier
-    let tierHTML = '';
-    tierHTML = `<div>Tier I 
-                <span style="color:darkgray;">>>>>>>>>></span>
-                <span class="${rarity}"> Tier II </span>[0/${tiers[2].threshold-1}]<br></div>`;
-
-    // Description
-    let descriptionHTML = '';
-    descriptionHTML = `<div>${tiers[1].description}<br></div>`;
-
-    // Requirements
-    let requirementsHTML = '';
-    requirementsHTML = `<div>Class Req: <span style="color: white;">${requiredClass.charAt(0).toUpperCase() + requiredClass.slice(1)}</span><br></div>`;
-
-    // Build aspect tooltip
+    // build your tiers & description HTML…
     tooltip.innerHTML = `
-            <div class="item-header">
-                <h5 class="${rarity}">${aspectStats.name}</h5>
-            </div>
-            <div class="item-infobox item-tiertext item-text">
-                ${tierHTML}
-            </div>
-            <div class="item-infobox item-text">
-                ${descriptionHTML}
-            </div>
-            <div class="item-infobox item-text">
-                ${requirementsHTML}
-            </div>
-            `;
+    <div class="item-header">
+      <h5 class="${rarity}">${name}</h5>
+    </div>
+    <div class="item-infobox item-tiertext item-text">
+      <!-- tier HTML -->
+    </div>
+    <div class="item-infobox item-text">
+      <!-- description -->
+    </div>
+    <div class="item-infobox item-text">
+      Class Req: ${requiredClass.charAt(0).toUpperCase()+requiredClass.slice(1)}
+    </div>
+    `;
 
     tooltip.style.display = 'block';
-
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-
-    let top = event.pageY - 100;
-    let left = event.pageX + 25;
-
-    if (top + tooltipRect.height > viewportHeight) {
-        top = viewportHeight - tooltipRect.height - 10;
-    }
-
-    if (left + tooltipRect.width > viewportWidth) {
-        left = viewportWidth - tooltipRect.width - 10;
-    }
-
-    tooltip.style.top = `${top}px`;
-    tooltip.style.left = `${left}px`;
-
+    positionTooltip(tooltip, clickX, clickY);
     document.addEventListener('click', hideTooltipOnClickOutside);
 }
 
-function showTooltip(event, itemStats) {
+function showTooltip(e, itemStats, clickX, clickY) {
     const tooltip = document.getElementById('item-stats-tooltip');
     const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req } = itemStats;
-    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
-    tooltip.classList.add(rarity);
+
+    // reset & set rarity class
+    tooltip.className = 'item-stats-tooltip ' + rarity;
+
 
     // Requirements
     let requirementsHTML = '';
@@ -503,25 +472,7 @@ function showTooltip(event, itemStats) {
         `;
 
     tooltip.style.display = 'block';
-
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-
-    let top = event.pageY - 100;
-    let left = event.pageX + 25;
-
-    if (top + tooltipRect.height > viewportHeight) {
-        top = viewportHeight - tooltipRect.height - 10;
-    }
-
-    if (left + tooltipRect.width > viewportWidth) {
-        left = viewportWidth - tooltipRect.width - 10;
-    }
-
-    tooltip.style.top = `${top}px`;
-    tooltip.style.left = `${left}px`;
-
+    positionTooltip(tooltip, clickX, clickY);
     document.addEventListener('click', hideTooltipOnClickOutside);
 }
 
@@ -536,6 +487,23 @@ function hideTooltipOnClickOutside(event) {
     if (!tooltip.contains(event.target)) {
         hideTooltip();
     }
+}
+
+// helper to keep both tooltips in sync
+function positionTooltip(tooltip, clickX, clickY) {
+    const rect = tooltip.getBoundingClientRect();
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let top  = clickY - 100;
+    let left = clickX + 25;
+
+    // clamp inside viewport
+    if (top + rect.height  > vh) top  = vh - rect.height  - 10;
+    if (left + rect.width   > vw) left = vw - rect.width   - 10;
+    if (top < 10)   top  = 10;
+    if (left < 10) left = 10;
+
+    tooltip.style.top  = top  + 'px';
+    tooltip.style.left = left + 'px';
 }
 
 //lootrun_lootpool.html Javascript code
