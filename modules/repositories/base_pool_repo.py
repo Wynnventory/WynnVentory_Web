@@ -38,6 +38,7 @@ def build_pool_pipeline(year: Optional[int] = None, week: Optional[int] = None) 
                 "rarity": "$items.rarity",
                 "shiny": "$items.shiny",
                 "shinyStat": "$items.shinyStat",
+                "icon": "$items.icon",
                 "itemType": "$items.itemType",
                 "subtype": "$items.subtype"
             }}
