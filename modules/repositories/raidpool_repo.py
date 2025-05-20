@@ -296,7 +296,8 @@ def fetch_raidpool():
                                         "rarity": "$$item.rarityFormatted",
                                         "itemType": "$$item.itemType",
                                         "amount": "$$item.amount",
-                                        "shiny": "$$item.shiny"
+                                        "shiny": "$$item.shiny",
+                                        "icon": "$$item.icon",
                                     }
                                 }
                             }
