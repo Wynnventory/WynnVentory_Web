@@ -197,6 +197,9 @@ def get_trade_market_item_price(
             'unidentified_average_price':         {'$arrayElemAt': ['$unidentified.avgPrice', 0]},
             'unidentified_average_mid_80_percent_price': {'$arrayElemAt': ['$unidentified.avgMid80', 0]},
             'unidentified_count':                 {'$arrayElemAt': ['$unidentified.count', 0]}
+        }},
+        {'$match': {
+            'total_count': {'$gt': 0}
         }}
     ]
 
