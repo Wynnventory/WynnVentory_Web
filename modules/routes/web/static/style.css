@@ -589,6 +589,16 @@ li .SET:hover {
     color: #940000;
 }
 
+.item-icon {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;    /* or `cover`, depending on your preference */
+    object-position: center;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+
 /* SPRITES */
 .sprite {
     width: 32px;
