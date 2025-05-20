@@ -112,11 +112,19 @@ def get_trade_market_item_price(
                     'mid80': {
                         '$cond': [
                             {'$gt': [{'$size': '$prices'}, 2]},
-                            {'$slice': [
-                                '$prices',
-                                {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
-                                {'$floor': {'$multiply': [{'$size': '$prices'}, 0.8]}}
-                            ]},
+                            {
+                                '$slice': [
+                                    '$prices',
+                                    {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
+                                    {'$subtract': [
+                                        {'$size': '$prices'},
+                                        {'$multiply': [
+                                            {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
+                                            2
+                                        ]}
+                                    ]}
+                                ]
+                            },
                             '$prices'
                         ]
                     }
@@ -147,11 +155,19 @@ def get_trade_market_item_price(
                     'mid80': {
                         '$cond': [
                             {'$gt': [{'$size': '$prices'}, 2]},
-                            {'$slice': [
-                                '$prices',
-                                {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
-                                {'$floor': {'$multiply': [{'$size': '$prices'}, 0.8]}}
-                            ]},
+                            {
+                                '$slice': [
+                                    '$prices',
+                                    {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
+                                    {'$subtract': [
+                                        {'$size': '$prices'},
+                                        {'$multiply': [
+                                            {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
+                                            2
+                                        ]}
+                                    ]}
+                                ]
+                            },
                             '$prices'
                         ]
                     }
