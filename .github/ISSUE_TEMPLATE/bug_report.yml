@@ -20,8 +20,8 @@ body:
       description: Can you reproduce the issue consistently?
       multiple: false
       options:
-        - Yes
-        - No
+        - "Yes"
+        - "No"
       default: 0   # 0 = Yes, 1 = No
 
   - type: textarea
