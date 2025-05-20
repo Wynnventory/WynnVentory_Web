@@ -291,13 +291,13 @@ document.addEventListener('DOMContentLoaded', () => {
 function displayItem(e, encodedItemName) {
     e.preventDefault();
     // allow both click and touchstart
-    const touch = e.touches && e.touches[0];
-    const x = touch ? touch.clientX : e.clientX;
-    const y = touch ? touch.clientY : e.clientY;
+    const touch = (e.touches && e.touches[0]);
+    const clickX = touch ? touch.clientX : e.clientX;
+    const clickY = touch ? touch.clientY : e.clientY;
 
     const name = decodeURIComponent(encodedItemName);
     fetchItemStats(name)
-        .then(data => data ? showTooltip(e, data, x, y) : console.error('No stats'))
+        .then(data => data ? showTooltip(e, data, clickX, clickY) : console.error('No stats'))
         .catch(err => console.error('Fetch error', err));
 }
 
@@ -316,9 +316,13 @@ function displayAspect(event, encodedAspectClass, encodedItemName) {
     const aspectClass = decodeURIComponent(encodedAspectClass).replace('Aspect', '').toLowerCase();
     const aspectName = decodeURIComponent(encodedItemName);
 
+    const touch = (event.touches && event.touches[0]);
+    const clickX = touch ? touch.clientX : event.clientX;
+    const clickY = touch ? touch.clientY : event.clientY;
+
     fetchAspectStats(aspectClass, aspectName).then(data => {
         if (data) {
-            showTooltipAspect(event, data);
+            showTooltipAspect(event, data, clickX, clickY);
         } else {
             console.error('No stats available for this item');
         }
@@ -510,11 +514,12 @@ function positionTooltip(tooltip, clickX, clickY) {
     let top  = clickY - 100;
     let left = clickX + 25;
 
+    let gap = 10;
     // clamp inside viewport
-    if (top + rect.height  > vh) top  = vh - rect.height  - 10;
-    if (left + rect.width   > vw) left = vw - rect.width   - 10;
-    if (top < 10)   top  = 10;
-    if (left < 10) left = 10;
+    if (top + rect.height  > vh) top  = vh - rect.height - gap;
+    if (left + rect.width   > vw) left = vw - rect.width - gap;
+    if (top < gap)   top = gap;
+    if (left < gap) left = gap;
 
     tooltip.style.top  = top  + 'px';
     tooltip.style.left = left + 'px';
