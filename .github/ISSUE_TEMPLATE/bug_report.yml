@@ -3,7 +3,7 @@ description: File a bug report.
 title: "[Bug]: "
 labels: ["bug"]
 type: "bug"
-projects: ["octo-org/1", "octo-org/44"]
+projects: ["Wynnventory/2"]
 assignees:
   - octocat
 
@@ -28,7 +28,7 @@ body:
     id: steps-to-reproduce
     attributes:
       label: Steps to reproduce (if reproducible)
-      description: >
+      description: |
         Please describe the exact steps to reproduce the issue.
         If it’s not reproducible, you can leave this blank.
       placeholder: |
