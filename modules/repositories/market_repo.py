@@ -1,14 +1,13 @@
-from datetime import datetime, timezone
+from datetime import timedelta, timezone, datetime
 from datetime import timedelta
 from typing import List, Dict, Any
 from typing import Optional
 
+from pymongo.errors import BulkWriteError
+
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 
-
-from datetime import datetime, timezone
-from pymongo.errors import BulkWriteError
 
 def save(items: List[Dict[str, Any]]) -> None:
     """
@@ -62,16 +61,14 @@ def get_trade_market_item_price(
       - name
     """
     shiny_stat = '$ne' if shiny else '$eq'
-    query_filter: Dict[str, Any] = {
-        'name': item_name,
-        'shiny_stat': {shiny_stat: None}
-    }
-    if tier is not None:
-        query_filter['$or'] = [
-            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': 'MaterialItem', 'tier': tier}
-        ]
+    query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
+        {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+        {'item_type': 'MaterialItem', 'tier': tier}
+    ]}
 
+    # only add the tier/or-clause if tier was given
+
+    # 2) build pipeline
     pipeline = [
         # 1) filter
         {'$match': query_filter},
@@ -79,19 +76,10 @@ def get_trade_market_item_price(
         # 2) explode each doc into `amount` copies
         {'$addFields': {'unitIndex': {'$range': [0, '$amount']}}},
         {'$unwind': '$unitIndex'},
-
-        # 3) sort so our slicing in mid-80 works
         {'$sort': {'listing_price': 1}},
-
-        # 4) compute two facets in parallel
         {'$facet': {
             'identified': [
-                # only identified
-                {'$match': {'$or': [
-                    {'unidentified': False},
-                    {'unidentified': {'$exists': False}}
-                ]}},
-                # collect stats + list of prices + count
+                {'$match': {'unidentified': {'$ne': True}}},
                 {'$group': {
                     '_id': None,
                     'minPrice': {'$min': '$listing_price'},
@@ -100,7 +88,6 @@ def get_trade_market_item_price(
                     'prices': {'$push': '$listing_price'},
                     'count': {'$sum': 1}
                 }},
-                # round and slice out mid-80%
                 {'$project': {
                     '_id': 0,
                     'minPrice': {'$round': ['$minPrice', 2]},
@@ -127,7 +114,6 @@ def get_trade_market_item_price(
                         ]
                     }
                 }},
-                # average of that mid80 slice
                 {'$project': {
                     'minPrice': 1,
                     'maxPrice': 1,
@@ -137,9 +123,7 @@ def get_trade_market_item_price(
                 }}
             ],
             'unidentified': [
-                # only unidentified
                 {'$match': {'unidentified': True}},
-                # same grouping
                 {'$group': {
                     '_id': None,
                     'avgPrice': {'$avg': '$listing_price'},
@@ -209,11 +193,10 @@ def get_trade_market_item_price(
 
     cursor = get_collection(ColEnum.MARKET).aggregate(pipeline)
     try:
-        stats = cursor.next()  # grab the first (and only) result
+        stats = cursor.next()
     except StopIteration:
         return {}
 
-    # inject the item name
     stats['name'] = item_name
     return stats
 
