@@ -343,20 +343,34 @@ function showTooltipAspect(e, aspectStats, clickX, clickY) {
     const { rarity, requiredClass, tiers, name } = aspectStats;
     tooltip.className = 'item-stats-tooltip ' + rarity;
 
+       // Tier
+    let tierHTML = '';
+    tierHTML = `<div>Tier I 
+                <span style="color:darkgray;">>>>>>>>>></span>
+                <span class="${rarity}"> Tier II </span>[0/${tiers[2].threshold-1}]<br></div>`;
+
+    // Description
+    let descriptionHTML = '';
+    descriptionHTML = `<div>${tiers[1].description}<br></div>`;
+
+    // Requirements
+    let requirementsHTML = '';
+    requirementsHTML = `<div>Class Req: <span style="color: white;">${requiredClass.charAt(0).toUpperCase() + requiredClass.slice(1)}</span><br></div>`;
+
     // build your tiers & description HTML…
     tooltip.innerHTML = `
-    <div class="item-header">
-      <h5 class="${rarity}">${name}</h5>
-    </div>
-    <div class="item-infobox item-tiertext item-text">
-      <!-- tier HTML -->
-    </div>
-    <div class="item-infobox item-text">
-      <!-- description -->
-    </div>
-    <div class="item-infobox item-text">
-      Class Req: ${requiredClass.charAt(0).toUpperCase()+requiredClass.slice(1)}
-    </div>
+        <div class="item-header">
+            <h5 class="${rarity}">${aspectStats.name}</h5>
+        </div>
+        <div class="item-infobox item-tiertext item-text">
+            ${tierHTML}
+        </div>
+        <div class="item-infobox item-text">
+            ${descriptionHTML}
+        </div>
+        <div class="item-infobox item-text">
+            ${requirementsHTML}
+        </div>
     `;
 
     tooltip.style.display = 'block';
