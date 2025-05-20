@@ -61,22 +61,20 @@ def get_trade_market_item_price(
       - total_count, unidentified_count
       - name
     """
-    shiny_op = '$ne' if shiny else '$eq'
-
-    # base filter
-    match_filter: Dict[str, Any] = {
+    shiny_stat = '$ne' if shiny else '$eq'
+    query_filter: Dict[str, Any] = {
         'name': item_name,
-        'shiny': {shiny_op: None}
+        'shiny_stat': {shiny_stat: None}
     }
     if tier is not None:
-        match_filter['$or'] = [
+        query_filter['$or'] = [
             {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
             {'item_type': 'MaterialItem', 'tier': tier}
         ]
 
     pipeline = [
         # 1) filter
-        {'$match': match_filter},
+        {'$match': query_filter},
 
         # 2) explode each doc into `amount` copies
         {'$addFields': {'unitIndex': {'$range': [0, '$amount']}}},
@@ -180,24 +178,30 @@ def get_trade_market_item_price(
             ]
         }},
 
-        # 5) stitch facets back into one document
-        {'$project': {
-            # from identified[0]
-            'lowest_price':     {'$arrayElemAt': ['$identified.minPrice', 0]},
-            'highest_price':    {'$arrayElemAt': ['$identified.maxPrice', 0]},
-            'average_price':    {'$arrayElemAt': ['$identified.avgPrice', 0]},
-            'average_mid_80_percent_price': {'$arrayElemAt': ['$identified.avgMid80', 0]},
-            'total_count': {
-                '$add': [
-                    {'$arrayElemAt': ['$identified.count', 0]},
-                    {'$arrayElemAt': ['$unidentified.count', 0]}
-                ]
-            },
-            # from unidentified[0]
-            'unidentified_average_price':         {'$arrayElemAt': ['$unidentified.avgPrice', 0]},
-            'unidentified_average_mid_80_percent_price': {'$arrayElemAt': ['$unidentified.avgMid80', 0]},
-            'unidentified_count':                 {'$arrayElemAt': ['$unidentified.count', 0]}
-        }},
+        # 5) stitch facets back into one document, defaulting missing values to 0
+        {
+            '$project': {
+                'lowest_price': {'$ifNull': [{'$arrayElemAt': ['$identified.minPrice', 0]}, 0]},
+                'highest_price': {'$ifNull': [{'$arrayElemAt': ['$identified.maxPrice', 0]}, 0]},
+                'average_price': {'$ifNull': [{'$arrayElemAt': ['$identified.avgPrice', 0]}, 0]},
+                'average_mid_80_percent_price':
+                    {'$ifNull': [{'$arrayElemAt': ['$identified.avgMid80', 0]}, 0]},
+
+                'total_count': {
+                    '$add': [
+                        {'$ifNull': [{'$arrayElemAt': ['$identified.count', 0]}, 0]},
+                        {'$ifNull': [{'$arrayElemAt': ['$unidentified.count', 0]}, 0]}
+                    ]
+                },
+
+                'unidentified_average_price':
+                    {'$ifNull': [{'$arrayElemAt': ['$unidentified.avgPrice', 0]}, 0]},
+                'unidentified_average_mid_80_percent_price':
+                    {'$ifNull': [{'$arrayElemAt': ['$unidentified.avgMid80', 0]}, 0]},
+                'unidentified_count':
+                    {'$ifNull': [{'$arrayElemAt': ['$unidentified.count', 0]}, 0]}
+            }
+        },
         {'$match': {
             'total_count': {'$gt': 0}
         }}
