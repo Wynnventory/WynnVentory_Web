@@ -28,7 +28,7 @@ body:
     id: steps-to-reproduce
     attributes:
       label: Steps to reproduce (if reproducible)
-      description: >
+      description: |
         Please describe the exact steps to reproduce the issue.
         If it’s not reproducible, you can leave this blank.
       placeholder: |
