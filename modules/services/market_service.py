@@ -32,7 +32,7 @@ def _format_item_for_db(item: dict) -> dict:
         "shiny_stat": item_data.get('shinyStat'),
         "amount": item.get('amount'),
         "listing_price": item.get('listingPrice'),
-        "icon": item.get('icon'),
+        "icon": item_data.get('icon'),
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
         "hash_code": item.get('hash_code'),
