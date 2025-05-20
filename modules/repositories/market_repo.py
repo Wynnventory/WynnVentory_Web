@@ -187,8 +187,12 @@ def get_trade_market_item_price(
             'highest_price':    {'$arrayElemAt': ['$identified.maxPrice', 0]},
             'average_price':    {'$arrayElemAt': ['$identified.avgPrice', 0]},
             'average_mid_80_percent_price': {'$arrayElemAt': ['$identified.avgMid80', 0]},
-            'total_count':      {'$arrayElemAt': ['$identified.count', 0]},
-
+            'total_count': {
+                '$add': [
+                    {'$arrayElemAt': ['$identified.count', 0]},
+                    {'$arrayElemAt': ['$unidentified.count', 0]}
+                ]
+            },
             # from unidentified[0]
             'unidentified_average_price':         {'$arrayElemAt': ['$unidentified.avgPrice', 0]},
             'unidentified_average_mid_80_percent_price': {'$arrayElemAt': ['$unidentified.avgMid80', 0]},
