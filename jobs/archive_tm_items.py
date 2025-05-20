@@ -183,7 +183,7 @@ def archive_and_summarize():
                     "$round": [
                         {
                             "$cond": [
-                                {"$gte": [{"$size": "$prices"}, 2]},
+                                {"$gt": [{"$size": "$prices"}, 2]},
                                 {
                                     "$avg": {
                                         "$slice": [
@@ -213,7 +213,7 @@ def archive_and_summarize():
                     "$round": [
                         {
                             "$cond": [
-                                {"$gte": [{"$size": "$unidentifiedPrices"}, 2]},
+                                {"$gt": [{"$size": "$unidentifiedPrices"}, 2]},
                                 {
                                     "$avg": {
                                         "$slice": [
