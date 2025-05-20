@@ -183,19 +183,19 @@ def archive_and_summarize():
                     "$round": [
                         {
                             "$cond": [
-                                {"$gte": [{"$size": "$prices"}, 2]},
+                                {"$gt": [{"$size": "$prices"}, 2]},
                                 {
                                     "$avg": {
                                         "$slice": [
                                             "$prices",
                                             {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}},
                                             {
-                                                "$max": [
-                                                    1,
+                                                "$subtract": [
+                                                    {"$size": "$prices"},
                                                     {
-                                                        "$subtract": [
-                                                            {"$floor": {"$multiply": [{"$size": "$prices"}, 0.9]}},
-                                                            {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}}
+                                                        "$multiply": [
+                                                            {"$ceil": {"$multiply": [{"$size": "$prices"}, 0.1]}},
+                                                            2
                                                         ]
                                                     }
                                                 ]
@@ -213,21 +213,20 @@ def archive_and_summarize():
                     "$round": [
                         {
                             "$cond": [
-                                {"$gte": [{"$size": "$unidentifiedPrices"}, 2]},
+                                {"$gt": [{"$size": "$unidentifiedPrices"}, 2]},
                                 {
                                     "$avg": {
                                         "$slice": [
                                             "$unidentifiedPrices",
                                             {"$ceil": {"$multiply": [{"$size": "$unidentifiedPrices"}, 0.1]}},
                                             {
-                                                "$max": [
-                                                    1,
+                                                "$subtract": [
+                                                    {"$size": "$unidentifiedPrices"},
                                                     {
-                                                        "$subtract": [
-                                                            {"$floor": {
-                                                                "$multiply": [{"$size": "$unidentifiedPrices"}, 0.9]}},
+                                                        "$multiply": [
                                                             {"$ceil": {
-                                                                "$multiply": [{"$size": "$unidentifiedPrices"}, 0.1]}}
+                                                                "$multiply": [{"$size": "$unidentifiedPrices"}, 0.1]}},
+                                                            2
                                                         ]
                                                     }
                                                 ]
