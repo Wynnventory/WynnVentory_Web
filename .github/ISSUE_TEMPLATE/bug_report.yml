@@ -12,18 +12,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
-
-  - type: dropdown
-    id: reproducible
-    attributes:
-      label: Is the issue reproducible?
-      description: Can you reproduce the issue consistently?
-      multiple: false
-      options:
-        - "Yes"
-        - "No"
-      default: 0   # 0 = Yes, 1 = No
-
+        
   - type: textarea
     id: steps-to-reproduce
     attributes:
