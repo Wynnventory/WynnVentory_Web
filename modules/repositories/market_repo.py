@@ -206,7 +206,6 @@ def get_trade_market_item_price(
     cursor = get_collection(ColEnum.MARKET).aggregate(pipeline)
     try:
         stats = cursor.next()  # grab the first (and only) result
-        print(stats)
     except StopIteration:
         return {}
 
