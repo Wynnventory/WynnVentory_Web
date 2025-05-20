@@ -45,7 +45,7 @@ body:
     attributes:
       label: What happened?
       description: Tell us what happened.
-      placeholder: Describe the issue.
+      placeholder: Describe the issue and attach any logs you might have.
     validations:
       required: true
 
@@ -57,12 +57,3 @@ body:
       placeholder: Describe what you would have expected to happen.
     validations:
       required: true
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Relevant log output
-      description: |
-        Please copy and paste any relevant log output.
-        This will be automatically formatted into code, so no need for backticks.
-      render: shell
