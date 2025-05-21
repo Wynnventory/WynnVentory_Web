@@ -1,7 +1,5 @@
-import pprint
-import traceback
-from datetime import timedelta, timezone, datetime
 from datetime import timedelta
+from datetime import timezone, datetime
 from typing import List, Dict, Any
 from typing import Optional
 
@@ -76,8 +74,6 @@ def get_trade_market_item_price(
         {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
         {'item_type': 'MaterialItem', 'tier': tier}
     ]}
-
-    # only add the tier/or-clause if tier was given
 
     # 2) build pipeline
     pipeline = [
@@ -193,20 +189,6 @@ def get_trade_market_item_price(
             }
         }}
     ]
-
-    pprint.pprint(f"get_trade_market_item_price(): match filter = {query_filter}")
-    pprint.pprint(f"get_trade_market_item_price(): pipeline = {pipeline}")
-
-    try:
-        cursor = get_collection(ColEnum.MARKET).aggregate(pipeline)
-        stats = cursor.next()
-    except Exception as e:
-        pprint.pprint(f"Aggregation failed: {e}")
-        pprint.pprint(f"Full stack:\n{traceback.format_exc()}")
-        # If the error has additional server info, log that too:
-        if hasattr(e, 'details'):
-            pprint.pprint(f"Server error details: {e.details}")
-        return {}
 
     cursor = get_collection(ColEnum.MARKET).aggregate(pipeline)
     try:
