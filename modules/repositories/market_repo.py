@@ -1,3 +1,5 @@
+import pprint
+import traceback
 from datetime import timedelta, timezone, datetime
 from datetime import timedelta
 from typing import List, Dict, Any
@@ -79,137 +81,132 @@ def get_trade_market_item_price(
 
     # 2) build pipeline
     pipeline = [
-        # 1) filter
+        # 1) Only the docs we care about, in price order
         {'$match': query_filter},
-
-        # 2) explode each doc into `amount` copies
         {'$addFields': {'unitIndex': {'$range': [0, '$amount']}}},
         {'$unwind': '$unitIndex'},
         {'$sort': {'listing_price': 1}},
-        {'$facet': {
-            'metadata': [
-                {'$limit': 1},
-                {'$project': {
-                    '_id': 0,
-                    'docTier': '$tier',
-                    'docName': '$name'
-                }}
-            ],
-            'identified': [
-                {'$match': {'unidentified': {'$ne': True}}},
-                {'$group': {
-                    '_id': None,
-                    'minPrice': {'$min': '$listing_price'},
-                    'maxPrice': {'$max': '$listing_price'},
-                    'avgPrice': {'$avg': '$listing_price'},
-                    'prices': {'$push': '$listing_price'},
-                    'count': {'$sum': 1}
-                }},
-                {'$project': {
-                    '_id': 0,
-                    'minPrice': {'$round': ['$minPrice', 2]},
-                    'maxPrice': {'$round': ['$maxPrice', 2]},
-                    'avgPrice': {'$round': ['$avgPrice', 2]},
-                    'count': 1,
-                    'mid80': {
-                        '$cond': [
-                            {'$gt': [{'$size': '$prices'}, 2]},
-                            {
-                                '$slice': [
-                                    '$prices',
-                                    {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
-                                    {'$subtract': [
-                                        {'$size': '$prices'},
-                                        {'$multiply': [
-                                            {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
-                                            2
-                                        ]}
-                                    ]}
-                                ]
-                            },
-                            '$prices'
-                        ]
-                    }
-                }},
-                {'$project': {
-                    'minPrice': 1,
-                    'maxPrice': 1,
-                    'avgPrice': 1,
-                    'count': 1,
-                    'avgMid80': {'$round': [{'$avg': '$mid80'}, 2]}
-                }}
-            ],
-            'unidentified': [
-                {'$match': {'unidentified': True}},
-                {'$group': {
-                    '_id': None,
-                    'avgPrice': {'$avg': '$listing_price'},
-                    'prices': {'$push': '$listing_price'},
-                    'count': {'$sum': 1}
-                }},
-                {'$project': {
-                    '_id': 0,
-                    'avgPrice': {'$round': ['$avgPrice', 2]},
-                    'count': 1,
-                    'mid80': {
-                        '$cond': [
-                            {'$gt': [{'$size': '$prices'}, 2]},
-                            {
-                                '$slice': [
-                                    '$prices',
-                                    {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
-                                    {'$subtract': [
-                                        {'$size': '$prices'},
-                                        {'$multiply': [
-                                            {'$ceil': {'$multiply': [{'$size': '$prices'}, 0.1]}},
-                                            2
-                                        ]}
-                                    ]}
-                                ]
-                            },
-                            '$prices'
-                        ]
-                    }
-                }},
-                {'$project': {
-                    'avgPrice': 1,
-                    'count': 1,
-                    'avgMid80': {'$round': [{'$avg': '$mid80'}, 2]}
-                }}
-            ]
+
+        # 2) Single pass grouping
+        {'$group': {
+            '_id': None,
+            # pull tier & name from the first doc in sort order
+            'tier': {'$first': '$tier'},
+            'name': {'$first': '$name'},
+
+            # all identified prices in one array
+            'identifiedPrices': {
+                '$push': {
+                    '$cond': [
+                        {'$ne': ['$unidentified', True]},
+                        '$listing_price',
+                        '$$REMOVE'
+                    ]
+                }
+            },
+            # all unidentified prices in another
+            'unidentifiedPrices': {
+                '$push': {
+                    '$cond': [
+                        {'$eq': ['$unidentified', True]},
+                        '$listing_price',
+                        '$$REMOVE'
+                    ]
+                }
+            },
+
+            # counts & sums & mins & maxes
+            'identifiedCount': {'$sum': {'$cond': [{'$ne': ['$unidentified', True]}, 1, 0]}},
+            'unidentifiedCount': {'$sum': {'$cond': [{'$eq': ['$unidentified', True]}, 1, 0]}},
+            'identifiedMin': {'$min': {'$cond': [{'$ne': ['$unidentified', True]}, '$listing_price', None]}},
+            'identifiedMax': {'$max': {'$cond': [{'$ne': ['$unidentified', True]}, '$listing_price', None]}},
+            'identifiedAvg': {'$avg': {'$cond': [{'$ne': ['$unidentified', True]}, '$listing_price', None]}},
+            'unidentifiedAvg': {'$avg': {'$cond': [{'$eq': ['$unidentified', True]}, '$listing_price', None]}}
         }},
 
-        # 5) stitch facets back into one document, defaulting missing values to 0
-        {
-            '$project': {
-                'tier': {'$arrayElemAt': ['$metadata.docTier', 0]},
-                'name': {'$arrayElemAt': ['$metadata.docName', 0]},
+        # 3) Final projection
+        {'$project': {
+            'tier': 1,
+            'name': 1,
 
-                'lowest_price': {'$ifNull': [{'$arrayElemAt': ['$identified.minPrice', 0]}, 0]},
-                'highest_price': {'$ifNull': [{'$arrayElemAt': ['$identified.maxPrice', 0]}, 0]},
-                'average_price': {'$ifNull': [{'$arrayElemAt': ['$identified.avgPrice', 0]}, 0]},
-                'average_mid_80_percent_price':
-                    {'$ifNull': [{'$arrayElemAt': ['$identified.avgMid80', 0]}, 0]},
+            'lowest_price': {'$round': ['$identifiedMin', 2]},
+            'highest_price': {'$round': ['$identifiedMax', 2]},
+            'average_price': {'$round': ['$identifiedAvg', 2]},
 
-                'total_count': {
-                    '$add': [
-                        {'$ifNull': [{'$arrayElemAt': ['$identified.count', 0]}, 0]},
-                        {'$ifNull': [{'$arrayElemAt': ['$unidentified.count', 0]}, 0]}
-                    ]
-                },
+            'total_count': '$identifiedCount',
+            'unidentified_count': '$unidentifiedCount',
+            'unidentified_average_price': {'$round': ['$unidentifiedAvg', 2]},
 
-                'unidentified_average_price':
-                    {'$ifNull': [{'$arrayElemAt': ['$unidentified.avgPrice', 0]}, 0]},
-                'unidentified_average_mid_80_percent_price':
-                    {'$ifNull': [{'$arrayElemAt': ['$unidentified.avgMid80', 0]}, 0]},
-                'unidentified_count':
-                    {'$ifNull': [{'$arrayElemAt': ['$unidentified.count', 0]}, 0]}
+            'average_mid_80_percent_price': {
+                '$round': [
+                    {
+                        '$cond': [
+                            {'$gt': [{'$size': '$identifiedPrices'}, 2]},
+                            {'$avg': {
+                                '$slice': [
+                                    '$identifiedPrices',
+                                    {'$ceil': {'$multiply': [{'$size': '$identifiedPrices'}, 0.1]}},
+                                    {
+                                        '$subtract': [
+                                            {'$size': '$identifiedPrices'},
+                                            {'$multiply': [
+                                                2,
+                                                {'$ceil': {'$multiply': [{'$size': '$identifiedPrices'}, 0.1]}}
+                                            ]}
+                                        ]
+                                    }
+                                ]
+                            }},
+                            {'$avg': '$identifiedPrices'}
+                        ]
+                    },
+                    2
+                ]
+            },
+
+            # mid-80-percent for unidentified
+            'unidentified_average_mid_80_percent_price': {
+                '$round': [
+                    {
+                        '$cond': [
+                            {'$gt': [{'$size': '$unidentifiedPrices'}, 2]},
+                            {'$avg': {
+                                '$slice': [
+                                    '$unidentifiedPrices',
+                                    {'$ceil': {'$multiply': [{'$size': '$unidentifiedPrices'}, 0.1]}},
+                                    {
+                                        '$subtract': [
+                                            {'$size': '$unidentifiedPrices'},
+                                            {'$multiply': [
+                                                2,
+                                                {'$ceil': {'$multiply': [{'$size': '$unidentifiedPrices'}, 0.1]}}
+                                            ]}
+                                        ]
+                                    }
+                                ]
+                            }},
+                            {'$avg': '$unidentifiedPrices'}
+                        ]
+                    },
+                    2
+                ]
             }
-        },
-        {'$match': {
-            'total_count': {'$gt': 0}
         }}
     ]
+
+    pprint.pprint(f"get_trade_market_item_price(): match filter = {query_filter}")
+    pprint.pprint(f"get_trade_market_item_price(): pipeline = {pipeline}")
+
+    try:
+        cursor = get_collection(ColEnum.MARKET).aggregate(pipeline)
+        stats = cursor.next()
+    except Exception as e:
+        pprint.pprint(f"Aggregation failed: {e}")
+        pprint.pprint(f"Full stack:\n{traceback.format_exc()}")
+        # If the error has additional server info, log that too:
+        if hasattr(e, 'details'):
+            pprint.pprint(f"Server error details: {e.details}")
+        return {}
 
     cursor = get_collection(ColEnum.MARKET).aggregate(pipeline)
     try:
