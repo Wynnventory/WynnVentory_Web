@@ -34,13 +34,22 @@ def save(items: List[Dict[str, Any]]) -> None:
         pass
 
 
-
-def get_trade_market_item(item_name: str) -> List[Dict[str, Any]]:
+def get_trade_market_item(
+    item_name: str,
+    shiny: bool = False,
+    tier: Optional[int] = None
+) -> List[Dict[str, Any]]:
     """
     Retrieve all market entries for an item by name.
     """
+    shiny_stat = '$ne' if shiny else '$eq'
+    query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
+        {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+        {'item_type': 'MaterialItem', 'tier': tier}
+    ]}
+
     cursor = get_collection(ColEnum.MARKET).find(
-        {'name': item_name},
+        filter=query_filter,
         projection={'_id': 0}
     )
     return list(cursor)
@@ -78,6 +87,14 @@ def get_trade_market_item_price(
         {'$unwind': '$unitIndex'},
         {'$sort': {'listing_price': 1}},
         {'$facet': {
+            'metadata': [
+                {'$limit': 1},
+                {'$project': {
+                    '_id': 0,
+                    'docTier': '$tier',
+                    'docName': '$name'
+                }}
+            ],
             'identified': [
                 {'$match': {'unidentified': {'$ne': True}}},
                 {'$group': {
@@ -165,6 +182,9 @@ def get_trade_market_item_price(
         # 5) stitch facets back into one document, defaulting missing values to 0
         {
             '$project': {
+                'tier': {'$arrayElemAt': ['$metadata.docTier', 0]},
+                'name': {'$arrayElemAt': ['$metadata.docName', 0]},
+
                 'lowest_price': {'$ifNull': [{'$arrayElemAt': ['$identified.minPrice', 0]}, 0]},
                 'highest_price': {'$ifNull': [{'$arrayElemAt': ['$identified.maxPrice', 0]}, 0]},
                 'average_price': {'$ifNull': [{'$arrayElemAt': ['$identified.avgPrice', 0]}, 0]},
@@ -197,7 +217,6 @@ def get_trade_market_item_price(
     except StopIteration:
         return {}
 
-    stats['name'] = item_name
     return stats
 
 
@@ -211,15 +230,11 @@ def get_price_history(
     Retrieve the price history of an item over the past `days` days.
     """
     shiny_stat = '$ne' if shiny else '$eq'
-    query_filter: Dict[str, Any] = {
-        'name': item_name,
-        'shiny_stat': {shiny_stat: None}
-    }
-    if tier is not None:
-        query_filter['$or'] = [
-            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': 'MaterialItem', 'tier': tier}
-        ]
+    query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
+        {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+        {'item_type': 'MaterialItem', 'tier': tier}
+    ]}
+
     start_date = datetime.now(timezone.utc) - timedelta(days=days + 8)
     query_filter['date'] = {'$gte': start_date}
 
@@ -231,7 +246,7 @@ def get_price_history(
     return list(cursor)
 
 
-def get_latest_price_history(
+def get_historic_average(
         item_name: str,
         shiny: bool = False,
         tier: Optional[int] = None,
@@ -241,15 +256,10 @@ def get_latest_price_history(
     Aggregate the last N documents (default 7) to compute averages.
     """
     shiny_stat = '$ne' if shiny else '$eq'
-    query_filter: Dict[str, Any] = {
-        'name': item_name,
-        'shiny_stat': {shiny_stat: None}
-    }
-    if tier is not None:
-        query_filter['$or'] = [
-            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': 'MaterialItem', 'tier': tier}
-        ]
+    query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
+        {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+        {'item_type': 'MaterialItem', 'tier': tier}
+    ]}
     cursor = get_collection(ColEnum.MARKET_ARCHIVE).find(
         filter=query_filter,
         sort=[('date', -1)],
@@ -268,7 +278,9 @@ def get_latest_price_history(
             vals = [d.get(f) for d in docs if d.get(f) is not None]
             stats[f] = sum(vals) / len(vals) if vals else None
         stats['name'] = item_name
+        stats['tier'] = docs[0].get('tier')
         stats['document_count'] = len(docs)
+
     return stats
 
 
