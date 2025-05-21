@@ -43,7 +43,7 @@ def save_trade_market_items():
         return jsonify({'error': 'Internal server error'}), 500
 
 
-@market_bp.get('/trademarket/item/<item_name>')
+@market_bp.get('/trademarket/item/<item_name>/listings')
 @require_scope('read:market')
 def get_market_item_info(item_name):
     """
@@ -52,8 +52,11 @@ def get_market_item_info(item_name):
     """
     if not item_name:
         return jsonify({'message': 'No item name provided'}), 400
+    shiny = request.args.get('shiny', 'false').lower() == 'true'
+    tier_param = request.args.get('tier')
+    tier = int(tier_param) if tier_param is not None else None
     try:
-        result = get_item(item_name)
+        result = get_item(item_name=item_name, shiny=shiny, tier=tier)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
