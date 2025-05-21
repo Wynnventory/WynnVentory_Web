@@ -4,7 +4,7 @@ from typing import List, Optional, Any
 from modules.config import Config
 from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
-from modules.repositories.market_repo import get_trade_market_item, get_trade_market_item_price, get_price_history, get_latest_price_history, get_all_items_ranking
+from modules.repositories.market_repo import get_trade_market_item, get_trade_market_item_price, get_price_history, get_historic_average, get_all_items_ranking
 from modules.utils.queue_worker import enqueue
 from modules.utils.version import compare_versions
 
@@ -84,7 +84,7 @@ def get_latest_history(
     """
     Retrieve aggregated statistics from the most recent price history documents.
     """
-    return get_latest_price_history(item_name=item_name, shiny=shiny, tier=tier, days=days)
+    return get_historic_average(item_name=item_name, shiny=shiny, tier=tier, days=days)
 
 
 def get_history(
@@ -110,11 +110,15 @@ def get_price(
     return get_trade_market_item_price(item_name, shiny, tier)
 
 
-def get_item(item_name: str) -> list[dict[str, Any]]:
+def get_item(
+        item_name: str,
+        shiny: bool = False,
+        tier: Optional[int] = None
+) -> list[dict[str, Any]]:
     """
     Retrieve market item info by name.
     """
-    return get_trade_market_item(item_name)
+    return get_trade_market_item(item_name=item_name, shiny=shiny, tier=tier)
 
 
 def get_ranking() -> List[dict]:
