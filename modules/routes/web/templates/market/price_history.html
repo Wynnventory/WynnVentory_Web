@@ -193,29 +193,32 @@
             });
         }
 
-        // Fetch item-specific price data with the given timeframe (in days)
-        // If itemName ends with digits, strip them off and pass them as ?tier=…
-        async function fetchPriceData(itemName, days) {
+        const DEFAULT_LAG_DAYS = 7;           // our one‐week archive lag
+        const MS_PER_DAY     = 24 * 60 * 60 * 1000;
+
+        // Fetch price data by passing only start_date = now - lag - window
+        async function fetchPriceData(itemName, daysWindow) {
             try {
-                // check for trailing digits
+                // strip off trailing digits for tier
                 const match = itemName.match(/^(.*?)(\d+)$/);
                 let baseName = itemName;
                 let tier;
-
                 if (match) {
-                    baseName = match[1].trim();    // "itemName" without trailing numbers
-                    tier     = match[2].trim();    // the numeric suffix
+                    baseName = match[1].trim();
+                    tier     = match[2].trim();
                 }
 
+                // compute our start_date
+                const now        = new Date();
+                const totalShift = (DEFAULT_LAG_DAYS + daysWindow) * MS_PER_DAY;
+                const startDate  = new Date(now.getTime() - totalShift);
+                const startISO   = startDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
                 // build query string
-                const params = new URLSearchParams({ days: String(days) });
+                const params = new URLSearchParams({ start_date: startISO });
                 if (tier) params.append('tier', tier);
 
-                // safe-encode the path and params
                 const url = `/api/trademarket/history/${encodeURIComponent(baseName)}?${params.toString()}`;
-
-                console.log(url);
-
                 const response = await fetch(url);
                 const data     = await response.json();
 
