@@ -202,99 +202,163 @@ def get_trade_market_item_price(
 def get_price_history(
         item_name: str,
         shiny: bool = False,
-        days: int = 14,
-        tier: Optional[int] = None
+        tier: Optional[int] = None,
+        start_date: datetime = None,
+        end_date:   datetime = None,
+        default_days: int = 7
 ) -> List[Dict[str, Any]]:
     """
-    Retrieve the price history of an item over the past `days` days.
+    Retrieve the price history of an item over a given date range.
     """
+    # build base filter
     shiny_stat = '$ne' if shiny else '$eq'
-    query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
-        {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-        {'item_type': 'MaterialItem', 'tier': tier}
-    ]}
+    # 1) Shift “now” back by default_days once
+    lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
 
-    start_date = datetime.now(timezone.utc) - timedelta(days=days + 8)
-    query_filter['date'] = {'$gte': start_date}
+    # 2) If end_date wasn’t given, use lagged_now
+    end_date = end_date or lagged_now
+
+    # 3) If start_date wasn’t given, backfill to a full default_days window
+    start_date = start_date or (end_date - timedelta(days=default_days))
+
+    # 4) Inclusive end_date via half-open interval
+    exclusive_end = end_date + timedelta(days=1)
+
+    query_filter: Dict[str, Any] = {
+        'name': item_name,
+        'shiny_stat': {shiny_stat: None},
+        '$or': [
+            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+            {'item_type': 'MaterialItem', 'tier': tier}
+        ],
+        'date': {
+            '$gte': start_date,
+            '$lt':  exclusive_end
+        }
+    }
 
     cursor = get_collection(ColEnum.MARKET_ARCHIVE).find(
         filter=query_filter,
         sort=[('date', 1)],
         projection={'_id': 0}
     )
-    
     return list(cursor)
 
 
-def get_historic_average(item_name, shiny=False, tier=None, days=7):
+def get_historic_average(
+    item_name: str,
+    shiny: bool = False,
+    tier: Optional[int] = None,
+    start_date: Optional[datetime] = None,
+    end_date:   Optional[datetime] = None,
+    default_days: int = 7
+) -> Dict[str, Any]:
+    """
+    Compute average stats for an item over a date range.
+    If neither start_date nor end_date is provided, uses the last `default_days`.
+    If only one is provided, fills the other to span a `default_days` window
+    (or up to now for the end).
+    """
+    # 1) Shift “now” back by default_days once
+    lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
+
+    # 2) If end_date wasn’t given, use lagged_now
+    end_date = end_date or lagged_now
+
+    # 3) If start_date wasn’t given, backfill to a full default_days window
+    start_date = start_date or (end_date - timedelta(days=default_days))
+
+    # 4) Inclusive end_date via half-open interval
+    exclusive_end = end_date + timedelta(days=1)
+
+    # base query
     shiny_op = '$ne' if shiny else '$eq'
-    query = {
-      'name': item_name,
-      'shiny_stat': {shiny_op: None},
-      '$or': [
-        {'item_type': {'$in': ['GearItem','IngredientItem']}},
-        {'item_type': 'MaterialItem', 'tier': tier}
-      ]
+    query: Dict[str, Any] = {
+        'name': item_name,
+        'shiny_stat': {shiny_op: None},
+        '$or': [
+            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+            {'item_type': 'MaterialItem', 'tier': tier}
+        ],
+        'date': {
+            '$gte': start_date,
+            '$lt':  exclusive_end
+        }
     }
 
     pipeline = [
-      {'$match': query},
-      {'$sort':  {'date': -1}},
-      {'$limit': days},
-      {'$group': {
-         '_id': None,
-         'name':        {'$first': '$name'},
-         'tier':        {'$first': '$tier'},
-         'document_count': {'$sum': 1},
+        {'$match': query},
+        {'$group': {
+            '_id': None,
+            'name':        {'$first': '$name'},
+            'tier':        {'$first': '$tier'},
+            'document_count': {'$sum': 1},
 
-         # average over the last N docs
-         'lowest_price':  {'$avg': '$lowest_price'},
-         'highest_price': {'$avg': '$highest_price'},
-         'average_price': {'$avg': '$average_price'},
+            # averages over the matched docs
+            'lowest_price':  {'$avg': '$lowest_price'},
+            'highest_price': {'$avg': '$highest_price'},
+            'average_price': {'$avg': '$average_price'},
 
-         'total_count':   {'$sum': '$total_count'},
-         'avg_mid80':     {'$avg': '$average_mid_80_percent_price'},
-         'unidentified_avg': {'$avg': '$unidentified_average_price'},
-         'unidentified_mid80_avg': {'$avg': '$unidentified_average_mid_80_percent_price'},
-         'unidentified_count': {'$sum': '$unidentified_count'}
-      }},
-      {'$project': {
-         '_id': 0,
-         'name': 1, 'tier': 1, 'document_count': 1,
-         'lowest_price': {'$round': ['$lowest_price', 2]},
-         'highest_price':{'$round': ['$highest_price',2]},
-         'average_price':{'$round': ['$average_price',2]},
-         'total_count': {'$toInt': '$total_count'},
-         'average_mid_80_percent_price':     {'$round': ['$avg_mid80',2]},
-         'unidentified_average_price':       {'$round': ['$unidentified_avg',2]},
-         'unidentified_average_mid_80_percent_price': {'$round':['$unidentified_mid80_avg',2]},
-         'unidentified_count':               {'$toInt': '$unidentified_count'}
-      }}
+            'total_count':   {'$sum': '$total_count'},
+            'avg_mid80':     {'$avg': '$average_mid_80_percent_price'},
+            'unidentified_avg': {'$avg': '$unidentified_average_price'},
+            'unidentified_mid80_avg': {'$avg': '$unidentified_average_mid_80_percent_price'},
+            'unidentified_count': {'$sum': '$unidentified_count'}
+        }},
+        {'$project': {
+            '_id': 0,
+            'name': 1,
+            'tier': 1,
+            'document_count': 1,
+            'lowest_price':  {'$round': ['$lowest_price', 2]},
+            'highest_price': {'$round': ['$highest_price', 2]},
+            'average_price': {'$round': ['$average_price', 2]},
+            'total_count':   {'$toInt': '$total_count'},
+            'average_mid_80_percent_price':     {'$round': ['$avg_mid80', 2]},
+            'unidentified_average_price':       {'$round': ['$unidentified_avg', 2]},
+            'unidentified_average_mid_80_percent_price': {'$round': ['$unidentified_mid80_avg', 2]},
+            'unidentified_count':               {'$toInt': '$unidentified_count'}
+        }}
     ]
 
-    result = list(get_collection(ColEnum.MARKET_ARCHIVE)
-                   .aggregate(pipeline, allowDiskUse=False))
+    result = list(
+        get_collection(ColEnum.MARKET_ARCHIVE)
+        .aggregate(pipeline, allowDiskUse=False)
+    )
     return result[0] if result else {}
 
 
 def get_all_items_ranking(
         start_date: Optional[datetime] = None,
-        end_date:   Optional[datetime] = None
+        end_date:   Optional[datetime] = None,
+        default_days: int = 7
 ) -> List[Dict[str, Any]]:
     """
-        Retrieve a ranking of items based on archived price data,
-        optionally filtered to the given [start_date, end_date] (inclusive).
-        """
-    pipeline: List[Dict[str, Any]] = []
-    date_filter: Dict[str, Any] = {}
+    Retrieve a ranking of items based on archived price data,
+    automatically lagged by `default_days + 1` so the latest
+    document is always `default_days` days in the past.
+    """
 
-    if start_date:
-        date_filter.setdefault('date', {})['$gte'] = start_date
-    if end_date:
-        exclusive_end = end_date + timedelta(days=1)
-        date_filter.setdefault('date', {})['$lt']  = exclusive_end
-    if start_date or end_date:
-        pipeline.append({'$match': date_filter})
+    # 1) Shift “now” back by default_days once
+    lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
+
+    # 2) If end_date wasn’t given, use lagged_now
+    end_date = end_date or lagged_now
+
+    # 3) If start_date wasn’t given, backfill to a full default_days window
+    start_date = start_date or (end_date - timedelta(days=default_days))
+
+    # 4) Inclusive end_date via half-open interval
+    exclusive_end = end_date + timedelta(days=1)
+
+    date_filter: Dict[str, Any] = {
+        'date': {
+            '$gte': start_date,
+            '$lt':  exclusive_end
+        }
+    }
+
+    pipeline: List[Dict[str, Any]] = [{'$match': date_filter}]
 
     # 2) Group by item name and compute aggregates
     pipeline.append({

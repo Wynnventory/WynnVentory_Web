@@ -13,18 +13,34 @@
         </div>
     </div>
 
+    <!-- Date range selectors (hidden until 'Date Range' clicked) -->
+    <div class="row mb-3" id="dateRangeContainer" style="display: none;">
+        <div class="col-md-3 mb-3">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input type="text" class="form-control" id="startDate" placeholder="YYYY-MM-DD">
+        </div>
+        <div class="col-md-3 mb-3">
+            <label for="endDate" class="form-label">End Date</label>
+            <input type="text" class="form-control" id="endDate" placeholder="YYYY-MM-DD">
+        </div>
+        <div class="col-md-3 mb-3 d-flex align-items-end">
+            <button id="applyFilter" class="btn btn-primary me-2">Apply</button>
+            <button id="resetFilter" class="btn btn-secondary">Reset</button>
+        </div>
+    </div>
+
     <!-- Timeframe toggles -->
     <div class="row mb-3">
         <div class="col">
             <div class="btn-group" role="group" aria-label="Timeframe toggles">
-                <button type="button" class="btn btn-primary active" onclick="updateTimeframe(7, this)">Last 7 days</button>
-                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(14, this)">Last 14 days</button>
-                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(30, this)">Last Month</button>
-                <button type="button" class="btn btn-outline-primary" onclick="updateTimeframe(90, this)">Last 3 Months</button>
+                <button type="button" class="btn btn-primary" id="btn7" onclick="updateTimeframe(7, this)">Last 7 days</button>
+                <button type="button" class="btn btn-outline-primary" id="btn14" onclick="updateTimeframe(14, this)">Last 14 days</button>
+                <button type="button" class="btn btn-outline-primary" id="btn30" onclick="updateTimeframe(30, this)">Last Month</button>
+                <button type="button" class="btn btn-outline-primary" id="btn90" onclick="updateTimeframe(90, this)">Last 3 Months</button>
+                <button type="button" class="btn btn-outline-primary" id="btnRange" onclick="activateDateRange(this)">Date Range</button>
             </div>
         </div>
     </div>
-
 
     <div class="row">
         <div class="col" style="min-height: 28vh;">
@@ -46,29 +62,24 @@
             <p>* The data displayed on this page is always offset by 1 week. Live data can be viewed using in-game tooltips.</p>
         </div>
     </div>
-    <!-- Add Chart.js and the date adapter -->
+
+    <!-- Add Chart.js, date adapter, and datepicker -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
-
     <script>
         let priceHistoryChart = null;
         let highestPriceChart = null;
         let saturationChart = null;
-        // Default timeframe (in days)
         let currentTimeframe = 7;
 
-        // Function to capitalize each word in the item name
         function capitalizeWords(str) {
             const smallWords = ['of'];
-            return str
-                .split(' ')
-                .map((word, index) => {
-                    if (index === 0 || !smallWords.includes(word.toLowerCase())) {
-                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                    }
-                    return word.toLowerCase();
-                })
-                .join(' ');
+            return str.split(' ').map((word, index) => {
+                if (index === 0 || !smallWords.includes(word.toLowerCase())) {
+                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                }
+                return word.toLowerCase();
+            }).join(' ');
         }
 
         function convertEmeraldsToGameFormat(emeralds) {
@@ -82,156 +93,73 @@
             if (stx > 0) {
                 let decimalValue = le + eb / 64 + e / (64 * 64);
                 decimalValue = Math.round(decimalValue * 100) / 100;
-                const displayLE = Number.isInteger(decimalValue)
-                    ? decimalValue.toString()
-                    : decimalValue.toFixed(2);
-                result = `${stx}stx`;
-                if(displayLE !== "0") {
-                    result += ` ${displayLE}le`;
-                }
+                const displayLE = Number.isInteger(decimalValue) ? decimalValue.toString() : decimalValue.toFixed(2);
+                result = `${stx}stx${displayLE !== '0' ? ` ${displayLE}le` : ''}`;
             } else {
                 if (le > 0) result += `${le}le `;
                 if (eb > 0) result += `${eb}eb `;
-                if (e > 0)  result += `${e.toFixed(2)}e`;
+                if (e > 0) result += `${e.toFixed(2)}e`;
             }
             return result.trim();
         }
 
-        // Initialize empty charts
         function initializeEmptyCharts() {
-            if (priceHistoryChart) priceHistoryChart.destroy();
-            if (highestPriceChart) highestPriceChart.destroy();
-            if (saturationChart) saturationChart.destroy();
-
-            const emptyData = {
-                labels: [],
-                datasets: [{
-                    label: 'No Data',
-                    data: [],
-                    borderColor: 'rgba(200, 200, 200, 1)',
-                    fill: false,
-                }]
-            };
-
-            // Chart options (shared)
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Price'
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function (tooltipItem) {
-                                const emeraldValue = tooltipItem.raw;
-                                const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
-                                return `Price: ${emeraldValue}e (${gameFormat})`;
-                            }
-                        }
-                    }
-                }
-            };
-
-            const saturationChartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day'
-                        },
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Listings'
-                        }
-                    }
-                }
-            };
-
-            const ctx = document.getElementById('priceHistoryChart').getContext('2d');
-            priceHistoryChart = new Chart(ctx, {
-                type: 'line',
-                data: emptyData,
-                options: chartOptions
-            });
-
-            const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
-            highestPriceChart = new Chart(ctx2, {
-                type: 'line',
-                data: emptyData,
-                options: chartOptions
-            });
-
-            const ctx3 = document.getElementById('saturationChart').getContext('2d');
-            saturationChart = new Chart(ctx3, {
-                type: 'line',
-                data: emptyData,
-                options: saturationChartOptions
-            });
+            [priceHistoryChart, highestPriceChart, saturationChart].forEach(c => c && c.destroy());
+            const emptyData = { labels: [], datasets: [{ label: 'No Data', data: [], borderColor: 'rgba(200,200,200,1)', fill: false }] };
+            const opts = { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'time', time: { unit: 'day' }, title: { display: true, text: 'Date' } }, y: { title: { display: true, text: 'Value' } } } };
+            priceHistoryChart = new Chart(document.getElementById('priceHistoryChart'), { type: 'line', data: emptyData, options: opts });
+            highestPriceChart = new Chart(document.getElementById('highestPriceChart'), { type: 'line', data: emptyData, options: opts });
+            saturationChart = new Chart(document.getElementById('saturationChart'), { type: 'line', data: emptyData, options: opts });
         }
 
-        // Fetch item-specific price data with the given timeframe (in days)
-        // If itemName ends with digits, strip them off and pass them as ?tier=…
-        async function fetchPriceData(itemName, days) {
+                function activateDateRange(btn) {
+            // deactivate other toggles
+            document.querySelectorAll('.btn-group button').forEach(b => {
+                b.classList.replace('btn-primary','btn-outline-primary');
+                b.classList.remove('active');
+            });
+            // activate Date Range
+            btn.classList.replace('btn-outline-primary','btn-primary');
+            btn.classList.add('active');
+            // show date inputs
+            document.getElementById('dateRangeContainer').style.display = 'flex';
+        }
+
+
+        const DEFAULT_LAG_DAYS = 7;
+        const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+        async function fetchPriceData(itemName) {
             try {
-                // check for trailing digits
                 const match = itemName.match(/^(.*?)(\d+)$/);
-                let baseName = itemName;
-                let tier;
-
-                if (match) {
-                    baseName = match[1].trim();    // "itemName" without trailing numbers
-                    tier     = match[2].trim();    // the numeric suffix
+                let base = itemName, tier;
+                if (match) { base = match[1].trim(); tier = match[2].trim(); }
+                // get inputs / URL params
+                const params = new URLSearchParams(window.location.search);
+                const startVal = document.getElementById('startDate').value || params.get('start_date') || '';
+                const endVal = document.getElementById('endDate').value || params.get('end_date') || '';
+                // apply to inputs
+                document.getElementById('startDate').value = startVal;
+                document.getElementById('endDate').value = endVal;
+                // if none provided, derive from timeframe
+                let s = startVal, e = endVal;
+                if (!s && !e) {
+                    const now = new Date();
+                    const lag = new Date(now.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
+                    e = lag.toISOString().split('T')[0];
+                    const begin = new Date(lag.getTime() - currentTimeframe * MS_PER_DAY);
+                    s = begin.toISOString().split('T')[0];
                 }
-
-                // build query string
-                const params = new URLSearchParams({ days: String(days) });
-                if (tier) params.append('tier', tier);
-
-                // safe-encode the path and params
-                const url = `/api/trademarket/history/${encodeURIComponent(baseName)}?${params.toString()}`;
-
-                console.log(url);
-
-                const response = await fetch(url);
-                const data     = await response.json();
-
-                if (response.ok && Array.isArray(data) && data.length > 0) {
-                    updateCharts(data);
-                } else {
-                    initializeEmptyCharts();
-                }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                initializeEmptyCharts();
-            }
+                const q = new URLSearchParams({ start_date: s, end_date: e });
+                if (tier) q.append('tier', tier);
+                const url = `/api/trademarket/history/${encodeURIComponent(base)}?${q}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (res.ok && Array.isArray(data) && data.length) updateCharts(data); else initializeEmptyCharts();
+            } catch (x) { console.error(x); initializeEmptyCharts(); }
         }
 
-        // Update charts with fetched data
-        function updateCharts(priceData) {
+function updateCharts(priceData) {
             const labels = priceData.map(item => new Date(item.date));
             const averagePrices = priceData.map(item => item.average_price);
             const average80Prices = priceData.map(item => item.average_mid_80_percent_price);
@@ -422,63 +350,56 @@
             });
         }
 
-        // Search item by name and timeframe
-        function handleSearch(itemName) {
-            if (itemName && itemName !== 'None') {
-                itemName = capitalizeWords(itemName);
-                document.getElementById('itemSearch').value = itemName;
-                history.pushState(null, '', `/history/${itemName}`);
-                fetchPriceData(itemName, currentTimeframe);
-            } else {
-                initializeEmptyCharts();
-            }
+        function handleSearch(item) {
+            if (!item) return initializeEmptyCharts();
+            const name = capitalizeWords(item);
+            document.getElementById('itemSearch').value = name;
+            const baseUrl = `/history/${encodeURIComponent(name)}`;
+            history.replaceState(null, '', baseUrl + window.location.search);
+            fetchPriceData(name);
         }
 
-        // Update timeframe toggle
-        function updateTimeframe(days, btn) {
+         function updateTimeframe(days, btn) {
+            // clear URL params so manual range is ignored
+            history.replaceState(null, '', location.pathname);
+
+            document.getElementById('dateRangeContainer').style.display = 'none';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value   = '';
             currentTimeframe = days;
-
-            // Remove active styling from all buttons in the group.
-            const buttons = document.querySelectorAll('.btn-group button');
-            buttons.forEach(function(button) {
-                button.classList.remove('active');
-                button.classList.remove('btn-primary');
-                button.classList.add('btn-outline-primary');
+            document.querySelectorAll('.btn-group button').forEach(b => {
+                b.classList.replace('btn-primary', 'btn-outline-primary');
+                b.classList.remove('active');
             });
-
-            // Highlight the clicked button.
+            btn.classList.replace('btn-outline-primary', 'btn-primary');
             btn.classList.add('active');
-            btn.classList.remove('btn-outline-primary');
-            btn.classList.add('btn-primary');
-
-            // Trigger data update if an item is selected.
-            const itemName = document.getElementById('itemSearch').value.trim();
-            if (itemName) {
-                handleSearch(itemName);
-            }
+            const nm = document.getElementById('itemSearch').value.trim();
+            if (nm) handleSearch(nm);
         }
 
-        // Bind search button
-        document.getElementById('searchBtn').addEventListener('click', function () {
-            const itemName = document.getElementById('itemSearch').value.trim();
-            handleSearch(itemName);
-        });
+        window.onload = () => {
+            $('#startDate,#endDate').datepicker({ format:'yyyy-mm-dd', autoclose:true, todayHighlight:true });
+            document.getElementById('searchBtn').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
+            document.getElementById('applyFilter').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
+            document.getElementById('resetFilter').onclick = () => {
+                document.getElementById('startDate').value=''; document.getElementById('endDate').value='';
+                document.getElementById('btn7').click();
+            };
+            document.getElementById('itemSearch').addEventListener('keypress',e=>{ if(e.key==='Enter') handleSearch(e.target.value.trim()); });
 
-        // Bind Enter key in the input
-        document.getElementById('itemSearch').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                const itemName = document.getElementById('itemSearch').value.trim();
-                handleSearch(itemName);
+            const initItem = '{{ item_name }}';
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('start_date') || urlParams.has('end_date')) {
+                activateDateRange(document.getElementById('btnRange'));
+                document.getElementById('startDate').value = urlParams.get('start_date') || '';
+                document.getElementById('endDate').value   = urlParams.get('end_date') || '';
+            } else {
+                document.getElementById('btn7').click();
             }
-        });
 
-        // On window load, if there's an item in the URL, show its charts; also load the ranking table
-        window.onload = function () {
-            const itemName = '{{ item_name }}';
-            if (itemName && itemName !== 'None') {
-                const capitalizedItemName = capitalizeWords(itemName);
-                document.getElementById('itemSearch').value = capitalizedItemName;
-                handleSearch(capitalizedItemName);
+            if (initItem && initItem !== 'None') {
+                document.getElementById('itemSearch').value = capitalizeWords(initItem);
+                handleSearch(initItem);
             } else {
                 initializeEmptyCharts();
             }

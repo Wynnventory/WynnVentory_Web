@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from flask import Blueprint, request, jsonify
 
@@ -87,23 +87,37 @@ def get_market_item_price_info(item_name):
 @public_endpoint
 def get_market_history(item_name):
     """
-    GET /api/trademarket/history/<item_name>
-    Retrieve price history for an item over a number of days.
+    GET /api/trademarket/history/<item_name>?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+    Retrieve price history for an item over a date range (inclusive).
+    If no dates are provided, returns the past 7 days.
     """
     if not item_name:
         return jsonify({'message': 'No item name provided'}), 400
+
+    # parse optional dates
+    start_str = request.args.get('start_date')
+    end_str   = request.args.get('end_date')
     try:
-        days = int(request.args.get('days', 14))
+        start_date = datetime.fromisoformat(start_str) if start_str else None
+        end_date   = datetime.fromisoformat(end_str)   if end_str   else None
     except ValueError:
-        days = 14
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
     shiny = request.args.get('shiny', 'false').lower() == 'true'
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
 
     try:
-        result = get_history(item_name, shiny, days, tier)
+        result = get_history(
+            item_name=item_name,
+            shiny=shiny,
+            tier=tier,
+            start_date=start_date,
+            end_date=end_date
+        )
         return jsonify(result), 200
     except Exception:
+        # (log the exception if you have a logger)
         return jsonify({'error': 'Internal server error'}), 500
 
 
@@ -117,17 +131,22 @@ def get_latest_market_history(item_name):
     if not item_name:
         return jsonify({'message': 'No item name provided'}), 400
 
+    # parse optional dates
+    start_str = request.args.get('start_date')
+    end_str   = request.args.get('end_date')
     try:
-        days = int(request.args.get('days', 7))
+        start_date = datetime.fromisoformat(start_str) if start_str else None
+        end_date   = datetime.fromisoformat(end_str)   if end_str   else None
     except ValueError:
-        days = 7
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
 
+    # default‐window logic: past 7 days
     shiny = request.args.get('shiny', 'false').lower() == 'true'
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
 
     try:
-        result = get_latest_history(item_name=item_name, shiny=shiny, tier=tier, days=days)
+        result = get_latest_history(item_name=item_name, shiny=shiny, tier=tier, start_date=start_date, end_date=end_date)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
