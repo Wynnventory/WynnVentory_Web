@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import List, Optional, Any
 
 from modules.config import Config
@@ -122,8 +123,11 @@ def get_item(
     return get_trade_market_item(item_name=item_name, shiny=shiny, tier=tier)
 
 
-def get_ranking() -> List[dict]:
+def get_ranking(
+        start_date: Optional[datetime] = None,
+        end_date:   Optional[datetime] = None
+) -> List[dict]:
     """
     Retrieve a ranking of items based on archived price data.
     """
-    return get_all_items_ranking()
+    return get_all_items_ranking(start_date=start_date, end_date=end_date)

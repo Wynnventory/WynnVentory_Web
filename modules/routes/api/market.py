@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from flask import Blueprint, request, jsonify
 
@@ -134,13 +135,23 @@ def get_latest_market_history(item_name):
 
 @market_bp.get('/trademarket/ranking')
 @public_endpoint
-def get_all_items_ranking():
+def get_all_items_ranking_endpoint():
     """
-    GET /api/trademarket/ranking
-    Retrieve a ranking of items by average price.
+    GET /api/trademarket/ranking?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+    Retrieve a ranking of items by average price, optionally restricted to a date range.
     """
+    # parse optional dates
+    start_str = request.args.get('start_date')
+    end_str   = request.args.get('end_date')
     try:
-        ranking = get_ranking()
+        start_date = datetime.fromisoformat(start_str) if start_str else None
+        end_date   = datetime.fromisoformat(end_str)   if end_str   else None
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
+
+    try:
+        ranking = get_ranking(start_date=start_date, end_date=end_date)
         return jsonify(ranking), 200
     except Exception:
+        # you might want to log the exception here
         return jsonify({'error': 'Internal server error'}), 500

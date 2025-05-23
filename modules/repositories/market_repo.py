@@ -277,12 +277,28 @@ def get_historic_average(item_name, shiny=False, tier=None, days=7):
     return result[0] if result else {}
 
 
-def get_all_items_ranking() -> List[Dict[str, Any]]:
+def get_all_items_ranking(
+        start_date: Optional[datetime] = None,
+        end_date:   Optional[datetime] = None
+) -> List[Dict[str, Any]]:
     """
-    Generate a ranking of all items based on archived average price.
-    """
-    pipeline = [
-        {'$group': {
+        Retrieve a ranking of items based on archived price data,
+        optionally filtered to the given [start_date, end_date] (inclusive).
+        """
+    pipeline: List[Dict[str, Any]] = []
+    date_filter: Dict[str, Any] = {}
+
+    if start_date:
+        date_filter.setdefault('date', {})['$gte'] = start_date
+    if end_date:
+        exclusive_end = end_date + timedelta(days=1)
+        date_filter.setdefault('date', {})['$lt']  = exclusive_end
+    if start_date or end_date:
+        pipeline.append({'$match': date_filter})
+
+    # 2) Group by item name and compute aggregates
+    pipeline.append({
+        '$group': {
             '_id': '$name',
             'lowest_price': {'$min': '$lowest_price'},
             'highest_price': {'$max': '$highest_price'},
@@ -290,16 +306,28 @@ def get_all_items_ranking() -> List[Dict[str, Any]]:
             'average_total_count': {'$avg': '$total_count'},
             'average_unidentified_count': {'$avg': '$unidentified_count'},
             'average_mid_80_percent_price': {'$avg': '$average_mid_80_percent_price'},
-            'unidentified_average_mid_80_percent_price': {'$avg': '$unidentified_average_mid_80_percent_price'}
-        }},
-        {'$match': {
-            'average_mid_80_percent_price': {'$gte': 20480},
-            'average_total_count': {'$gte': 2}
-        }},
-        {'$sort': {'average_price': -1}}
-    ]
+            'unidentified_average_mid_80_percent_price': {
+                '$avg': '$unidentified_average_mid_80_percent_price'
+            },
+            'total_count': {'$sum': '$total_count'},
+            'unidentified_count': {'$sum': '$unidentified_count'}
+        }
+    })
+
+    # 3) Sort descending by average price
+    pipeline.append({'$sort': {'average_price': -1}})
+
+    # run the aggregation
     cursor = get_collection(ColEnum.MARKET_ARCHIVE).aggregate(pipeline)
-    return [
-        dict(name=doc['_id'], **{k: doc[k] for k in doc if k != '_id'})
-        for doc in cursor
-    ]
+
+    # 4) Enumerate and add 'rank'
+    ranked = []
+    for idx, doc in enumerate(cursor, start=1):
+        item = {
+            'rank': idx,
+            'name': doc['_id'],
+            **{k: doc[k] for k in doc if k != '_id'}
+        }
+        ranked.append(item)
+
+    return ranked
