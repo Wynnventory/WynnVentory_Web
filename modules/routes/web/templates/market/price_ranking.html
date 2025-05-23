@@ -91,11 +91,20 @@
       return result.trim() || '0e';
     }
 
+    // store current filter for link generation
+    let currentStart = '';
+    let currentEnd   = '';
+
     async function fetchRankingData(startDate, endDate) {
       try {
+        // save for link building
+        currentStart = startDate || '';
+        currentEnd   = endDate   || '';
+
         const params = new URLSearchParams();
-        if (startDate) params.append('start_date', startDate);
-        if (endDate) params.append('end_date', endDate);
+        if (currentStart) params.append('start_date', currentStart);
+        if (currentEnd)   params.append('end_date', currentEnd);
+
         const url = '/api/trademarket/ranking' + (params.toString() ? `?${params}` : '');
         const res = await fetch(url);
         const data = await res.json();
@@ -111,20 +120,42 @@
       tbody.innerHTML = '';
       items.forEach(item => {
         const tr = document.createElement('tr');
+
+        // Rank
+        const tdRank = document.createElement('td');
+        tdRank.textContent = item.rank;
+        tr.appendChild(tdRank);
+
+        // Name with link preserving filter
+        const tdName = document.createElement('td');
+        const link = document.createElement('a');
+        link.textContent = capitalizeWords(item.name);
+        let href = `/history/${encodeURIComponent(item.name)}`;
+        const q = new URLSearchParams();
+        if (currentStart) q.append('start_date', currentStart);
+        if (currentEnd)   q.append('end_date', currentEnd);
+        if (q.toString()) href += `?${q}`;
+        link.href = href;
+        tdName.appendChild(link);
+        tr.appendChild(tdName);
+
+        // Other metrics
         [
-          item.rank,
-          capitalizeWords(item.name),
-          convertEmeraldsToGameFormat(item.average_price),
-          convertEmeraldsToGameFormat(item.lowest_price),
-          convertEmeraldsToGameFormat(item.highest_price),
-          convertEmeraldsToGameFormat(item.average_mid_80_percent_price),
-          convertEmeraldsToGameFormat(item.unidentified_average_mid_80_percent_price),
+          item.average_price,
+          item.lowest_price,
+          item.highest_price,
+          item.average_mid_80_percent_price,
+          item.unidentified_average_mid_80_percent_price,
           item.total_count,
           item.unidentified_count
-        ].forEach(text => {
-          const td = document.createElement('td'); td.textContent = text;
+        ].forEach((val, idx) => {
+          const td = document.createElement('td');
+          td.textContent = (idx < 5)
+            ? convertEmeraldsToGameFormat(val)
+            : val;
           tr.appendChild(td);
         });
+
         tbody.appendChild(tr);
       });
     }
@@ -135,22 +166,21 @@
       const applyBtn   = document.getElementById('applyFilter');
       const resetBtn   = document.getElementById('resetFilter');
 
-        function onlyOlderThan7Days(date) {
-          const today = new Date();
-          today.setHours(0,0,0,0);
-          const daysAgo = (today - date) / (1000*60*60*24);
-          return daysAgo > 7;
-        }
+      function onlyOlderThan7Days(date) {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const daysAgo = (today - date) / (1000*60*60*24);
+        return daysAgo > 7;
+      }
 
-        // initialize when DOM is ready
-        $(function() {
-            $('#startDate, #endDate').datepicker({
-                format: 'yyyy-mm-dd',
-                autoclose: true,
-                todayHighlight: true,
-                beforeShowDay: onlyOlderThan7Days
-            });
+      $(function() {
+        $('#startDate, #endDate').datepicker({
+          format: 'yyyy-mm-dd',
+          autoclose: true,
+          todayHighlight: true,
+          beforeShowDay: onlyOlderThan7Days
         });
+      });
 
       applyBtn.addEventListener('click', () => {
         fetchRankingData(startInput.value, endInput.value);
@@ -158,12 +188,19 @@
 
       resetBtn.addEventListener('click', () => {
         startInput.value = '';
-        endInput.value = '';
+        endInput.value   = '';
         fetchRankingData();
       });
 
-      // Initial load
-      fetchRankingData();
+      // Initial load: apply default filter (show last 7 days)
+      const today = new Date();
+      const defaultEnd   = new Date(today.setDate(today.getDate() - 7));
+      const defaultStart = new Date(today.setDate(defaultEnd.getDate() - 7));
+      const isoStart     = defaultStart.toISOString().split('T')[0];
+      const isoEnd       = defaultEnd.toISOString().split('T')[0];
+      startInput.value = isoStart;
+      endInput.value   = isoEnd;
+      fetchRankingData(isoStart, isoEnd);
     };
   </script>
 {% endblock %}
