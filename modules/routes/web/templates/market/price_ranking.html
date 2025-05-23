@@ -1,6 +1,13 @@
 {% extends '/components/_base.html' %}
 {% block title %}Price History{% endblock %}
 {% block content %}
+  <style>
+    /* shrink the Su, Mo, Tu… headers */
+    .datepicker-days thead th {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+  </style>
 
   <div class="container mt-5">
     <h2>Item Rankings</h2>
@@ -10,11 +17,17 @@
     <div class="row mb-4">
       <div class="col-md-3 mb-3">
         <label for="startDate" class="form-label">Start Date</label>
-        <input type="date" class="form-control" id="startDate" placeholder="YYYY-MM-DD">
+        <input type="text"
+               class="form-control"
+               id="startDate"
+               placeholder="YYYY-MM-DD">
       </div>
       <div class="col-md-3 mb-3">
         <label for="endDate" class="form-label">End Date</label>
-        <input type="date" class="form-control" id="endDate" placeholder="YYYY-MM-DD">
+        <input type="text"
+               class="form-control"
+               id="endDate"
+               placeholder="YYYY-MM-DD">
       </div>
       <div class="col-md-3 mb-3 d-flex align-items-end">
         <button id="applyFilter" class="btn btn-primary me-2">Apply</button>
@@ -122,9 +135,27 @@
       const applyBtn   = document.getElementById('applyFilter');
       const resetBtn   = document.getElementById('resetFilter');
 
+        function onlyOlderThan7Days(date) {
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          const daysAgo = (today - date) / (1000*60*60*24);
+          return daysAgo > 7;
+        }
+
+        // initialize when DOM is ready
+        $(function() {
+            $('#startDate, #endDate').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true,
+                beforeShowDay: onlyOlderThan7Days
+            });
+        });
+
       applyBtn.addEventListener('click', () => {
         fetchRankingData(startInput.value, endInput.value);
       });
+
       resetBtn.addEventListener('click', () => {
         startInput.value = '';
         endInput.value = '';
