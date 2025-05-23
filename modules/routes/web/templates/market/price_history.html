@@ -378,7 +378,14 @@ function updateCharts(priceData) {
         }
 
         window.onload = () => {
-            $('#startDate,#endDate').datepicker({ format:'yyyy-mm-dd', autoclose:true, todayHighlight:true });
+            function onlyOlderThan7Days(date) {
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const daysAgo = (today - date) / (1000*60*60*24);
+                return daysAgo > 7;
+            }
+
+            $('#startDate,#endDate').datepicker({ format:'yyyy-mm-dd', autoclose:true, todayHighlight:true, beforeShowDay: onlyOlderThan7Days });
             document.getElementById('searchBtn').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
             document.getElementById('applyFilter').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
             document.getElementById('resetFilter').onclick = () => {
