@@ -81,24 +81,26 @@ def get_latest_history(
         item_name: str,
         shiny: bool = False,
         tier: Optional[int] = None,
-        days: int = 7,
+        start_date: datetime = None,
+        end_date:   datetime = None
 ) -> dict:
     """
     Retrieve aggregated statistics from the most recent price history documents.
     """
-    return get_historic_average(item_name=item_name, shiny=shiny, tier=tier, days=days)
+    return get_historic_average(item_name=item_name, shiny=shiny, tier=tier, start_date=start_date, end_date=end_date)
 
 
 def get_history(
         item_name: str,
         shiny: bool = False,
-        days: int = 14,
-        tier: Optional[int] = None
+        tier: Optional[int] = None,
+        start_date: datetime = None,
+        end_date:   datetime = None
 ) -> List[dict]:
     """
-    Retrieve historical price data for a market item over a specified window.
+    Retrieve historical price data for an item between start_date and end_date (inclusive).
     """
-    return get_price_history(item_name, shiny, days, tier)
+    return get_price_history(item_name, shiny, tier, start_date, end_date)
 
 
 def get_price(
