@@ -33,11 +33,20 @@
     <div class="row mb-3">
         <div class="col">
             <div class="btn-group btn-group-sm" role="group" aria-label="Timeframe toggles">
-                <button type="button" class="btn btn-primary" id="btn7" onclick="updateTimeframe(7, this)">Last 7 days</button>
-                <button type="button" class="btn btn-outline-primary" id="btn14" onclick="updateTimeframe(14, this)">Last 14 days</button>
-                <button type="button" class="btn btn-outline-primary" id="btn30" onclick="updateTimeframe(30, this)">Last Month</button>
-                <button type="button" class="btn btn-outline-primary" id="btn90" onclick="updateTimeframe(90, this)">Last 3 Months</button>
-                <button type="button" class="btn btn-outline-primary" id="btnRange" onclick="activateDateRange(this)">Date Range</button>
+                <button type="button" class="btn btn-primary" id="btn7" onclick="updateTimeframe(7, this)">Last 7 days
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="btn14" onclick="updateTimeframe(14, this)">
+                    Last 14 days
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="btn30" onclick="updateTimeframe(30, this)">
+                    Last Month
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="btn90" onclick="updateTimeframe(90, this)">
+                    Last 3 Months
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="btnRange" onclick="activateDateRange(this)">
+                    Date Range
+                </button>
             </div>
         </div>
     </div>
@@ -59,7 +68,8 @@
     </div>
     <div class="row">
         <div class="col">
-            <p>* The data displayed on this page is always offset by 1 week. Live data can be viewed using in-game tooltips.</p>
+            <p>* The data displayed on this page is always offset by 1 week. Live data can be viewed using in-game
+                tooltips.</p>
         </div>
     </div>
 
@@ -105,21 +115,43 @@
 
         function initializeEmptyCharts() {
             [priceHistoryChart, highestPriceChart, saturationChart].forEach(c => c && c.destroy());
-            const emptyData = { labels: [], datasets: [{ label: 'No Data', data: [], borderColor: 'rgba(200,200,200,1)', fill: false }] };
-            const opts = { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'time', time: { unit: 'day' }, title: { display: true, text: 'Date' } }, y: { title: { display: true, text: 'Value' } } } };
-            priceHistoryChart = new Chart(document.getElementById('priceHistoryChart'), { type: 'line', data: emptyData, options: opts });
-            highestPriceChart = new Chart(document.getElementById('highestPriceChart'), { type: 'line', data: emptyData, options: opts });
-            saturationChart = new Chart(document.getElementById('saturationChart'), { type: 'line', data: emptyData, options: opts });
+            const emptyData = {
+                labels: [],
+                datasets: [{label: 'No Data', data: [], borderColor: 'rgba(200,200,200,1)', fill: false}]
+            };
+            const opts = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {type: 'time', time: {unit: 'day'}, title: {display: true, text: 'Date'}},
+                    y: {title: {display: true, text: 'Value'}}
+                }
+            };
+            priceHistoryChart = new Chart(document.getElementById('priceHistoryChart'), {
+                type: 'line',
+                data: emptyData,
+                options: opts
+            });
+            highestPriceChart = new Chart(document.getElementById('highestPriceChart'), {
+                type: 'line',
+                data: emptyData,
+                options: opts
+            });
+            saturationChart = new Chart(document.getElementById('saturationChart'), {
+                type: 'line',
+                data: emptyData,
+                options: opts
+            });
         }
 
-                function activateDateRange(btn) {
+        function activateDateRange(btn) {
             // deactivate other toggles
             document.querySelectorAll('.btn-group button').forEach(b => {
-                b.classList.replace('btn-primary','btn-outline-primary');
+                b.classList.replace('btn-primary', 'btn-outline-primary');
                 b.classList.remove('active');
             });
             // activate Date Range
-            btn.classList.replace('btn-outline-primary','btn-primary');
+            btn.classList.replace('btn-outline-primary', 'btn-primary');
             btn.classList.add('active');
             // show date inputs
             document.getElementById('dateRangeContainer').style.display = 'flex';
@@ -133,7 +165,10 @@
             try {
                 const match = itemName.match(/^(.*?)(\d+)$/);
                 let base = itemName, tier;
-                if (match) { base = match[1].trim(); tier = match[2].trim(); }
+                if (match) {
+                    base = match[1].trim();
+                    tier = match[2].trim();
+                }
                 // get inputs / URL params
                 const params = new URLSearchParams(window.location.search);
                 const startVal = document.getElementById('startDate').value || params.get('start_date') || '';
@@ -150,16 +185,19 @@
                     const begin = new Date(lag.getTime() - currentTimeframe * MS_PER_DAY);
                     s = begin.toISOString().split('T')[0];
                 }
-                const q = new URLSearchParams({ start_date: s, end_date: e });
+                const q = new URLSearchParams({start_date: s, end_date: e});
                 if (tier) q.append('tier', tier);
                 const url = `/api/trademarket/history/${encodeURIComponent(base)}?${q}`;
                 const res = await fetch(url);
                 const data = await res.json();
                 if (res.ok && Array.isArray(data) && data.length) updateCharts(data); else initializeEmptyCharts();
-            } catch (x) { console.error(x); initializeEmptyCharts(); }
+            } catch (x) {
+                console.error(x);
+                initializeEmptyCharts();
+            }
         }
 
-function updateCharts(priceData) {
+        function updateCharts(priceData) {
             const labels = priceData.map(item => new Date(item.date));
             const averagePrices = priceData.map(item => item.average_price);
             const average80Prices = priceData.map(item => item.average_mid_80_percent_price);
@@ -359,13 +397,13 @@ function updateCharts(priceData) {
             fetchPriceData(name);
         }
 
-         function updateTimeframe(days, btn) {
+        function updateTimeframe(days, btn) {
             // clear URL params so manual range is ignored
             history.replaceState(null, '', location.pathname);
 
             document.getElementById('dateRangeContainer').style.display = 'none';
             document.getElementById('startDate').value = '';
-            document.getElementById('endDate').value   = '';
+            document.getElementById('endDate').value = '';
             currentTimeframe = days;
             document.querySelectorAll('.btn-group button').forEach(b => {
                 b.classList.replace('btn-primary', 'btn-outline-primary');
@@ -380,26 +418,56 @@ function updateCharts(priceData) {
         window.onload = () => {
             function onlyOlderThan7Days(date) {
                 const today = new Date();
-                today.setHours(0,0,0,0);
-                const daysAgo = (today - date) / (1000*60*60*24);
+                today.setHours(0, 0, 0, 0);
+                const daysAgo = (today - date) / (1000 * 60 * 60 * 24);
                 return daysAgo > 7;
             }
 
-            $('#startDate,#endDate').datepicker({ format:'yyyy-mm-dd', autoclose:true, todayHighlight:true, beforeShowDay: onlyOlderThan7Days });
+            $('#startDate,#endDate').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true,
+                beforeShowDay: onlyOlderThan7Days
+            });
             document.getElementById('searchBtn').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
             document.getElementById('applyFilter').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
             document.getElementById('resetFilter').onclick = () => {
-                document.getElementById('startDate').value=''; document.getElementById('endDate').value='';
-                document.getElementById('btn7').click();
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
             };
-            document.getElementById('itemSearch').addEventListener('keypress',e=>{ if(e.key==='Enter') handleSearch(e.target.value.trim()); });
+            document.getElementById('itemSearch').addEventListener('keypress', e => {
+                if (e.key === 'Enter') handleSearch(e.target.value.trim());
+            });
 
             const initItem = '{{ item_name }}';
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('start_date') || urlParams.has('end_date')) {
-                activateDateRange(document.getElementById('btnRange'));
-                document.getElementById('startDate').value = urlParams.get('start_date') || '';
-                document.getElementById('endDate').value   = urlParams.get('end_date') || '';
+            const sParam = urlParams.get('start_date');
+            const eParam = urlParams.get('end_date');
+            const presets = [7, 14, 30, 90];
+            const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+            if (sParam || eParam) {
+                if (sParam && eParam) {
+                    const sDate = new Date(sParam);
+                    const eDate = new Date(eParam);
+                    const diffDays = (eDate - sDate) / MS_PER_DAY;
+                    let matched = false;
+                    presets.forEach(d => {
+                        if (!matched && Math.abs(diffDays - d) < 0.1) {
+                            updateTimeframe(d, document.getElementById(`btn${d}`));
+                            matched = true;
+                        }
+                    });
+                    if (!matched) {
+                        activateDateRange(document.getElementById('btnRange'));
+                        document.getElementById('startDate').value = sParam;
+                        document.getElementById('endDate').value = eParam;
+                    }
+                } else {
+                    activateDateRange(document.getElementById('btnRange'));
+                    if (sParam) document.getElementById('startDate').value = sParam;
+                    if (eParam) document.getElementById('endDate').value = eParam;
+                }
             } else {
                 document.getElementById('btn7').click();
             }
