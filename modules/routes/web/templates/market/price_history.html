@@ -432,8 +432,11 @@
             document.getElementById('searchBtn').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
             document.getElementById('applyFilter').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
             document.getElementById('resetFilter').onclick = () => {
+                // Clear the inputs
                 document.getElementById('startDate').value = '';
                 document.getElementById('endDate').value = '';
+                // Remove any start_date/end_date from the URL
+                history.replaceState(null, '', location.pathname);
             };
             document.getElementById('itemSearch').addEventListener('keypress', e => {
                 if (e.key === 'Enter') handleSearch(e.target.value.trim());
@@ -451,9 +454,18 @@
                     const sDate = new Date(sParam);
                     const eDate = new Date(eParam);
                     const diffDays = (eDate - sDate) / MS_PER_DAY;
+                    // Compute lagged 'today'
+                    const today = new Date();
+                    const lagged = new Date(today.getTime() - (DEFAULT_LAG_DAYS + 1) * MS_PER_DAY);
+                    const lagISO = lagged.toISOString().split('T')[0];
+                    console.log(lagISO)
                     let matched = false;
                     presets.forEach(d => {
-                        if (!matched && Math.abs(diffDays - d) < 0.1) {
+                        if (!matched &&
+                            Math.abs(diffDays - d) < 0.1 &&
+                            eParam === lagISO &&
+                            sParam === new Date(lagged.getTime() - d * MS_PER_DAY).toISOString().split('T')[0]
+                        ) {
                             updateTimeframe(d, document.getElementById(`btn${d}`));
                             matched = true;
                         }
