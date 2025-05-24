@@ -158,7 +158,7 @@
         }
 
 
-        const DEFAULT_LAG_DAYS = 7;
+        const DEFAULT_LAG_DAYS = 8;
         const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
         async function fetchPriceData(itemName) {
@@ -456,7 +456,7 @@
                     const diffDays = (eDate - sDate) / MS_PER_DAY;
                     // Compute lagged 'today'
                     const today = new Date();
-                    const lagged = new Date(today.getTime() - (DEFAULT_LAG_DAYS + 1) * MS_PER_DAY);
+                    const lagged = new Date(today.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
                     const lagISO = lagged.toISOString().split('T')[0];
                     console.log(lagISO)
                     let matched = false;
