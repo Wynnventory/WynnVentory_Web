@@ -34,8 +34,8 @@ def save(items: List[Dict[str, Any]]) -> None:
         pass
 
 
-def get_trade_market_item(
-    item_name: str,
+def get_trade_market_item_listings(
+    item_name: Optional[str] = None,
     shiny: bool = False,
     tier: Optional[int] = None
 ) -> List[Dict[str, Any]]:
@@ -43,10 +43,17 @@ def get_trade_market_item(
     Retrieve all market entries for an item by name.
     """
     shiny_stat = '$ne' if shiny else '$eq'
-    query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
-        {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-        {'item_type': 'MaterialItem', 'tier': tier}
-    ]}
+    query_filter: Dict[str, Any] = {
+        'shiny_stat': {shiny_stat: None},
+        '$or': [
+            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+            {'item_type': 'MaterialItem', 'tier': tier}
+        ]
+    }
+
+    # only add the name filter if the caller passed one
+    if item_name is not None:
+        query_filter['name'] = item_name
 
     cursor = get_collection(ColEnum.MARKET).find(
         filter=query_filter,
