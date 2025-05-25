@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify
 
 from modules.auth import require_scope, public_endpoint
-from modules.services.market_service import save_items, get_price, get_item_listings, get_history, get_latest_history, \
+from modules.services.market_service import save_items, get_price, get_item_listings, get_history, get_historic_item_price, \
     get_ranking
 
 logging.basicConfig(
@@ -126,7 +126,7 @@ def get_market_history(item_name):
         return jsonify({'error': 'Internal server error'}), 500
 
 
-@market_bp.get('/trademarket/history/<item_name>/latest')
+@market_bp.get('/trademarket/history/<item_name>/price')
 @require_scope('read:market_archive')
 def get_latest_market_history(item_name):
     """
@@ -151,7 +151,7 @@ def get_latest_market_history(item_name):
     tier = int(tier_param) if tier_param is not None else None
 
     try:
-        result = get_latest_history(item_name=item_name, shiny=shiny, tier=tier, start_date=start_date, end_date=end_date)
+        result = get_historic_item_price(item_name=item_name, shiny=shiny, tier=tier, start_date=start_date, end_date=end_date)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
