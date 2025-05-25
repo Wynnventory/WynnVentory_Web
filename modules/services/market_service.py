@@ -5,7 +5,7 @@ from typing import List, Optional, Any
 from modules.config import Config
 from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
-from modules.repositories.market_repo import get_trade_market_item, get_trade_market_item_price, get_price_history, get_historic_average, get_all_items_ranking
+from modules.repositories.market_repo import get_trade_market_item_listings, get_trade_market_item_price, get_price_history, get_historic_average, get_all_items_ranking
 from modules.utils.queue_worker import enqueue
 from modules.utils.version import compare_versions
 
@@ -114,7 +114,7 @@ def get_price(
     return get_trade_market_item_price(item_name, shiny, tier)
 
 
-def get_item(
+def get_item_listings(
         item_name: str,
         shiny: bool = False,
         tier: Optional[int] = None
@@ -122,7 +122,7 @@ def get_item(
     """
     Retrieve market item info by name.
     """
-    return get_trade_market_item(item_name=item_name, shiny=shiny, tier=tier)
+    return get_trade_market_item_listings(item_name=item_name, shiny=shiny, tier=tier)
 
 
 def get_ranking(

@@ -4,7 +4,7 @@ from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify
 
 from modules.auth import require_scope, public_endpoint
-from modules.services.market_service import save_items, get_price, get_item, get_history, get_latest_history, \
+from modules.services.market_service import save_items, get_price, get_item_listings, get_history, get_latest_history, \
     get_ranking
 
 logging.basicConfig(
@@ -44,20 +44,19 @@ def save_trade_market_items():
         return jsonify({'error': 'Internal server error'}), 500
 
 
-@market_bp.get('/trademarket/item/<item_name>/listings')
+@market_bp.get('/trademarket/listings', defaults={'item_name': None})
+@market_bp.get('/trademarket/listings/<item_name>')
 @require_scope('read:market')
 def get_market_item_info(item_name):
     """
     GET /api/trademarket/item/<item_name>
     Retrieve market item info by name.
     """
-    if not item_name:
-        return jsonify({'message': 'No item name provided'}), 400
     shiny = request.args.get('shiny', 'false').lower() == 'true'
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
     try:
-        result = get_item(item_name=item_name, shiny=shiny, tier=tier)
+        result = get_item_listings(item_name=item_name, shiny=shiny, tier=tier)
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
