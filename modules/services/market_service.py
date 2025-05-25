@@ -115,14 +115,15 @@ def get_price(
 
 
 def get_item_listings(
-        item_name: str,
-        shiny: bool = False,
-        tier: Optional[int] = None
+        item_name: Optional[str],
+        shiny: Optional[bool] = None,
+        tier: Optional[int] = None,
+        item_type: Optional[str] = None,
 ) -> list[dict[str, Any]]:
     """
     Retrieve market item info by name.
     """
-    return get_trade_market_item_listings(item_name=item_name, shiny=shiny, tier=tier)
+    return get_trade_market_item_listings(item_name=item_name, shiny=shiny, tier=tier, item_type=item_type)
 
 
 def get_ranking(

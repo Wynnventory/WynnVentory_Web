@@ -36,24 +36,54 @@ def save(items: List[Dict[str, Any]]) -> None:
 
 def get_trade_market_item_listings(
     item_name: Optional[str] = None,
-    shiny: bool = False,
-    tier: Optional[int] = None
+    shiny: Optional[bool] = None,
+    tier: Optional[int] = None,
+    item_type: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """
-    Retrieve all market entries for an item by name.
+    Retrieve market entries, optionally filtering by:
+      - name
+      - shiny status (if shiny is True/False; if None, don't filter by shiny)
+      - tier (for MaterialItem or globally if no name/type)
+      - item_type
     """
-    shiny_stat = '$ne' if shiny else '$eq'
-    query_filter: Dict[str, Any] = {
-        'shiny_stat': {shiny_stat: None},
-        '$or': [
-            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': 'MaterialItem', 'tier': tier}
-        ]
-    }
+    query_filter: Dict[str, Any] = {}
 
-    # only add the name filter if the caller passed one
+    # only filter on shiny_stat if shiny was explicitly passed
+    if shiny is not None:
+        shiny_op = '$ne' if shiny else '$eq'
+        query_filter['shiny_stat'] = {shiny_op: None}
+
+    # 1) NAME branch
     if item_name is not None:
         query_filter['name'] = item_name
+
+        if item_type is not None:
+            # explicit single-type + optional tier
+            query_filter['item_type'] = item_type
+            if tier is not None and item_type == 'MaterialItem':
+                query_filter['tier'] = tier
+
+        else:
+            # fallback to original OR logic
+            query_filter['$or'] = [
+                {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+                {'item_type': 'MaterialItem', 'tier': tier}
+            ]
+
+    # 2) NO-NAME branch
+    else:
+        if item_type is not None:
+            query_filter['item_type'] = item_type
+            if tier is not None and item_type == 'MaterialItem':
+                query_filter['tier'] = tier
+        else:
+            # no name & no type: include all three types
+            query_filter['item_type'] = {
+                '$in': ['GearItem', 'IngredientItem', 'MaterialItem']
+            }
+            if tier is not None:
+                query_filter['tier'] = tier
 
     cursor = get_collection(ColEnum.MARKET).find(
         filter=query_filter,
