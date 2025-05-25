@@ -77,7 +77,7 @@ def save_items(raw_items):
         logger.warning("No valid items found")
 
 
-def get_latest_history(
+def get_historic_item_price(
         item_name: str,
         shiny: bool = False,
         tier: Optional[int] = None,
