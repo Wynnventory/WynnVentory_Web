@@ -72,7 +72,8 @@ def get_market_item_info(item_name):
             shiny=shiny,
             tier=tier,
             item_type=type_param,
-            page_size=page_size, skip=skip
+            page_size=page_size,
+            skip=skip
         )
 
         return jsonify(result), 200

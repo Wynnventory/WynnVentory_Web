@@ -6,7 +6,10 @@ from modules.models.collection_types import Collection
 from modules.utils.time_validation import get_lootpool_week, get_lootpool_week_for_timestamp, get_raidpool_week
 
 
-def build_pool_pipeline(year: Optional[int] = None, week: Optional[int] = None) -> List[Dict]:
+def build_pool_pipeline(
+        year: Optional[int] = None,
+        week: Optional[int] = None
+) -> List[Dict]:
     pipeline: List[Dict] = []
 
     # 1) optionally match this week/year
