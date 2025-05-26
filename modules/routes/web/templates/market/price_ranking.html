@@ -1,10 +1,57 @@
 {% extends '/components/_base.html' %}
 {% block title %}Price History{% endblock %}
 {% block content %}
+    <style>
+        /* shrink the Su, Mo, Tu… headers */
+        .datepicker-days thead th {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
 
     <div class="container mt-5">
         <h2>Item Rankings</h2>
-        <p class="text-muted">Based on archived data (average of all dates).</p>
+        <p class="text-muted">Based on archived data.</p>
+
+        <!-- Date range selectors (hidden until 'Date Range' clicked) -->
+        <div class="row mb-3" id="dateRangeContainer" style="display: none;">
+            <div class="col-md-3 mb-3">
+                <label for="startDate" class="form-label">Start Date</label>
+                <input type="text" class="form-control" id="startDate" placeholder="YYYY-MM-DD">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="endDate" class="form-label">End Date</label>
+                <input type="text" class="form-control" id="endDate" placeholder="YYYY-MM-DD">
+            </div>
+            <div class="col-md-3 mb-3 d-flex align-items-end">
+                <button id="applyFilter" class="btn btn-primary me-2">Apply</button>
+                <button id="resetFilter" class="btn btn-secondary">Reset</button>
+            </div>
+        </div>
+
+        <!-- Quick timeframe toggles -->
+        <div class="row mb-3">
+            <div class="col">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Timeframe toggles">
+                    <button type="button" class="btn btn-primary" id="btn7" onclick="updateTimeframe(7, this)">Last 7
+                        days
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btn14"
+                            onclick="updateTimeframe(14, this)">Last 14 days
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btn30"
+                            onclick="updateTimeframe(30, this)">Last Month
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btn90"
+                            onclick="updateTimeframe(90, this)">Last 3 Months
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btnRange"
+                            onclick="activateDateRange(this)">Date Range
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <table class="table table-striped" id="rankingTable">
             <thead>
             <tr>
@@ -15,174 +62,172 @@
                 <th>Highest</th>
                 <th>Mid 80% Avg</th>
                 <th>Unid Mid 80% Avg</th>
-                <th>Avg Total Count</th>
-                <th>Avg Unid Count</th>
+                <th>Total Items</th>
+                <th>Total Unid Items</th>
             </tr>
             </thead>
             <tbody></tbody>
         </table>
     </div>
 
-    <!-- Add Chart.js and the date adapter -->
+    <!-- Chart.js and date adapter -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
     <script>
-        // Function to capitalize each word in the item name
+        // Utilities
         function capitalizeWords(str) {
-            const smallWords = ['of'];
-            return str
-                .split(' ')
-                .map((word, index) => {
-                    if (index === 0 || !smallWords.includes(word.toLowerCase())) {
-                        // Capitalize the first word or any word that's not a small word
-                        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                    }
-                    // Return small words in lowercase
-                    return word.toLowerCase();
-                })
-                .join(' ');
+            const small = ['of'];
+            return str.split(' ').map((w, i) => (i === 0 || !small.includes(w.toLowerCase()))
+                ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                : w.toLowerCase()
+            ).join(' ');
         }
 
         function convertEmeraldsToGameFormat(emeralds) {
-            const stx = Math.floor(emeralds / (64 * 64 * 64));
-            emeralds %= 64 * 64 * 64;
-
-            const le = Math.floor(emeralds / (64 * 64));
-            emeralds %= 64 * 64;
-
-            const eb = Math.floor(emeralds / 64);
-            const e = emeralds % 64;
-
-            let result = '';
+            let rem = Math.floor(emeralds);
+            const stx = Math.floor(rem / (64 * 64 * 64));
+            rem %= 64 * 64 * 64;
+            const le = Math.floor(rem / (64 * 64));
+            rem %= 64 * 64;
+            const eb = Math.floor(rem / 64);
+            rem %= 64;
+            let res = '';
             if (stx > 0) {
-                // Calculate the fractional LE (if any)
-                let decimalValue = le + eb / 64 + e / (64 * 64);
-                // Round to 2 decimals
-                decimalValue = Math.round(decimalValue * 100) / 100;
-
-                // Convert to string with or without decimals
-                const displayLE = Number.isInteger(decimalValue)
-                    ? decimalValue.toString()       // e.g., '4'
-                    : decimalValue.toFixed(2);      // e.g., '4.50'
-
-                result = `${stx}stx`;
-                if(displayLE !== "0") {
-                    result += ` ${displayLE}le`;
-                }
+                let dec = le + eb / 64 + rem / (64 * 64);
+                dec = Math.round(dec * 100) / 100;
+                res = `${stx}stx${dec !== 0 ? ` ${dec}le` : ''}`;
             } else {
-                if (le > 0) result += `${le}le `;
-                if (eb > 0) result += `${eb}eb `;
-                if (e > 0)  result += `${e.toFixed(2)}e`;
+                if (le) res += `${le}le `;
+                if (eb) res += `${eb}eb `;
+                if (rem) res += `${rem.toFixed(2)}e`;
             }
-
-            return result.trim();
+            return res.trim() || '0e';
         }
 
-        // Fetch ALL items ranking
-        async function fetchRankingData() {
-            try {
-                // Make sure your backend uses {"$sort": {"average_price": -1}} instead of "avg_price"
-                const response = await fetch('/api/trademarket/ranking');
-                const rankingData = await response.json();
+        // State
+        let currentStart = '';
+        let currentEnd = '';
+        let currentTimeframe = 7;
+        const DEFAULT_LAG = 8;
+        const MS_PER_DAY = 86400000;
 
-                if (response.ok) {
-                    displayRanking(rankingData);
-                } else {
-                    console.error('No ranking data found or request failed.');
-                }
-            } catch (error) {
-                console.error('Error fetching ranking data:', error);
-            }
+        // Quick selectors hide date inputs
+        function updateTimeframe(days, btn) {
+            history.replaceState(null, '', location.pathname);
+            document.getElementById('dateRangeContainer').style.display = 'none';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            currentTimeframe = days;
+            document.querySelectorAll('.btn-group button').forEach(b => {
+                b.classList.replace('btn-primary', 'btn-outline-primary');
+                b.classList.remove('active');
+            });
+            btn.classList.replace('btn-outline-primary', 'btn-primary');
+            btn.classList.add('active');
+            fetchAndDisplay();
         }
 
-        // Display the ranking data in the table
-        function displayRanking(rankingData) {
-            const tableBody = document.querySelector('#rankingTable tbody');
-            tableBody.innerHTML = '';
+        // Show date inputs
+        function activateDateRange(btn) {
+            document.querySelectorAll('.btn-group button').forEach(b => {
+                b.classList.replace('btn-primary', 'btn-outline-primary');
+                b.classList.remove('active');
+            });
+            btn.classList.replace('btn-outline-primary', 'btn-primary');
+            btn.classList.add('active');
+            document.getElementById('dateRangeContainer').style.display = 'flex';
+        }
 
-            rankingData.forEach((item, index) => {
-                const row = document.createElement('tr');
+        // Fetch data
+        async function fetchAndDisplay() {
+            // Date values
+            let s = document.getElementById('startDate').value;
+            let e = document.getElementById('endDate').value;
+            if (!s && !e) {
+                const now = new Date();
+                const lag = new Date(now.getTime() - DEFAULT_LAG * MS_PER_DAY);
+                e = lag.toISOString().split('T')[0];
+                s = new Date(lag.getTime() - currentTimeframe * MS_PER_DAY).toISOString().split('T')[0];
+            }
+            currentStart = s;
+            currentEnd = e;
+            const params = new URLSearchParams({start_date: s, end_date: e});
+            const res = await fetch('/api/trademarket/ranking?' + params);
+            const data = await res.json();
+            displayRanking(data || []);
+        }
 
-                // 1) Rank
-                const rankCell = document.createElement('td');
-                rankCell.textContent = index + 1; // 1-based index
-                row.appendChild(rankCell);
+        // Populate table
+        function displayRanking(items) {
+            const tbody = document.querySelector('#rankingTable tbody');
+            const dateModeVisible = document.getElementById('dateRangeContainer').style.display !== 'none';
+            tbody.innerHTML = '';
 
-                // 2) Item Name
-                const nameCell = document.createElement('td');
-                nameCell.textContent = item.name || 'N/A';
-                row.appendChild(nameCell);
+            items.forEach(it => {
+                const params = new URLSearchParams();
 
-                // 3) Average Price
-                const avgPriceCell = document.createElement('td');
-                if (item.average_price !== null && item.average_price !== undefined) {
-                    avgPriceCell.textContent = convertEmeraldsToGameFormat(item.average_price);
+                if (!dateModeVisible) {
+                    // Quick-selector mode: use currentStart/currentEnd
+                    if (currentStart) params.append('start_date', currentStart);
+                    if (currentEnd) params.append('end_date', currentEnd);
                 } else {
-                    avgPriceCell.textContent = 'N/A';
+                    // Date-range mode: read whatever the user has entered (start and/or end)
+                    const startVal = document.getElementById('startDate').value.trim();
+                    const endVal = document.getElementById('endDate').value.trim();
+                    if (startVal) params.append('start_date', startVal);
+                    if (endVal) params.append('end_date', endVal);
                 }
-                row.appendChild(avgPriceCell);
 
-                // 4) Lowest Price
-                const lowPriceCell = document.createElement('td');
-                if (item.lowest_price !== null && item.lowest_price !== undefined) {
-                    lowPriceCell.textContent = convertEmeraldsToGameFormat(item.lowest_price);
-                } else {
-                    lowPriceCell.textContent = 'N/A';
-                }
-                row.appendChild(lowPriceCell);
+                const qs = params.toString();
+                const href = `/history/${encodeURIComponent(it.name)}` + (qs ? `?${qs}` : '');
 
-                // 5) Highest Price
-                const highPriceCell = document.createElement('td');
-                if (item.highest_price !== null && item.highest_price !== undefined) {
-                    highPriceCell.textContent = convertEmeraldsToGameFormat(item.highest_price);
-                } else {
-                    highPriceCell.textContent = 'N/A';
-                }
-                row.appendChild(highPriceCell);
-
-                // 6) Mid 80% Avg
-                const mid80Cell = document.createElement('td');
-                if (item.average_mid_80_percent_price !== null && item.average_mid_80_percent_price !== undefined) {
-                    mid80Cell.textContent = convertEmeraldsToGameFormat(item.average_mid_80_percent_price);
-                } else {
-                    mid80Cell.textContent = 'N/A';
-                }
-                row.appendChild(mid80Cell);
-
-                // 7) Unid Mid 80% Avg
-                const unidMid80Cell = document.createElement('td');
-                if (item.unidentified_average_mid_80_percent_price !== null && item.unidentified_average_mid_80_percent_price !== undefined) {
-                    unidMid80Cell.textContent = convertEmeraldsToGameFormat(item.unidentified_average_mid_80_percent_price);
-                } else {
-                    unidMid80Cell.textContent = 'N/A';
-                }
-                row.appendChild(unidMid80Cell);
-
-                // 8) Avg Total Count
-                const avgTotalCountCell = document.createElement('td');
-                if (item.average_total_count !== null && item.average_total_count !== undefined) {
-                    avgTotalCountCell.textContent = item.average_total_count.toFixed(2);
-                } else {
-                    avgTotalCountCell.textContent = 'N/A';
-                }
-                row.appendChild(avgTotalCountCell);
-
-                // 9) Avg Unid Count
-                const avgUnidCountCell = document.createElement('td');
-                if (item.average_unidentified_count !== null && item.average_unidentified_count !== undefined) {
-                    avgUnidCountCell.textContent = item.average_unidentified_count.toFixed(2);
-                } else {
-                    avgUnidCountCell.textContent = 'N/A';
-                }
-                row.appendChild(avgUnidCountCell);
-
-                tableBody.appendChild(row);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+          <td>${it.rank}</td>
+          <td><a href="${href}">
+            ${capitalizeWords(it.name)}</a></td>
+          <td>${convertEmeraldsToGameFormat(it.average_price)}</td>
+          <td>${convertEmeraldsToGameFormat(it.lowest_price)}</td>
+          <td>${convertEmeraldsToGameFormat(it.highest_price)}</td>
+          <td>${convertEmeraldsToGameFormat(it.average_mid_80_percent_price)}</td>
+          <td>${convertEmeraldsToGameFormat(it.unidentified_average_mid_80_percent_price)}</td>
+          <td>${it.total_count}</td>
+          <td>${it.unidentified_count}</td>
+        `;
+                tbody.appendChild(tr);
             });
         }
 
-        // On window load, if there's an item in the URL, show its charts; also load the ranking table
-        window.onload = function () {
-            fetchRankingData();
+        window.onload = () => {
+            function onlyOlderThan7Days(date) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const daysAgo = (today - date) / (1000 * 60 * 60 * 24);
+                return daysAgo > 7;
+            }
+
+            // datepickers
+            $('#startDate,#endDate').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true,
+                beforeShowDay: onlyOlderThan7Days
+            });
+            document.getElementById('applyFilter').onclick = () => fetchAndDisplay();
+            document.getElementById('resetFilter').onclick = () => {
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+            };
+
+            // init: parse URL params
+            const p = new URLSearchParams(window.location.search);
+            if (p.has('start_date') || p.has('end_date')) {
+                activateDateRange(document.getElementById('btnRange'));
+                document.getElementById('startDate').value = p.get('start_date') || '';
+                document.getElementById('endDate').value = p.get('end_date') || '';
+            } else {
+                updateTimeframe(7, document.getElementById('btn7'));
+            }
         };
     </script>
 {% endblock %}

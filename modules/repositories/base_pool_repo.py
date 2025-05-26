@@ -38,9 +38,11 @@ def build_pool_pipeline(year: Optional[int] = None, week: Optional[int] = None) 
                 "rarity": "$items.rarity",
                 "shiny": "$items.shiny",
                 "shinyStat": "$items.shinyStat",
+                "icon": "$items.icon",
                 "itemType": "$items.itemType",
                 "subtype": "$items.subtype"
-            }}
+            }},
+            "type": {"$first": "$type"}
         }
     })
 
@@ -51,7 +53,8 @@ def build_pool_pipeline(year: Optional[int] = None, week: Optional[int] = None) 
             "week": "$_id.week",
             "region": "$_id.region",
             "timestamp": "$_id.timestamp",
-            "items": 1
+            "items": 1,
+            "type": 1
         }
     })
 
@@ -62,7 +65,8 @@ def build_pool_pipeline(year: Optional[int] = None, week: Optional[int] = None) 
             "regions": {"$push": {
                 "region": "$region",
                 "timestamp": "$timestamp",
-                "items": "$items"
+                "items": "$items",
+                "type": "$type" 
             }}
         }
     })

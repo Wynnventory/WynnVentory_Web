@@ -288,17 +288,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (raidEl) startCountdown(() => getNextFridayAt(17), raidEl)
 })
 
-function displayItem(event, encodedItemName) {
-    const itemName = decodeURIComponent(encodedItemName);
-    fetchItemStats(itemName).then(data => {
-        if (data) {
-            showTooltip(event, data);
-        } else {
-            console.error('No stats available for this item');
-        }
-    }).catch(error => {
-        console.error('Error fetching item stats:', error);
-    });
+function displayItem(e, encodedItemName) {
+    e.preventDefault();
+    // allow both click and touchstart
+    const touch = (e.touches && e.touches[0]);
+    const clickX = touch ? touch.clientX : e.clientX;
+    const clickY = touch ? touch.clientY : e.clientY;
+
+    const name = decodeURIComponent(encodedItemName);
+    fetchItemStats(name)
+        .then(data => data ? showTooltip(e, data, clickX, clickY) : console.error('No stats'))
+        .catch(err => console.error('Fetch error', err));
 }
 
 async function fetchItemStats(itemName) {
@@ -316,9 +316,13 @@ function displayAspect(event, encodedAspectClass, encodedItemName) {
     const aspectClass = decodeURIComponent(encodedAspectClass).replace('Aspect', '').toLowerCase();
     const aspectName = decodeURIComponent(encodedItemName);
 
+    const touch = (event.touches && event.touches[0]);
+    const clickX = touch ? touch.clientX : event.clientX;
+    const clickY = touch ? touch.clientY : event.clientY;
+
     fetchAspectStats(aspectClass, aspectName).then(data => {
         if (data) {
-            showTooltipAspect(event, data);
+            showTooltipAspect(event, data, clickX, clickY);
         } else {
             console.error('No stats available for this item');
         }
@@ -338,13 +342,12 @@ async function fetchAspectStats(className, aspectName) {
     }
 }
 
-function showTooltipAspect(event, aspectStats) {
+function showTooltipAspect(e, aspectStats, clickX, clickY) {
     const tooltip = document.getElementById('item-stats-tooltip');
-    const { rarity, requiredClass, tiers } = aspectStats;
-    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
-    tooltip.classList.add(rarity);
+    const { rarity, requiredClass, tiers, name } = aspectStats;
+    tooltip.className = 'item-stats-tooltip ' + rarity;
 
-    // Tier
+       // Tier
     let tierHTML = '';
     tierHTML = `<div>Tier I 
                 <span style="color:darkgray;">>>>>>>>>></span>
@@ -358,50 +361,34 @@ function showTooltipAspect(event, aspectStats) {
     let requirementsHTML = '';
     requirementsHTML = `<div>Class Req: <span style="color: white;">${requiredClass.charAt(0).toUpperCase() + requiredClass.slice(1)}</span><br></div>`;
 
-    // Build aspect tooltip
+    // build your tiers & description HTML…
     tooltip.innerHTML = `
-            <div class="item-header">
-                <h5 class="${rarity}">${aspectStats.name}</h5>
-            </div>
-            <div class="item-infobox item-tiertext item-text">
-                ${tierHTML}
-            </div>
-            <div class="item-infobox item-text">
-                ${descriptionHTML}
-            </div>
-            <div class="item-infobox item-text">
-                ${requirementsHTML}
-            </div>
-            `;
+        <div class="item-header">
+            <h5 class="${rarity}">${aspectStats.name}</h5>
+        </div>
+        <div class="item-infobox item-tiertext item-text">
+            ${tierHTML}
+        </div>
+        <div class="item-infobox item-text">
+            ${descriptionHTML}
+        </div>
+        <div class="item-infobox item-text">
+            ${requirementsHTML}
+        </div>
+    `;
 
     tooltip.style.display = 'block';
-
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-
-    let top = event.pageY - 100;
-    let left = event.pageX + 25;
-
-    if (top + tooltipRect.height > viewportHeight) {
-        top = viewportHeight - tooltipRect.height - 10;
-    }
-
-    if (left + tooltipRect.width > viewportWidth) {
-        left = viewportWidth - tooltipRect.width - 10;
-    }
-
-    tooltip.style.top = `${top}px`;
-    tooltip.style.left = `${left}px`;
-
+    positionTooltip(tooltip, clickX, clickY);
     document.addEventListener('click', hideTooltipOnClickOutside);
 }
 
-function showTooltip(event, itemStats) {
+function showTooltip(e, itemStats, clickX, clickY) {
     const tooltip = document.getElementById('item-stats-tooltip');
     const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req } = itemStats;
-    tooltip.classList.remove('mythic', 'fabled', 'legendary', 'rare', 'unique', 'Mythic', 'Fabled', 'Legendary', 'Rare', 'Unique');
-    tooltip.classList.add(rarity);
+
+    // reset & set rarity class
+    tooltip.className = 'item-stats-tooltip ' + rarity;
+
 
     // Requirements
     let requirementsHTML = '';
@@ -503,25 +490,7 @@ function showTooltip(event, itemStats) {
         `;
 
     tooltip.style.display = 'block';
-
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-
-    let top = event.pageY - 100;
-    let left = event.pageX + 25;
-
-    if (top + tooltipRect.height > viewportHeight) {
-        top = viewportHeight - tooltipRect.height - 10;
-    }
-
-    if (left + tooltipRect.width > viewportWidth) {
-        left = viewportWidth - tooltipRect.width - 10;
-    }
-
-    tooltip.style.top = `${top}px`;
-    tooltip.style.left = `${left}px`;
-
+    positionTooltip(tooltip, clickX, clickY);
     document.addEventListener('click', hideTooltipOnClickOutside);
 }
 
@@ -536,6 +505,24 @@ function hideTooltipOnClickOutside(event) {
     if (!tooltip.contains(event.target)) {
         hideTooltip();
     }
+}
+
+// helper to keep both tooltips in sync
+function positionTooltip(tooltip, clickX, clickY) {
+    const rect = tooltip.getBoundingClientRect();
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let top  = clickY - 100;
+    let left = clickX + 25;
+
+    let gap = 10;
+    // clamp inside viewport
+    if (top + rect.height  > vh) top  = vh - rect.height - gap;
+    if (left + rect.width   > vw) left = vw - rect.width - gap;
+    if (top < gap)   top = gap;
+    if (left < gap) left = gap;
+
+    tooltip.style.top  = top  + 'px';
+    tooltip.style.left = left + 'px';
 }
 
 //lootrun_lootpool.html Javascript code

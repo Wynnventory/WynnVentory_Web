@@ -1,10 +1,11 @@
 import logging
+from datetime import datetime
 from typing import List, Optional, Any
 
 from modules.config import Config
 from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
-from modules.repositories.market_repo import get_trade_market_item, get_trade_market_item_price, get_price_history, get_historic_average, get_all_items_ranking
+from modules.repositories.market_repo import get_trade_market_item_listings, get_trade_market_item_price, get_price_history, get_historic_average, get_all_items_ranking
 from modules.utils.queue_worker import enqueue
 from modules.utils.version import compare_versions
 
@@ -32,6 +33,7 @@ def _format_item_for_db(item: dict) -> dict:
         "shiny_stat": item_data.get('shinyStat'),
         "amount": item.get('amount'),
         "listing_price": item.get('listingPrice'),
+        "icon": item_data.get('icon'),
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
         "hash_code": item.get('hash_code'),
@@ -75,28 +77,30 @@ def save_items(raw_items):
         logger.warning("No valid items found")
 
 
-def get_latest_history(
+def get_historic_item_price(
         item_name: str,
         shiny: bool = False,
         tier: Optional[int] = None,
-        days: int = 7,
+        start_date: datetime = None,
+        end_date:   datetime = None
 ) -> dict:
     """
     Retrieve aggregated statistics from the most recent price history documents.
     """
-    return get_historic_average(item_name=item_name, shiny=shiny, tier=tier, days=days)
+    return get_historic_average(item_name=item_name, shiny=shiny, tier=tier, start_date=start_date, end_date=end_date)
 
 
 def get_history(
         item_name: str,
         shiny: bool = False,
-        days: int = 14,
-        tier: Optional[int] = None
+        tier: Optional[int] = None,
+        start_date: datetime = None,
+        end_date:   datetime = None
 ) -> List[dict]:
     """
-    Retrieve historical price data for a market item over a specified window.
+    Retrieve historical price data for an item between start_date and end_date (inclusive).
     """
-    return get_price_history(item_name, shiny, days, tier)
+    return get_price_history(item_name, shiny, tier, start_date, end_date)
 
 
 def get_price(
@@ -110,19 +114,23 @@ def get_price(
     return get_trade_market_item_price(item_name, shiny, tier)
 
 
-def get_item(
-        item_name: str,
-        shiny: bool = False,
-        tier: Optional[int] = None
+def get_item_listings(
+        item_name: Optional[str],
+        shiny: Optional[bool] = None,
+        tier: Optional[int] = None,
+        item_type: Optional[str] = None,
 ) -> list[dict[str, Any]]:
     """
     Retrieve market item info by name.
     """
-    return get_trade_market_item(item_name=item_name, shiny=shiny, tier=tier)
+    return get_trade_market_item_listings(item_name=item_name, shiny=shiny, tier=tier, item_type=item_type)
 
 
-def get_ranking() -> List[dict]:
+def get_ranking(
+        start_date: Optional[datetime] = None,
+        end_date:   Optional[datetime] = None
+) -> List[dict]:
     """
     Retrieve a ranking of items based on archived price data.
     """
-    return get_all_items_ranking()
+    return get_all_items_ranking(start_date=start_date, end_date=end_date)
