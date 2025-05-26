@@ -127,6 +127,7 @@ def get_market_history(item_name):
 
 
 @market_bp.get('/trademarket/history/<item_name>/price')
+@market_bp.get('/trademarket/history/<item_name>/latest') # required for mod versions before v1.1
 @require_scope('read:market_archive')
 def get_latest_market_history(item_name):
     """
