@@ -38,8 +38,10 @@ def get_trade_market_item_listings(
     item_name: Optional[str] = None,
     shiny: Optional[bool] = None,
     tier: Optional[int] = None,
-    item_type: Optional[str] = None
-) -> List[Dict[str, Any]]:
+    item_type: Optional[str] = None,
+    page_size: int = 50,
+    skip: int = 0
+) -> Dict[str, Any]:
     """
     Retrieve market entries, optionally filtering by:
       - name
@@ -85,15 +87,25 @@ def get_trade_market_item_listings(
             if tier is not None:
                 query_filter['tier'] = tier
 
-    cursor = get_collection(ColEnum.MARKET).find(
+    coll = get_collection(ColEnum.MARKET)
+    total = coll.count_documents(query_filter)
+
+    cursor = coll.find(
         filter=query_filter,
         projection={
             '_id': 0,
             'player_name': 0
         }
-    )
+    ).skip(skip).limit(page_size)
 
-    return list(cursor)
+    items = list(cursor)
+
+    return {
+        'page': (skip // page_size) + 1,
+        'page_size': page_size,
+        'total': total,
+        'items': items
+    }
 
 
 def get_trade_market_item_price(
