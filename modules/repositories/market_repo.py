@@ -103,6 +103,7 @@ def get_trade_market_item_listings(
     return {
         'page': (skip // page_size) + 1,
         'page_size': page_size,
+        'count': len(items),
         'total': total,
         'items': items
     }
