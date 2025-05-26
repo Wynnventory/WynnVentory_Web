@@ -52,6 +52,11 @@ def get_market_item_info(item_name):
     GET /api/trademarket/item/<item_name>
     Retrieve market item info by name.
     """
+    page      = max(1, int(request.args.get('page', 1)))
+    page_size = min(100, int(request.args.get('page_size', 50)))  # cap at 100
+
+    skip = (page - 1) * page_size
+
     shiny_param = request.args.get('shiny')
     if shiny_param is None:
         shiny = None
@@ -62,7 +67,14 @@ def get_market_item_info(item_name):
     type_param = request.args.get('itemType')
     tier = int(tier_param) if tier_param is not None else None
     try:
-        result = get_item_listings(item_name=item_name, shiny=shiny, tier=tier, item_type=type_param)
+        result = get_item_listings(
+            item_name=item_name,
+            shiny=shiny,
+            tier=tier,
+            item_type=type_param,
+            page_size=page_size, skip=skip
+        )
+
         return jsonify(result), 200
     except Exception:
         return jsonify({'error': 'Internal server error'}), 500
