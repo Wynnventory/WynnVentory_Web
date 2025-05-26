@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 
 from flask import Blueprint, request, jsonify
 
-from modules.auth import require_scope, public_endpoint
+from modules.auth import require_scope, public_endpoint, mod_allowed
 from modules.services.market_service import save_items, get_price, get_item_listings, get_history, get_historic_item_price, \
     get_ranking
 
@@ -20,6 +20,7 @@ market_bp = Blueprint('market', __name__, url_prefix='/api')
 
 @market_bp.post('/trademarket/items')
 @require_scope('write:market')
+@mod_allowed
 def save_trade_market_items():
     """
     POST /api/trademarket/items
@@ -83,6 +84,7 @@ def get_market_item_info(item_name):
 
 @market_bp.get('/trademarket/item/<item_name>/price')
 @require_scope('read:market')
+@mod_allowed
 def get_market_item_price_info(item_name):
     """
     GET /api/trademarket/item/<item_name>/price
@@ -142,6 +144,7 @@ def get_market_history(item_name):
 @market_bp.get('/trademarket/history/<item_name>/price')
 @market_bp.get('/trademarket/history/<item_name>/latest') # required for mod versions before v1.1
 @require_scope('read:market_archive')
+@mod_allowed
 def get_latest_market_history(item_name):
     """
     GET /api/trademarket/history/<item_name>/latest
