@@ -1,7 +1,5 @@
 from typing import Dict
 
-from flask import Response
-
 from modules.models.accessory import Accessory
 from modules.models.armour import Armour
 from modules.models.item import Item
@@ -24,6 +22,9 @@ def _process(data):
     Raises:
         ValueError: If the item type or subtype is not supported
     """
+    if not data:
+        return None
+
     item_type = data.get('type', 'Unknown Type')
     item_subtype = data.get('weaponType',
                             data.get('armourType',

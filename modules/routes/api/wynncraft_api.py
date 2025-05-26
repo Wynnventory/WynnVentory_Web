@@ -113,14 +113,12 @@ def search_items(payload, page=1):
 def quick_search_item(item_name):
     url = f"{BASE_URL}/item/search"
     # Add timeout to prevent hanging requests
+
     response = requests.get(f"{url}/{item_name}", timeout=10)
     data = response.json()
 
-    if response.status_code != 200:
-        return None
-
-    if item_name in data:
-        return data[item_name]
+    if response.status_code == 200:
+        return next(iter(data.values()))
 
     return None
 
