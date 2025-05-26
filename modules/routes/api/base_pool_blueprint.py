@@ -89,8 +89,8 @@ class BasePoolBlueprint:
             GET /api/{name}/all
             Retrieve all pools
             """
-            page = max(1, int(request.args.get('page', 1)))
-            page_size = min(5, int(request.args.get('page_size', 5)))  # cap at 5 weeks
+            page      = max(1, request.args.get('page', 1, type=int))
+            page_size = min(5, request.args.get('page_size', 5, type=int))  # cap at 5 weeks
 
             skip = (page - 1) * page_size
 

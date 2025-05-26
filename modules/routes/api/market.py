@@ -52,8 +52,8 @@ def get_market_item_info(item_name):
     GET /api/trademarket/item/<item_name>
     Retrieve market item info by name.
     """
-    page      = max(1, int(request.args.get('page', 1)))
-    page_size = min(100, int(request.args.get('page_size', 50)))  # cap at 100
+    page      = max(1, request.args.get('page', 1, type=int))
+    page_size = min(100, request.args.get('page_size', 50, type=int))
 
     skip = (page - 1) * page_size
 
