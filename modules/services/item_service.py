@@ -78,8 +78,12 @@ def search_items(req: ItemSearchRequest) -> Dict:
     if not api_resp:
         return {"items": [], "next_page": None}
 
-    raw_items = api_resp.get("results", {}).values()
-    processed = [_process(i) for i in raw_items]
+    raw_items = api_resp.get("results", {})
+
+    for name, info in raw_items.items():
+        info["item_name"] = name
+
+    processed = [_process(i) for i in raw_items.values()]
     return {
         "items": processed,
         "next_page": api_resp["controller"]["links"].get("next")
