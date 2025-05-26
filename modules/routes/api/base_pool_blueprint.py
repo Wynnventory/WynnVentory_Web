@@ -89,8 +89,19 @@ class BasePoolBlueprint:
             GET /api/{name}/all
             Retrieve all pools
             """
+            page = max(1, int(request.args.get('page', 1)))
+            page_size = min(5, int(request.args.get('page_size', 5)))  # cap at 5 weeks
+
+            skip = (page - 1) * page_size
+
             try:
-                raw = base_pool_service.get_pools(self.collection_type)
+                raw = base_pool_service.get_pools(
+                    collection_type=self.collection_type,
+                    page=page,
+                    page_size=page_size,
+                    skip=skip
+                )
+
                 return jsonify(raw), 200
             except Exception:
                 return jsonify({'error': 'Internal server error'}), 500

@@ -15,23 +15,47 @@ def save(pool: dict) -> None:
     """
     _repo.save(pool)
 
-def fetch_raidpools(year: Optional[int] = None, week: Optional[int] = None) -> Union[Dict, List[Dict]]:
+def fetch_raidpools(    year: Optional[int] = None,
+    week: Optional[int] = None,
+    page: Optional[int] = 1,
+    page_size: Optional[int] = 100,
+    skip: Optional[int] = 0
+) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
     """
     If both year and week are passed, returns a single dict (or {} if none found).
-    If neither is passed, returns a List of every year/week doc.
+    If neither is passed, returns a paginated Dict:
+      {
+        'page': int,
+        'page_size': int,
+        'count': int,
+        'pools': List[Dict]
+      }
     """
+    coll = get_collection(Collection.RAID)
     pipeline = build_pool_pipeline(year, week)
-    cursor = get_collection(Collection.RAID).aggregate(pipeline)
 
-    # single‐object case
+    # 1) Single‐object case
     if year is not None and week is not None:
+        cursor = coll.aggregate(pipeline)
         try:
             return cursor.next()
         except StopIteration:
             return {}
 
-    # “all” case
-    return list(cursor)
+    paged_pipeline = pipeline + [
+        {"$skip": skip},
+        {"$limit": page_size}
+    ]
+
+    # 2) Paginated “all” case
+    results = list(coll.aggregate(paged_pipeline))
+
+    return {
+        "page": page,
+        "page_size": page_size,
+        "count": len(results),
+        "pools": results
+    }
 
 
 # OLD GROUPED FORMAT

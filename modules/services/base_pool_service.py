@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 
 from modules.config import Config
 from modules.models.collection_request import CollectionRequest
@@ -54,11 +54,16 @@ def get_current_pools(collection_type: Collection) -> List[Dict[str, Any]]:
 
     return []
 
-def get_pools(collection_type: Collection) -> List[Dict]:
+def get_pools(
+        collection_type: Collection,
+        page: Optional[int] = 1,
+        page_size: Optional[int] = 50,
+        skip: Optional[int] = 0
+) -> dict[str, Any] | list[dict[str, Any]]:
     if collection_type == Collection.LOOT:
-        return lootpool_repo.fetch_lootpools()
+        return lootpool_repo.fetch_lootpools(page=page, page_size=page_size, skip=skip)
     elif collection_type == Collection.RAID:
-        return raidpool_repo.fetch_raidpools()
+        return raidpool_repo.fetch_raidpools(page=page, page_size=page_size, skip=skip)
 
     return []
 
