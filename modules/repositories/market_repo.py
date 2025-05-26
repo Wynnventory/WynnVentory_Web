@@ -87,8 +87,12 @@ def get_trade_market_item_listings(
 
     cursor = get_collection(ColEnum.MARKET).find(
         filter=query_filter,
-        projection={'_id': 0}
+        projection={
+            '_id': 0,
+            'player_name': 0
+        }
     )
+
     return list(cursor)
 
 
