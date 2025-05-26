@@ -119,11 +119,19 @@ def get_item_listings(
         shiny: Optional[bool] = None,
         tier: Optional[int] = None,
         item_type: Optional[str] = None,
-) -> list[dict[str, Any]]:
+        page_size: int = 50,
+        skip: int = 0
+) -> dict[str, Any]:
     """
     Retrieve market item info by name.
     """
-    return get_trade_market_item_listings(item_name=item_name, shiny=shiny, tier=tier, item_type=item_type)
+    return get_trade_market_item_listings(
+        item_name=item_name,
+        shiny=shiny,
+        tier=tier,
+        item_type=item_type,
+        page_size=page_size,
+        skip=skip)
 
 
 def get_ranking(
