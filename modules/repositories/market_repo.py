@@ -96,7 +96,7 @@ def get_trade_market_item_listings(
             '_id': 0,
             'player_name': 0
         }
-    ).skip(skip).limit(page_size)
+    ).sort('timestamp', -1).skip(skip).limit(page_size)
 
     items = list(cursor)
 
