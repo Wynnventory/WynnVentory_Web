@@ -21,7 +21,7 @@ class Item:
     def from_dict(data, item_type):
         identifications = {k: Identification.from_dict(k, v) for k, v in data.get('identifications', {}).items()}
         base = Base.from_dict(data.get('base', {}), average_dps=data.get('averageDps'))
-        name = data.get('internalName', "Unknown Item")
+        name = data.get('item_name', "Unknown Item")
 
         # Capitalize requirements keys
         requirements = {k.capitalize(): v for k, v in data.get('requirements', {}).items()}

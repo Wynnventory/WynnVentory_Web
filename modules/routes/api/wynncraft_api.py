@@ -118,7 +118,11 @@ def quick_search_item(item_name):
     data = response.json()
 
     if response.status_code == 200:
-        return next(iter(data.values()))
+        item_name = next(iter(data))
+        first_obj = data[item_name]
+
+        first_obj['item_name'] = item_name
+        return first_obj
 
     return None
 
