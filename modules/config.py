@@ -10,6 +10,9 @@ class Config:
     DEV_URI = env_config("DEV_MONGO_URI")
     ADMIN_URI = env_config("ADMIN_MONGO_URI")
 
+    # Mod API Key
+    MOD_API_KEY = env_config("MOD_API_KEY")
+
     @classmethod
     def get_current_uri(cls):
         return cls.DEV_URI if cls.ENVIRONMENT == "dev" else cls.PROD_URI

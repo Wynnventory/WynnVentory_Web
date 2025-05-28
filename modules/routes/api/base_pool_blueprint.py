@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from typing import Any
 
-from modules.auth import require_scope
+from modules.auth import require_scope, mod_allowed
 from modules.models.collection_types import Collection
 from modules.services import base_pool_service
 from modules.utils.time_validation import get_lootpool_week, get_raidpool_week
@@ -33,6 +33,7 @@ class BasePoolBlueprint:
 
         @self.blueprint.post(f'/{self.name}/items')
         @require_scope(f'write:{self.name}')
+        @mod_allowed
         def save_items():
             """
             POST /api/{name}/items
@@ -65,6 +66,7 @@ class BasePoolBlueprint:
 
         @self.blueprint.get(f'/{self.name}/current')
         @require_scope(f'read:{self.name}')
+        @mod_allowed
         def get_raw():
             """
             GET /api/{name}/current
