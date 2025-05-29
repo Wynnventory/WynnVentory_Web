@@ -80,8 +80,6 @@ def get_trade_market_item_listings(
                     {'item_type': 'MaterialItem', 'tier': tier}
                 ]
 
-        print(query_filter)
-
     # 2) NO-NAME branch
     else:
         if item_type is not None:

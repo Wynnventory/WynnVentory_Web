@@ -70,8 +70,6 @@ def trademarket_listings(item_name):
     if filter_type == "":
         filter_type = None
 
-    print(f">>> filter_type: '{filter_type}'")
-
     # shiny filter: "" → None (both), "true" → True, "false" → False
     shiny_param = request.args.get('shiny')
     if shiny_param == 'true':
