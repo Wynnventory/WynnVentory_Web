@@ -49,12 +49,38 @@
                     <!-- Page size -->
                     <div class="w-100 mb-3">
                         <label for="page_size" class="form-label">Page Size</label>
-                        <input type="number"
-                               id="page_size"
-                               name="page_size"
-                               min="1" max="1000"
-                               value="{{ page_size }}"
-                               class="form-control">
+                        <select id="page_size"
+                                name="page_size"
+                                class="form-select">
+                            <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                        </select>
+                    </div>
+
+                    <!-- Shiny dropdown -->
+                    <div class="w-100 mb-3">
+                        <label for="shiny" class="form-label">Shiny</label>
+                        <select id="shiny"
+                                name="shiny"
+                                class="form-select">
+                            <option value="" {% if not request.args.get('shiny') %}selected{% endif %}>Both</option>
+                            <option value="true" {% if request.args.get('shiny')=='true' %}selected{% endif %}>Yes</option>
+                            <option value="false" {% if request.args.get('shiny')=='false' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+
+                    <!-- Tier dropdown -->
+                    <div class="w-100 mb-3">
+                        <label for="tier" class="form-label">Tier</label>
+                        <select id="tier"
+                                name="tier"
+                                class="form-select">
+                            <option value="" {% if not request.args.get('tier') %}selected{% endif %}>All</option>
+                            <option value="1" {% if request.args.get('tier')=='1' %}selected{% endif %}>1</option>
+                            <option value="2" {% if request.args.get('tier')=='2' %}selected{% endif %}>2</option>
+                            <option value="3" {% if request.args.get('tier')=='3' %}selected{% endif %}>3</option>
+                        </select>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 mt-3">
@@ -100,7 +126,7 @@
                                 <div class="item-infobox item-text">
                                     Price: <strong>{{ item.listing_price|emerald_format }}</strong>
                                 </div>
-                                {% if item.type == "MaterialItem" %}
+                                {% if item.item_type == "MaterialItem" %}
                                     <div class="item-infobox item-text">
                                         Tier: <strong>{{ item.tier }}</strong>
                                     </div>

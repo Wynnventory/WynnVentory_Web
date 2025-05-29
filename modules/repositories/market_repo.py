@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 from datetime import timezone, datetime
 from typing import List, Dict, Any
@@ -59,8 +60,11 @@ def get_trade_market_item_listings(
         query_filter['shiny_stat'] = {shiny_op: None}
 
     # 1) NAME branch
-    if item_name is not None:
-        query_filter['name'] = item_name
+    if item_name:
+        query_filter['name'] = {
+            '$regex': f'.*{re.escape(item_name)}.*',
+            '$options': 'i'
+        }
 
         if item_type is not None:
             # explicit single-type + optional tier
@@ -70,10 +74,13 @@ def get_trade_market_item_listings(
 
         else:
             # fallback to original OR logic
-            query_filter['$or'] = [
-                {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-                {'item_type': 'MaterialItem', 'tier': tier}
-            ]
+            if tier is not None:
+                query_filter['$or'] = [
+                    {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+                    {'item_type': 'MaterialItem', 'tier': tier}
+                ]
+
+        print(query_filter)
 
     # 2) NO-NAME branch
     else:
