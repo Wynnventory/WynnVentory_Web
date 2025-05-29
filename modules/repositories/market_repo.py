@@ -39,8 +39,8 @@ def get_trade_market_item_listings(
     shiny: Optional[bool] = None,
     tier: Optional[int] = None,
     item_type: Optional[str] = None,
-    page_size: int = 50,
-    skip: int = 0
+    page: Optional[int] = 1,
+    page_size: Optional[int] = 50,
 ) -> Dict[str, Any]:
     """
     Retrieve market entries, optionally filtering by:
@@ -49,6 +49,8 @@ def get_trade_market_item_listings(
       - tier (for MaterialItem or globally if no name/type)
       - item_type
     """
+    skip = (page - 1) * page_size
+
     query_filter: Dict[str, Any] = {}
 
     # only filter on shiny_stat if shiny was explicitly passed

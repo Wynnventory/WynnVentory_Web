@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 
-from flask import Blueprint, render_template, jsonify
+from flask import Blueprint, render_template, jsonify, request
 
 from modules.models.collection_types import Collection
-from modules.services import base_pool_service
+from modules.services import base_pool_service, market_service
 
 web_bp = Blueprint(
     'web', __name__,
@@ -46,6 +46,34 @@ def history(item_name):
 def ranking():
     return render_template("market/price_ranking.html")
 
+
+@web_bp.route('/listings', defaults={'item_name': None})
+@web_bp.route('/listings/<item_name>')
+def trademarket_listings(item_name):
+    # keep same defaults & limits as your API
+    page = max(1, request.args.get('page', 1, type=int))
+    page_size = min(1000, request.args.get('page_size', 50, type=int))
+
+    # call your service layer (the same logic behind the API endpoint)
+    result = market_service.get_item_listings(
+        item_name=item_name,
+        page=page,
+        page_size=page_size,
+    )
+    # result is the dict: { count, items, page, page_size, total }
+    result_items = enrich_listings(result.get('items', []))
+    total = result.get('total', 0)
+
+    return render_template(
+        'market/listings.html',  # or 'trademarket/listings.html'
+        items=result_items,
+        item_name=item_name,
+        page=page,
+        page_size=page_size,
+        total=total
+    )
+
+
 def format_last_updated(timestamp_str: str, now: datetime) -> str:
     ts = datetime.strptime(timestamp_str, '%a, %d %b %Y %H:%M:%S %Z') \
              .replace(tzinfo=timezone.utc)
@@ -76,6 +104,13 @@ def build_icon_url(icon: dict) -> str | None:
         return f"https://cdn.wynncraft.com/nextgen/abilities/2.1/aspects/{val}.png"
 
     return None
+
+def enrich_listings(listings: list[dict]) -> list[dict]:
+    for item in listings:
+        item["icon_url"] = build_icon_url(item.get("icon"))
+
+    return listings
+
 
 def enrich_pools(raw_pools: list[dict], items_key: str) -> list[dict]:
     """

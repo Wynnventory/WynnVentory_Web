@@ -56,8 +56,6 @@ def get_market_item_info(item_name):
     page      = max(1, request.args.get('page', 1, type=int))
     page_size = min(1000, request.args.get('page_size', 50, type=int))
 
-    skip = (page - 1) * page_size
-
     shiny_param = request.args.get('shiny')
     if shiny_param is None:
         shiny = None
@@ -73,8 +71,8 @@ def get_market_item_info(item_name):
             shiny=shiny,
             tier=tier,
             item_type=type_param,
+            page=page,
             page_size=page_size,
-            skip=skip
         )
 
         return jsonify(result), 200

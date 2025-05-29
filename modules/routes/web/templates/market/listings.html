@@ -1,0 +1,154 @@
+{% extends '/components/_base.html' %}
+{% block title %}Trademarket Listings{% endblock %}
+{% block content %}
+
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+
+            <!-- Filter Sidebar -->
+            <div id="filter-sidebar"
+                 class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 sidebar d-flex order-1 order-lg-2">
+                <form method="get"
+                      action="{{ url_for('web.trademarket_listings', item_name=item_name) }}"
+                      class="d-flex flex-column flex-grow-1 align-items-center align-items-sm-start px-3 pt-4 w-100">
+
+                    <!-- Search by name -->
+                    <div class="w-100 mb-3">
+                        <label for="search" class="form-label">Search Name</label>
+                        <input type="text"
+                               id="search"
+                               name="search"
+                               value="{{ request.args.get('search', '') }}"
+                               class="form-control"
+                               placeholder="Enter item name">
+                    </div>
+
+                    <!-- Filter by type -->
+                    <div class="w-100 mb-3">
+                        <label for="itemType" class="form-label">Type</label>
+                        <select id="itemType"
+                                name="itemType"
+                                class="form-select">
+                            <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
+                            <option value="MaterialItem"
+                                    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>
+                                Material
+                            </option>
+                            <option value="WeaponItem"
+                                    {% if request.args.get('itemType')=='WeaponItem' %}selected{% endif %}>
+                                Weapon
+                            </option>
+                            <option value="AccessoryItem"
+                                    {% if request.args.get('itemType')=='AccessoryItem' %}selected{% endif %}>
+                                Accessory
+                            </option>
+                            <!-- add more as needed -->
+                        </select>
+                    </div>
+
+                    <!-- Page size -->
+                    <div class="w-100 mb-3">
+                        <label for="page_size" class="form-label">Page Size</label>
+                        <input type="number"
+                               id="page_size"
+                               name="page_size"
+                               min="1" max="1000"
+                               value="{{ page_size }}"
+                               class="form-control">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3">
+                        Apply Filters
+                    </button>
+                </form>
+            </div>
+
+            <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3">></button>
+
+            <!-- Listings -->
+            <div id="items-container" class="col order-2 order-lg-1 px-4">
+                <h1 class="py-2">Trademarket Listings</h1>
+
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+                    {% for item in items %}
+                        <div class="col item-stats-tooltip {{ item.rarity or 'Common' }} items-handle">
+                            <div class="item-card">
+
+                                <!-- Header -->
+                                <div class="item-header d-flex justify-content-center align-items-center">
+                                    {% if item.icon_url %}
+                                        <img src="{{ item.icon_url }}" alt="{{ item.name }} icon" class="item-icon">
+                                    {% else %}
+                                        <span class="sprite bg-{{ item.type|lower }}"></span>
+                                    {% endif %}
+
+                                    <h5 class="mb-0 {{ item.rarity or '' }}">
+                                        {% if item.unidentified %}Unidentified {% endif %}{{ item.name }}
+                                    </h5>
+                                </div>
+
+                                {% if item.shiny_stat %}
+                                    <div class="item-text shiny">
+                                        Shiny: {{ item.shiny_stat.statType.displayName }}: {{ item.shiny_stat.value }}
+                                    </div>
+                                {% endif %}
+
+                                <!-- Core info -->
+                                <div class="item-infobox item-text">
+                                    Amount: <strong>{{ item.amount }}</strong>
+                                </div>
+                                <div class="item-infobox item-text">
+                                    Price: <strong>{{ item.listing_price|emerald_format }}</strong>
+                                </div>
+                                {% if item.type == "MaterialItem" %}
+                                    <div class="item-infobox item-text">
+                                        Tier: <strong>{{ item.tier }}</strong>
+                                    </div>
+                                {% endif %}
+                                {% if item.timestamp %}
+                                    <footer class="item-footer mt-2 w-100 text-center">
+                                        <small class="text-muted">
+                                            {{ ("%s"|format(item.timestamp)).split('.')|first }}
+                                        </small>
+                                    </footer>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-12 text-center text-gray-500 py-8">
+                            No listings found.
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-4">
+                    {% set last_page = (total // page_size) + (1 if total % page_size else 0) %}
+                    <div>Page {{ page }} of {{ last_page }}</div>
+                    <div>
+                        {% if page > 1 %}
+                            <a href="{{ url_for('web.trademarket_listings',
+                                item_name=item_name,
+                                page=page-1,
+                                page_size=page_size,
+                                search=request.args.get('search'),
+                                itemType=request.args.get('itemType')) }}"
+                               class="px-3 py-1 bg-gray-200 rounded">‹ Prev</a>
+                        {% endif %}
+                        {% if page < last_page %}
+                            <a href="{{ url_for('web.trademarket_listings',
+                                item_name=item_name,
+                                page=page + 1,
+                                page_size=page_size,
+                                search=request.args.get('search'),
+                                itemType=request.args.get('itemType')) }}"
+                               class="px-3 py-1 bg-gray-200 rounded">Next ›</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

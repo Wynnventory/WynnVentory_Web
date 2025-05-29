@@ -1,3 +1,5 @@
+import math
+
 from flask import Flask, redirect, url_for
 
 from modules.auth import require_api_key, record_api_usage
@@ -36,5 +38,40 @@ def create_app():
     @app.errorhandler(404)
     def page_not_found(error):
         return redirect(url_for('web.index'))
+
+    @app.template_filter('emerald_format')
+    def emerald_format(emeralds):
+        """
+        Turns a raw emerald‐count (float or int) into the Wynncraft style:
+          stx,le,eb,e
+        """
+        # ensure int
+        rem = math.floor(emeralds)
+        stx = rem // (64 ** 3)
+        rem %= 64 ** 3
+
+        le = rem // (64 ** 2)
+        rem %= 64 ** 2
+
+        eb = rem // 64
+        rem %= 64
+
+        # build result
+        if stx > 0:
+            # we want two‐decimal precision on the LE portion (le + eb/64 + rem/64²)
+            dec = le + eb / 64 + rem / (64 ** 2)
+            dec = round(dec, 2)
+            # if dec is zero, omit the “Xle” part
+            return f"{stx}stx{f' {dec}le' if dec else ''}".strip()
+        else:
+            parts = []
+            if le:
+                parts.append(f"{le}le")
+            if eb:
+                parts.append(f"{eb}eb")
+            if rem:
+                # show raw emeralds with two decimals
+                parts.append(f"{rem:.2f}e")
+            return " ".join(parts) or "0e"
 
     return app
