@@ -50,28 +50,51 @@ def ranking():
 @web_bp.route('/listings', defaults={'item_name': None})
 @web_bp.route('/listings/<item_name>')
 def trademarket_listings(item_name):
-    # keep same defaults & limits as your API
-    page = max(1, request.args.get('page', 1, type=int))
-    page_size = min(1000, request.args.get('page_size', 50, type=int))
+    # 1) Pagination params
+    page      = max(1, request.args.get('page', 1,  type=int))
+    page_size = min(50, request.args.get('page_size', 25, type=int))
 
-    # call your service layer (the same logic behind the API endpoint)
+    # 2) Read the "search" field — but only use it if non‐empty
+    raw_search = request.args.get('search', type=str)
+    if raw_search:
+        query_name = raw_search.strip()
+    else:
+        query_name = item_name  # could be None, or a URL param
+
+    filter_type   = request.args.get('itemType', None)
+    if filter_type.strip() == "":
+        filter_type = None
+
+    # If the user typed in “search”, use that as the item_name;
+    # otherwise fall back to the URL param.
+
+    print(query_name)
+    print(filter_type)
+    # 3) Call the same service behind your API
     result = market_service.get_item_listings(
-        item_name=item_name,
-        page=page,
-        page_size=page_size,
+        item_name  = query_name,
+        item_type  = filter_type,
+        page       = page,
+        page_size  = page_size
     )
-    # result is the dict: { count, items, page, page_size, total }
-    result_items = enrich_listings(result.get('items', []))
-    total = result.get('total', 0)
 
+    # 4) Enrich & unpack
+    result_items = enrich_listings(result.get('items', []))
+    total        = result.get('total', 0)
+
+    # 5) Render, passing everything back for pagination & form population
     return render_template(
-        'market/listings.html',  # or 'trademarket/listings.html'
-        items=result_items,
-        item_name=item_name,
-        page=page,
-        page_size=page_size,
-        total=total
+        'market/listings.html',
+        items      = result_items,
+        item_name  = query_name,
+        page       = page,
+        page_size  = page_size,
+        total      = total,
+        # (your template reads search and itemType via request.args,
+        #  but you can also pass them explicitly if you like)
+        itemType   = filter_type,
     )
+
 
 
 def format_last_updated(timestamp_str: str, now: datetime) -> str:
@@ -107,6 +130,7 @@ def build_icon_url(icon: dict) -> str | None:
 
 def enrich_listings(listings: list[dict]) -> list[dict]:
     for item in listings:
+        print(f"Item: {item}")
         item["icon_url"] = build_icon_url(item.get("icon"))
 
     return listings
