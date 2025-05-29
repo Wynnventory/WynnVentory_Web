@@ -39,30 +39,36 @@ def create_app():
     def page_not_found(error):
         return redirect(url_for('web.index'))
 
+
     @app.template_filter('emerald_format')
     def emerald_format(emeralds):
         """
-        Turns a raw emerald‐count (float or int) into the Wynncraft style:
-          stx,le,eb,e
+        Turns a raw emerald‐count into Wynncraft style,
+        only showing decimals when needed.
         """
-        # ensure int
         rem = math.floor(emeralds)
         stx = rem // (64 ** 3)
-        rem %= 64 ** 3
+        rem %= (64 ** 3)
 
         le = rem // (64 ** 2)
-        rem %= 64 ** 2
+        rem %= (64 ** 2)
 
         eb = rem // 64
         rem %= 64
 
-        # build result
         if stx > 0:
-            # we want two‐decimal precision on the LE portion (le + eb/64 + rem/64²)
+            # compute total LE fraction
             dec = le + eb / 64 + rem / (64 ** 2)
             dec = round(dec, 2)
-            # if dec is zero, omit the “Xle” part
-            return f"{stx}stx{f' {dec}le' if dec else ''}".strip()
+            if dec == 0:
+                return f"{stx}stx"
+            # drop trailing .0 or .00
+            if dec.is_integer():
+                dec_str = str(int(dec))
+            else:
+                # strip any trailing zeros, then a trailing dot
+                dec_str = f"{dec:.2f}".rstrip('0').rstrip('.')
+            return f"{stx}stx {dec_str}le"
         else:
             parts = []
             if le:
@@ -70,8 +76,7 @@ def create_app():
             if eb:
                 parts.append(f"{eb}eb")
             if rem:
-                # show raw emeralds with two decimals
-                parts.append(f"{rem:.2f}e")
+                parts.append(f"{rem}e")
             return " ".join(parts) or "0e"
 
     return app
