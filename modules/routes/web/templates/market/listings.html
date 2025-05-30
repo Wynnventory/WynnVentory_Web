@@ -115,20 +115,24 @@
 
                                 {% if item.shiny_stat %}
                                     <div class="item-text shiny">
-                                        Shiny: {{ item.shiny_stat.statType.displayName }}: {{ item.shiny_stat.value }}
+                                        Shiny Stat<br/>
+                                        <strong>{{ item.shiny_stat.statType.displayName }} - {{ item.shiny_stat.value }}</strong>
                                     </div>
                                 {% endif %}
 
                                 <!-- Core info -->
                                 <div class="item-infobox item-text">
-                                    Amount: <strong>{{ item.amount }}</strong>
+                                    Amount<br/>
+                                    <strong>{{ item.amount }}</strong>
                                 </div>
                                 <div class="item-infobox item-text">
-                                    Price: <strong>{{ item.listing_price|emerald_format }}</strong>
+                                    Price<br/>
+                                    <strong>{{ item.listing_price|emerald_format }}</strong>
                                 </div>
                                 {% if item.item_type == "MaterialItem" %}
                                     <div class="item-infobox item-text">
-                                        Tier: <strong>{{ item.tier }}</strong>
+                                        Tier<br/>
+                                        <strong>{{ item.tier }}</strong>
                                     </div>
                                 {% endif %}
                                 {% if item.timestamp %}
