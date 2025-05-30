@@ -65,8 +65,10 @@
                                 name="shiny"
                                 class="form-select">
                             <option value="" {% if not request.args.get('shiny') %}selected{% endif %}>Both</option>
-                            <option value="true" {% if request.args.get('shiny')=='true' %}selected{% endif %}>Yes</option>
-                            <option value="false" {% if request.args.get('shiny')=='false' %}selected{% endif %}>No</option>
+                            <option value="true" {% if request.args.get('shiny')=='true' %}selected{% endif %}>Yes
+                            </option>
+                            <option value="false" {% if request.args.get('shiny')=='false' %}selected{% endif %}>No
+                            </option>
                         </select>
                     </div>
 
@@ -105,22 +107,38 @@
                                     {% if item.icon_url %}
                                         <img src="{{ item.icon_url }}" alt="{{ item.name }} icon" class="item-icon">
                                     {% else %}
-                                        <span class="sprite bg-{{ item.type|lower }}"></span>
+                                        <span class="sprite bg-{{ item.type|lower }}" style="
+                                                display: inline-block;
+                                                width: 32px;
+                                                height: 32px;
+                                                object-fit: contain;
+                                                object-position: center;
+                                                flex-shrink: 0;
+                                                margin-right: 10px;
+                                              "></span>
                                     {% endif %}
 
                                     <h5 class="mb-0 {{ item.rarity or '' }}">
-                                        {% if item.unidentified %}Unidentified {% endif %}{{ item.name }}
+                                        {% if item.unidentified %}
+                                            Unidentified
+                                        {% endif %}
+                                        {% if item.shiny_stat %}
+                                            <span class="sprite bg-shiny"></span>
+                                        {% endif %}
+                                        {{ item.name }}
+                                        {% if item.item_type == "MaterialItem" %}
+                                            {{ item.tier }}
+                                        {% endif %}
                                     </h5>
                                 </div>
 
                                 {% if item.shiny_stat %}
-                                    <div class="item-text shiny">
+                                    <div class="item-infobox item-text">
                                         Shiny Stat<br/>
                                         <strong>{{ item.shiny_stat.statType.displayName }} - {{ item.shiny_stat.value }}</strong>
                                     </div>
                                 {% endif %}
 
-                                <!-- Core info -->
                                 <div class="item-infobox item-text">
                                     Amount<br/>
                                     <strong>{{ item.amount }}</strong>
@@ -129,12 +147,6 @@
                                     Price<br/>
                                     <strong>{{ item.listing_price|emerald_format }}</strong>
                                 </div>
-                                {% if item.item_type == "MaterialItem" %}
-                                    <div class="item-infobox item-text">
-                                        Tier<br/>
-                                        <strong>{{ item.tier }}</strong>
-                                    </div>
-                                {% endif %}
                                 {% if item.timestamp %}
                                     <footer class="item-footer mt-2 w-100 text-center">
                                         <small class="text-muted">
@@ -177,7 +189,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
