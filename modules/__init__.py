@@ -1,4 +1,5 @@
 import math
+from datetime import datetime, timezone
 
 from flask import Flask, redirect, url_for
 
@@ -78,5 +79,30 @@ def create_app():
             if rem:
                 parts.append(f"{rem}e")
             return " ".join(parts) or "0e"
+
+    @app.template_filter("last_updated")
+    def format_last_updated(timestamp_str: str) -> str:
+        now = datetime.now(timezone.utc)
+
+        ts = None
+        # 1) Try ISO format first:
+        try:
+            ts = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f") \
+                .replace(tzinfo=timezone.utc)
+        except ValueError:
+            # 2) Fall back to RFC‐style if ISO parse fails
+            try:
+                ts = datetime.strptime(timestamp_str, "%a, %d %b %Y %H:%M:%S %Z") \
+                    .replace(tzinfo=timezone.utc)
+            except ValueError:
+                # If neither format matches, you could return a default or raise:
+                return "Invalid timestamp"
+
+        # Now ts is a timezone‐aware datetime
+        minutes = (now - ts).total_seconds() // 60
+        if minutes < 60:
+            return f"{int(minutes)} minutes"
+        hours = minutes // 60
+        return f"{int(hours)} hour{'s' if hours > 1 else ''}"
 
     return app
