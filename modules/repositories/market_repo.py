@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 from datetime import timezone, datetime
 from typing import List, Dict, Any
@@ -37,10 +38,11 @@ def save(items: List[Dict[str, Any]]) -> None:
 def get_trade_market_item_listings(
     item_name: Optional[str] = None,
     shiny: Optional[bool] = None,
+    unidentified: Optional[bool] = None,
     tier: Optional[int] = None,
     item_type: Optional[str] = None,
-    page_size: int = 50,
-    skip: int = 0
+    page: Optional[int] = 1,
+    page_size: Optional[int] = 50,
 ) -> Dict[str, Any]:
     """
     Retrieve market entries, optionally filtering by:
@@ -49,6 +51,8 @@ def get_trade_market_item_listings(
       - tier (for MaterialItem or globally if no name/type)
       - item_type
     """
+    skip = (page - 1) * page_size
+
     query_filter: Dict[str, Any] = {}
 
     # only filter on shiny_stat if shiny was explicitly passed
@@ -56,9 +60,16 @@ def get_trade_market_item_listings(
         shiny_op = '$ne' if shiny else '$eq'
         query_filter['shiny_stat'] = {shiny_op: None}
 
+    if unidentified is not None:
+        query_filter['unidentified'] = {"$eq": unidentified}
+
+    print(unidentified)
     # 1) NAME branch
-    if item_name is not None:
-        query_filter['name'] = item_name
+    if item_name:
+        query_filter['name'] = {
+            '$regex': f'.*{re.escape(item_name)}.*',
+            '$options': 'i'
+        }
 
         if item_type is not None:
             # explicit single-type + optional tier
@@ -68,10 +79,11 @@ def get_trade_market_item_listings(
 
         else:
             # fallback to original OR logic
-            query_filter['$or'] = [
-                {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-                {'item_type': 'MaterialItem', 'tier': tier}
-            ]
+            if tier is not None:
+                query_filter['$or'] = [
+                    {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
+                    {'item_type': 'MaterialItem', 'tier': tier}
+                ]
 
     # 2) NO-NAME branch
     else:
