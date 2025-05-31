@@ -117,6 +117,7 @@ def get_price(
 def get_item_listings(
         item_name: Optional[str],
         shiny: Optional[bool] = None,
+        unidentified: Optional[bool] = None,
         tier: Optional[int] = None,
         item_type: Optional[str] = None,
         page: Optional[int] = 1,
@@ -128,6 +129,7 @@ def get_item_listings(
     return get_trade_market_item_listings(
         item_name=item_name,
         shiny=shiny,
+        unidentified=unidentified,
         tier=tier,
         item_type=item_type,
         page=page,

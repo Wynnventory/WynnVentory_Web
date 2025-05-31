@@ -56,11 +56,16 @@ def get_market_item_info(item_name):
     page      = max(1, request.args.get('page', 1, type=int))
     page_size = min(1000, request.args.get('page_size', 50, type=int))
 
-    shiny_param = request.args.get('shiny')
-    if shiny_param is None:
-        shiny = None
-    else:
-        shiny = shiny_param.lower() == 'true'
+    # Define a simple mapping from lowercase strings to booleans:
+    _bool_map = {"true": True, "false": False}
+
+    # SHINY:
+    raw_shiny = request.args.get("shiny", "").lower()
+    shiny = _bool_map.get(raw_shiny)  # → True if "true", False if "false", else None
+
+    # UNIDENTIFIED:
+    raw_unid = request.args.get("unidentified", "").lower()
+    unidentified = _bool_map.get(raw_unid)  # → True if "true", False if "false", else None
 
     tier_param = request.args.get('tier')
     type_param = request.args.get('itemType')
@@ -69,6 +74,7 @@ def get_market_item_info(item_name):
         result = get_item_listings(
             item_name=item_name,
             shiny=shiny,
+            unidentified=unidentified,
             tier=tier,
             item_type=type_param,
             page=page,

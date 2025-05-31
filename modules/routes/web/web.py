@@ -70,14 +70,16 @@ def trademarket_listings(item_name):
     if filter_type == "":
         filter_type = None
 
-    # shiny filter: "" → None (both), "true" → True, "false" → False
-    shiny_param = request.args.get('shiny')
-    if shiny_param == 'true':
-        shiny = True
-    elif shiny_param == 'false':
-        shiny = False
-    else:
-        shiny = None
+    # Define a simple mapping from lowercase strings to booleans:
+    _bool_map = {"true": True, "false": False}
+
+    # SHINY:
+    raw_shiny = request.args.get("shiny", "").lower()
+    shiny = _bool_map.get(raw_shiny)  # → True if "true", False if "false", else None
+
+    # UNIDENTIFIED:
+    raw_unid = request.args.get("unidentified", "").lower()
+    unidentified = _bool_map.get(raw_unid)  # → True if "true", False if "false", else None
 
     # tier + type + name resolved as before…
     tier_param = request.args.get('tier')
@@ -91,6 +93,7 @@ def trademarket_listings(item_name):
         item_name=query_name,
         item_type=filter_type,
         shiny=shiny,
+        unidentified=unidentified,
         tier=tier,
         page=page,
         page_size=page_size
@@ -106,6 +109,7 @@ def trademarket_listings(item_name):
         items=result_items,
         item_name=query_name,
         shiny=shiny,
+        unidentified=unidentified,
         tier=tier,
         page=page,
         page_size=page_size,

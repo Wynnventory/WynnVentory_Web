@@ -38,6 +38,7 @@ def save(items: List[Dict[str, Any]]) -> None:
 def get_trade_market_item_listings(
     item_name: Optional[str] = None,
     shiny: Optional[bool] = None,
+    unidentified: Optional[bool] = None,
     tier: Optional[int] = None,
     item_type: Optional[str] = None,
     page: Optional[int] = 1,
@@ -59,6 +60,10 @@ def get_trade_market_item_listings(
         shiny_op = '$ne' if shiny else '$eq'
         query_filter['shiny_stat'] = {shiny_op: None}
 
+    if unidentified is not None:
+        query_filter['unidentified'] = {"$eq": unidentified}
+
+    print(unidentified)
     # 1) NAME branch
     if item_name:
         query_filter['name'] = {

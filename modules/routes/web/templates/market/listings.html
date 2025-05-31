@@ -72,6 +72,19 @@
                         </select>
                     </div>
 
+                    <div class="w-100 mb-3">
+                        <label for="unidentified" class="form-label">Unidentified</label>
+                        <select id="unidentified"
+                                name="unidentified"
+                                class="form-select">
+                            <option value="" {% if not request.args.get('unidentified') %}selected{% endif %}>Both</option>
+                            <option value="true" {% if request.args.get('unidentified')=='true' %}selected{% endif %}>Yes
+                            </option>
+                            <option value="false" {% if request.args.get('unidentified')=='false' %}selected{% endif %}>No
+                            </option>
+                        </select>
+                    </div>
+
                     <!-- Tier dropdown -->
                     <div class="w-100 mb-3">
                         <label for="tier" class="form-label">Tier</label>
@@ -123,17 +136,16 @@
                                             Unidentified
                                         {% endif %}
                                         {% if item.shiny_stat %}
-                                        <span
-                                          class="sprite bg-shiny"
-                                          style="
-                                            display: inline-block;
-                                            width: 32px;
-                                            height: 32px;
-                                            transform: scale(0.6);
-                                            transform-origin: 0 0;
-                                            -webkit-transform-origin-y: bottom
-                                          "
-                                        ></span>Shiny
+                                            <span class="sprite bg-shiny"
+                                                  style="
+                                                    display: inline-block;
+                                                    width: 32px;
+                                                    height: 32px;
+                                                    transform: scale(0.6);
+                                                    transform-origin: 0 0;
+                                                    -webkit-transform-origin-y: bottom
+                                                  "
+                                            ></span>Shiny
                                         {% endif %}
                                         {{ item.name }}
                                         {% if item.item_type == "MaterialItem" %}
@@ -196,7 +208,7 @@
                         {% if page > 1 %}
                             <a href="{{ url_for('web.trademarket_listings',
                                 item_name=item_name,
-                                page=page-1,
+                                page=page - 1,
                                 page_size=page_size,
                                 search=request.args.get('search'),
                                 itemType=request.args.get('itemType')) }}"
