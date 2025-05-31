@@ -135,7 +135,8 @@
                                 {% if item.shiny_stat %}
                                     <div class="item-infobox item-text">
                                         Shiny Stat<br/>
-                                        <strong>{{ item.shiny_stat.statType.displayName }} - {{ item.shiny_stat.value }}</strong>
+                                        <strong>{{ item.shiny_stat.statType.displayName }}
+                                            - {{ item.shiny_stat.value }}</strong>
                                     </div>
                                 {% endif %}
 
@@ -146,6 +147,19 @@
                                 <div class="item-infobox item-text">
                                     Price<br/>
                                     <strong>{{ item.listing_price|emerald_format }}</strong>
+                                    {# 1) Compute “ratio” based on whether it’s unidentified or not #}
+                                    {% if item.unidentified %}
+                                        {% set ratio = item.listing_price / item.price_averages.unidentified_average_mid_80_percent_price %}
+                                    {% else %}
+                                        {% set ratio = item.listing_price / item.price_averages.average_mid_80_percent_price %}
+                                    {% endif %}
+
+                                    {# 2) Compute the percentage and choose color #}
+                                    {% set pct = (ratio * 100) | round(1) %}
+                                    <small>
+                                        (<span style="color: {% if ratio > 1 %}#56FE56{% elif ratio < 1 %}#F85252{% endif %}">{{ pct }}%</span>
+                                         of avg)
+                                    </small>
                                 </div>
                                 {% if item.timestamp %}
                                     <footer class="item-footer mt-2 w-100 text-center">

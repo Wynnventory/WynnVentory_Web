@@ -152,6 +152,8 @@ def build_icon_url(icon: dict) -> str | None:
 def enrich_listings(listings: list[dict]) -> list[dict]:
     for item in listings:
         item["icon_url"] = build_icon_url(item.get("icon"))
+        item["price_averages"] = market_service.get_price(item.get("name"), (item.get("shiny_stat") is not None), item.get("tier"))
+        print(item)
 
     return listings
 
