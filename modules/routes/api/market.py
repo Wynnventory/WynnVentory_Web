@@ -53,6 +53,7 @@ def get_market_item_info(item_name):
     GET /api/trademarket/item/<item_name>
     Retrieve market item info by name.
     """
+    rarity    = request.args.get('rarity', None, type=str)
     page      = max(1, request.args.get('page', 1, type=int))
     page_size = min(1000, request.args.get('page_size', 50, type=int))
 
@@ -75,6 +76,7 @@ def get_market_item_info(item_name):
             item_name=item_name,
             shiny=shiny,
             unidentified=unidentified,
+            rarity=rarity,
             tier=tier,
             item_type=type_param,
             page=page,

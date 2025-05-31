@@ -31,30 +31,41 @@
                                 class="form-select">
                             <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
                             <option value="GearItem"
-                                    {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>
-                                Gear
+                                    {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear
                             </option>
                             <option value="MaterialItem"
-                                    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>
-                                Material
+                                    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Material
                             </option>
                             <option value="IngredientItem"
                                     {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>
                                 Ingredient
                             </option>
-                            <!-- add more as needed -->
                         </select>
                     </div>
-
-                    <!-- Page size -->
                     <div class="w-100 mb-3">
-                        <label for="page_size" class="form-label">Page Size</label>
-                        <select id="page_size"
-                                name="page_size"
+                        <label for="rarity" class="form-label">Rarity</label>
+                        <select id="rarity"
+                                name="rarity"
                                 class="form-select">
-                            <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
-                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
-                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                            <option value="" {% if not request.args.get('rarity') %}selected{% endif %}>All</option>
+                            <option value="mythic"
+                                    {% if request.args.get('rarity')=='mythic' %}selected{% endif %}>Mythic
+                            </option>
+                            <option value="fabled"
+                                    {% if request.args.get('rarity')=='fabled' %}selected{% endif %}>Fabled
+                            </option>
+                            <option value="legendary"
+                                    {% if request.args.get('rarity')=='legendary' %}selected{% endif %}>Legendary
+                            </option>
+                            <option value="rare"
+                                    {% if request.args.get('rarity')=='rare' %}selected{% endif %}>Rare
+                            </option>
+                            <option value="unique"
+                                    {% if request.args.get('rarity')=='unique' %}selected{% endif %}>Unique
+                            </option>
+                            <option value="normal"
+                                    {% if request.args.get('rarity')=='normal' %}selected{% endif %}>Normal
+                            </option>
                         </select>
                     </div>
 
@@ -77,10 +88,13 @@
                         <select id="unidentified"
                                 name="unidentified"
                                 class="form-select">
-                            <option value="" {% if not request.args.get('unidentified') %}selected{% endif %}>Both</option>
-                            <option value="true" {% if request.args.get('unidentified')=='true' %}selected{% endif %}>Yes
+                            <option value="" {% if not request.args.get('unidentified') %}selected{% endif %}>Both
                             </option>
-                            <option value="false" {% if request.args.get('unidentified')=='false' %}selected{% endif %}>No
+                            <option value="true" {% if request.args.get('unidentified')=='true' %}selected{% endif %}>
+                                Yes
+                            </option>
+                            <option value="false" {% if request.args.get('unidentified')=='false' %}selected{% endif %}>
+                                No
                             </option>
                         </select>
                     </div>
@@ -98,6 +112,18 @@
                         </select>
                     </div>
 
+                    <!-- Page size -->
+                    <div class="w-100 mb-3">
+                        <label for="page_size" class="form-label">Page Size</label>
+                        <select id="page_size"
+                                name="page_size"
+                                class="form-select">
+                            <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                        </select>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100 mt-3">
                         Apply Filters
                     </button>
@@ -112,7 +138,7 @@
 
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
                     {% for item in items %}
-                        <div class="col item-stats-tooltip {{ item.rarity or 'Common' }} items-handle">
+                        <div class="col item-stats-tooltip {{ item.rarity or 'Normal' }} items-handle">
                             <div class="item-card">
 
                                 <!-- Header -->

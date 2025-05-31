@@ -39,6 +39,7 @@ def get_trade_market_item_listings(
     item_name: Optional[str] = None,
     shiny: Optional[bool] = None,
     unidentified: Optional[bool] = None,
+    rarity: Optional[str] = None,
     tier: Optional[int] = None,
     item_type: Optional[str] = None,
     page: Optional[int] = 1,
@@ -63,7 +64,23 @@ def get_trade_market_item_listings(
     if unidentified is not None:
         query_filter['unidentified'] = {"$eq": unidentified}
 
-    print(unidentified)
+    if rarity is not None:
+        if rarity.lower() == "normal":
+            escaped = re.escape(rarity)
+            regex = {"$regex": f"^{escaped}$", "$options": "i"}
+            query_filter["$or"] = [
+                {"rarity": regex},
+                {"rarity": {"$eq": None}}
+            ]
+
+            print(query_filter)
+        else:
+            escaped = re.escape(rarity)
+            query_filter["rarity"] = {
+                "$regex": f"^{escaped}$",
+                "$options": "i"
+            }
+
     # 1) NAME branch
     if item_name:
         query_filter['name'] = {
