@@ -213,7 +213,7 @@
                                     <br/>
                                     <footer class="item-footer mt-2 w-100 text-center">
                                         <small class="text-muted">
-                                            {{ ("%s"|format(item.timestamp)).split('.')|first }}
+                                            Recorded {{ ("%s"|format(item.timestamp))|last_updated }} ago
                                         </small>
                                     </footer>
                                 {% endif %}
