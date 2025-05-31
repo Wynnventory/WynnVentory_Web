@@ -66,6 +66,10 @@ def trademarket_listings(item_name):
     else:
         query_name = item_name  # could be None, or a URL param
 
+    rarity = request.args.get('rarity', type=str)
+    if rarity == "":
+        rarity = None
+
     filter_type = request.args.get('itemType', type=str)
     if filter_type == "":
         filter_type = None
@@ -94,6 +98,7 @@ def trademarket_listings(item_name):
         item_type=filter_type,
         shiny=shiny,
         unidentified=unidentified,
+        rarity=rarity,
         tier=tier,
         page=page,
         page_size=page_size
@@ -110,6 +115,7 @@ def trademarket_listings(item_name):
         item_name=query_name,
         shiny=shiny,
         unidentified=unidentified,
+        rarity=rarity,
         tier=tier,
         page=page,
         page_size=page_size,
