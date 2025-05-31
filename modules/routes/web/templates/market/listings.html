@@ -157,7 +157,7 @@
                                     {# 2) Compute the percentage and choose color #}
                                     {% set pct = (ratio * 100) | round(1) %}
                                     <small>
-                                        (<span class="{% if ratio >= 1 %}positive{% else %}negative{% endif %}">{{ pct }}%</span>
+                                        (<span style="color: {% if ratio > 1 %}#56FE56{% elif ratio < 1 %}#F85252{% endif %}">{{ pct }}%</span>
                                          of avg)
                                     </small>
                                 </div>
