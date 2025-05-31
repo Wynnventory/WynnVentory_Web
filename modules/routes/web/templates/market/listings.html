@@ -123,7 +123,17 @@
                                             Unidentified
                                         {% endif %}
                                         {% if item.shiny_stat %}
-                                            <span class="sprite bg-shiny"></span>
+                                        <span
+                                          class="sprite bg-shiny"
+                                          style="
+                                            display: inline-block;
+                                            width: 32px;
+                                            height: 32px;
+                                            transform: scale(0.6);
+                                            transform-origin: 0 0;
+                                            -webkit-transform-origin-y: bottom
+                                          "
+                                        ></span>Shiny
                                         {% endif %}
                                         {{ item.name }}
                                         {% if item.item_type == "MaterialItem" %}
@@ -156,8 +166,9 @@
                                     {# 2) Compute the percentage and choose color #}
                                     {% set pct = (ratio * 100) | round(1) %}
                                     <small>
-                                        (<span style="color: {% if ratio > 1 %}#56FE56{% elif ratio < 1 %}#F85252{% endif %}">{{ pct }}%</span>
-                                         of avg)
+                                        (<span
+                                            style="color: {% if ratio > 1 %}#56FE56{% elif ratio < 1 %}#F85252{% endif %}">{{ pct }}%</span>
+                                        of avg)
                                     </small>
                                 </div>
                                 {% if item.timestamp %}
