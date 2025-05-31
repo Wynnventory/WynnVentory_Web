@@ -131,7 +131,6 @@
                                         {% endif %}
                                     </h5>
                                 </div>
-
                                 {% if item.shiny_stat %}
                                     <div class="item-infobox item-text">
                                         Shiny Stat<br/>
@@ -162,6 +161,7 @@
                                     </small>
                                 </div>
                                 {% if item.timestamp %}
+                                    <br/>
                                     <footer class="item-footer mt-2 w-100 text-center">
                                         <small class="text-muted">
                                             {{ ("%s"|format(item.timestamp)).split('.')|first }}
