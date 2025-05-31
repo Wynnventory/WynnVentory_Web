@@ -154,13 +154,14 @@ def enrich_listings(listings: list[dict]) -> list[dict]:
         item["icon_url"] = build_icon_url(item.get("icon"))
         name: str = item.get("name")
         shiny: bool = (item.get("shiny_stat") is not None)
+        tier: int | None = None
+        
         raw_tier = item.get("tier")
-        if raw_tier is None:
-            raise KeyError("'tier' is missing or None")
-        try:
-            tier: int = int(raw_tier)
-        except (ValueError, TypeError):
-            raise TypeError(f"Expected 'tier' to be int‐castable, but got {raw_tier!r}")
+        if raw_tier is not None:
+            try:
+                tier: int = int(raw_tier)
+            except (ValueError, TypeError):
+                raise TypeError(f"Expected 'tier' to be int‐castable, but got {raw_tier!r}")
 
         item["price_averages"] = market_service.get_price(item_name=name, shiny=shiny, tier=tier)
 
