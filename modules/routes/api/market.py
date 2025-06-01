@@ -99,8 +99,11 @@ def get_market_item_price_info(item_name):
     if not item_name:
         return jsonify({'message': 'No item name provided'}), 400
     shiny = request.args.get('shiny', 'false').lower() == 'true'
+
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
+    if tier == -1:
+        tier = None
 
     try:
         result = get_price(item_name, shiny, tier)
