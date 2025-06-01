@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 
 def archive_and_summarize():
-    trademarket_collection = get_collection(Collection.MARKET)
+    trademarket_collection = get_collection(Collection.MARKET_LISTINGS)
     archive_collection = get_collection(Collection.MARKET_ARCHIVE)
 
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)

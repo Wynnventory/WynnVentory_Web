@@ -4,6 +4,7 @@ from datetime import timezone, datetime
 from typing import List, Dict, Any
 from typing import Optional
 
+from pymongo import UpdateOne
 from pymongo.errors import BulkWriteError
 
 from modules.db import get_collection
@@ -23,107 +24,72 @@ def save(items: List[Dict[str, Any]]) -> None:
     ts = datetime.now(timezone.utc)
     for item in items:
         item['timestamp'] = ts
-        update_moving_average(item)
 
-    collection = get_collection(ColEnum.MARKET)
+    market_collection = get_collection(ColEnum.MARKET_LISTINGS)
     try:
         # ordered=False => fire off all inserts;
         # duplicate-key errors don’t stop the rest.
-        collection.insert_many(items, ordered=False)
+        market_collection.insert_many(items, ordered=False)
     except BulkWriteError as bwe:
         # Optionally inspect bwe.details['writeErrors'] for logging,
         # but you can safely ignore duplicate-key errors here.
         pass
 
+        # Option 2 - Saving price document
+        update_moving_averages(items)
 
-def update_moving_average(item: dict):
-    name = item['name']
-    item_type = item['item_type']
-    tier = item['tier']
-    unidentified = item['unidentified']
-    shiny_stat = item['shiny_stat']
-    amount = item['amount']
-    price = item['listing_price']
 
-    if name is None:
-        raise ValueError("Missing item name")
+def update_moving_averages(items: List[Dict]):
+    # Build a list of UpdateOne operations so we can send them in bulk.
+    ops: List[UpdateOne] = []
 
-    filter_q = {"name": name, "item_type": item_type, "tier": tier, "unidentified": unidentified, "shiny_stat": shiny_stat}
+    for item in items:
+        name = item['name']
+        shiny = item.get('shiny_stat') is not None
+        tier = item['tier']
 
-    # ---- update pipeline (2 stages) ----
-    pipeline = [
-        # Stage 1: stash oldCount & oldAvg, then bump count
-        {
-            "$set": {
-                "item_type": item_type,
-                "unidentified": unidentified,
-                "shiny_stat": shiny_stat,
-                # oldCount = count if exists, else 0
-                "oldCount": {"$ifNull": ["$count", 0]},
-                # oldAvg   = avgPrice if exists, else 0
-                "oldAvg": {"$ifNull": ["$avgPrice", 0]},
-                # new count = oldCount + incoming_amount
-                "count": {
-                    "$add": [
-                        {"$ifNull": ["$count", 0]},
-                        amount
-                    ]
-                },
-                "tier": tier
-            }
-        },
-        # Stage 2: compute new avgPrice using oldCount/oldAvg and then remove temps
-        {
-            "$set": {
-                "avgPrice": {
-                    "$cond": [
-                        # if oldCount was zero (i.e. no prior doc), just use new_price
-                        {"$eq": ["$oldCount", 0]},
-                        price,
-                        {
-                            "$divide": [
-                                # numerator: (oldAvg * oldCount) + (new_price * incoming_amount)
-                                {
-                                    "$add": [
-                                        {"$multiply": ["$oldAvg", "$oldCount"]},
-                                        {"$multiply": [price, amount]}
-                                    ]
-                                },
-                                # denominator: newCount
-                                "$count"
-                            ]
-                        }
-                    ]
-                }
-            }
-        },
-        # Stage 3: clean up temporary fields
-        {
-            "$unset": ["oldCount", "oldAvg"]
+        price_data = calculate_listing_averages(
+            item_name=name,
+            shiny=shiny,
+            tier=tier
+        )
+
+        # We’ll use (name, tier, shiny) as the unique filter.
+        filter_q = {
+            'name': name,
+            'tier': tier,
+            'shiny': shiny
         }
-    ]
 
-    result = get_collection(ColEnum.MARKET_AVERAGE).update_one(
-        filter_q,
-        pipeline,
-        upsert=True
-    )
+        # Remove any `_id` key from price_data so Mongo can assign its own ObjectId.
+        price_data.pop('_id', None)
 
-    if result.matched_count == 0 and result.upserted_id is not None:
-        print(f"Inserted new doc for '{name}', _id={result.upserted_id}")
-    else:
-        print(f"Updated running‐average for '{name}'.")
-        
+        # Now build an UpdateOne that sets all fields in price_data,
+        # and uses upsert=True so that if no doc matches, it inserts price_data + filter_q.
+        ops.append(
+            UpdateOne(
+                filter_q,
+                {
+                    '$set': price_data
+                },
+                upsert=True
+            )
+        )
+
+    if ops:
+        # Execute all upserts in one bulk write.
+        get_collection(ColEnum.MARKET_AVERAGES).bulk_write(ops, ordered=False)
+
 
 def get_trade_market_item_listings(
-    item_name: Optional[str] = None,
-    shiny: Optional[bool] = None,
-    unidentified: Optional[bool] = None,
-    rarity: Optional[str] = None,
-    tier: Optional[int] = None,
-    item_type: Optional[str] = None,
-    page: Optional[int] = 1,
-    page_size: Optional[int] = 50,
+        item_name: Optional[str] = None,
+        shiny: Optional[bool] = None,
+        unidentified: Optional[bool] = None,
+        rarity: Optional[str] = None,
+        tier: Optional[int] = None,
+        item_type: Optional[str] = None,
+        page: Optional[int] = 1,
+        page_size: Optional[int] = 50,
 ) -> Dict[str, Any]:
     """
     Retrieve market entries, optionally filtering by:
@@ -196,7 +162,7 @@ def get_trade_market_item_listings(
             if tier is not None:
                 query_filter['tier'] = tier
 
-    coll = get_collection(ColEnum.MARKET)
+    coll = get_collection(ColEnum.MARKET_LISTINGS)
     total = coll.count_documents(query_filter)
 
     cursor = coll.find(
@@ -218,10 +184,10 @@ def get_trade_market_item_listings(
     }
 
 
-def get_trade_market_item_price(
-    item_name: str,
-    shiny: bool = False,
-    tier: Optional[int] = None
+def calculate_listing_averages(
+        item_name: str,
+        shiny: bool = False,
+        tier: Optional[int] = None
 ) -> Dict[str, Any]:
     """
     Compute price statistics (min, max, avg, mid-80%) for identified and unidentified listings,
@@ -353,7 +319,7 @@ def get_trade_market_item_price(
         }}
     ]
 
-    cursor = get_collection(ColEnum.MARKET).aggregate(pipeline)
+    cursor = get_collection(ColEnum.MARKET_LISTINGS).aggregate(pipeline)
     try:
         stats = cursor.next()
     except StopIteration:
@@ -362,12 +328,31 @@ def get_trade_market_item_price(
     return stats
 
 
+def get_trademarket_item_price(
+        item_name: str,
+        shiny: bool = False,
+        tier: Optional[int] = None
+) -> Dict[str, Any]:
+    filter_q = {
+        'name': item_name,
+        'tier': tier,
+        'shiny': shiny
+    }
+
+    result = get_collection(ColEnum.MARKET_AVERAGES).find_one(filter_q, {"_id": False})
+
+    if result:
+        return result
+    else:
+        return {}
+
+
 def get_price_history(
         item_name: str,
         shiny: bool = False,
         tier: Optional[int] = None,
         start_date: datetime = None,
-        end_date:   datetime = None,
+        end_date: datetime = None,
         default_days: int = 7
 ) -> List[Dict[str, Any]]:
     """
@@ -396,7 +381,7 @@ def get_price_history(
         ],
         'date': {
             '$gte': start_date,
-            '$lt':  exclusive_end
+            '$lt': exclusive_end
         }
     }
 
@@ -409,12 +394,12 @@ def get_price_history(
 
 
 def get_historic_average(
-    item_name: str,
-    shiny: bool = False,
-    tier: Optional[int] = None,
-    start_date: Optional[datetime] = None,
-    end_date:   Optional[datetime] = None,
-    default_days: int = 7
+        item_name: str,
+        shiny: bool = False,
+        tier: Optional[int] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+        default_days: int = 7
 ) -> Dict[str, Any]:
     """
     Compute average stats for an item over a date range.
@@ -445,7 +430,7 @@ def get_historic_average(
         ],
         'date': {
             '$gte': start_date,
-            '$lt':  exclusive_end
+            '$lt': exclusive_end
         }
     }
 
@@ -453,17 +438,17 @@ def get_historic_average(
         {'$match': query},
         {'$group': {
             '_id': None,
-            'name':        {'$first': '$name'},
-            'tier':        {'$first': '$tier'},
+            'name': {'$first': '$name'},
+            'tier': {'$first': '$tier'},
             'document_count': {'$sum': 1},
 
             # averages over the matched docs
-            'lowest_price':  {'$avg': '$lowest_price'},
+            'lowest_price': {'$avg': '$lowest_price'},
             'highest_price': {'$avg': '$highest_price'},
             'average_price': {'$avg': '$average_price'},
 
-            'total_count':   {'$sum': '$total_count'},
-            'avg_mid80':     {'$avg': '$average_mid_80_percent_price'},
+            'total_count': {'$sum': '$total_count'},
+            'avg_mid80': {'$avg': '$average_mid_80_percent_price'},
             'unidentified_avg': {'$avg': '$unidentified_average_price'},
             'unidentified_mid80_avg': {'$avg': '$unidentified_average_mid_80_percent_price'},
             'unidentified_count': {'$sum': '$unidentified_count'}
@@ -473,14 +458,14 @@ def get_historic_average(
             'name': 1,
             'tier': 1,
             'document_count': 1,
-            'lowest_price':  {'$round': ['$lowest_price', 2]},
+            'lowest_price': {'$round': ['$lowest_price', 2]},
             'highest_price': {'$round': ['$highest_price', 2]},
             'average_price': {'$round': ['$average_price', 2]},
-            'total_count':   {'$toInt': '$total_count'},
-            'average_mid_80_percent_price':     {'$round': ['$avg_mid80', 2]},
-            'unidentified_average_price':       {'$round': ['$unidentified_avg', 2]},
+            'total_count': {'$toInt': '$total_count'},
+            'average_mid_80_percent_price': {'$round': ['$avg_mid80', 2]},
+            'unidentified_average_price': {'$round': ['$unidentified_avg', 2]},
             'unidentified_average_mid_80_percent_price': {'$round': ['$unidentified_mid80_avg', 2]},
-            'unidentified_count':               {'$toInt': '$unidentified_count'}
+            'unidentified_count': {'$toInt': '$unidentified_count'}
         }}
     ]
 
@@ -493,7 +478,7 @@ def get_historic_average(
 
 def get_all_items_ranking(
         start_date: Optional[datetime] = None,
-        end_date:   Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
         default_days: int = 7
 ) -> List[Dict[str, Any]]:
     """
@@ -517,7 +502,7 @@ def get_all_items_ranking(
     date_filter: Dict[str, Any] = {
         'date': {
             '$gte': start_date,
-            '$lt':  exclusive_end
+            '$lt': exclusive_end
         },
         'shiny_stat': {'$eq': None}
     }

@@ -64,7 +64,7 @@ def _worker_loop():
                 items_to_process = request.items
 
                 if items_to_process:
-                    if collection_type == Collection.MARKET:
+                    if collection_type == Collection.MARKET_LISTINGS:
                         market_repo.save(items_to_process)
                     elif collection_type == Collection.LOOT:
                         lootpool_repo.save(items_to_process)

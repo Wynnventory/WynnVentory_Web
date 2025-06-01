@@ -5,7 +5,8 @@ from typing import List, Optional, Any
 from modules.config import Config
 from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
-from modules.repositories.market_repo import get_trade_market_item_listings, get_trade_market_item_price, get_price_history, get_historic_average, get_all_items_ranking
+from modules.repositories.market_repo import get_trade_market_item_listings, get_price_history, get_historic_average, \
+    get_all_items_ranking, get_trademarket_item_price
 from modules.utils.queue_worker import enqueue
 from modules.utils.version import compare_versions
 
@@ -72,7 +73,7 @@ def save_items(raw_items):
             raise
 
     if valid_items:
-        enqueue(CollectionRequest(type=Collection.MARKET, items=valid_items))
+        enqueue(CollectionRequest(type=Collection.MARKET_LISTINGS, items=valid_items))
     else:
         logger.warning("No valid items found")
 
@@ -111,7 +112,7 @@ def get_price(
     """
     Retrieve price statistics for a market item.
     """
-    return get_trade_market_item_price(item_name, shiny, tier)
+    return get_trademarket_item_price(item_name=item_name, shiny=shiny, tier=tier)
 
 
 def get_item_listings(
