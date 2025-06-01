@@ -21,8 +21,9 @@ def save(items: List[Dict[str, Any]]) -> None:
         return
 
     ts = datetime.now(timezone.utc)
-    for it in items:
-        it['timestamp'] = ts
+    for item in items:
+        item['timestamp'] = ts
+        update_moving_average(item)
 
     collection = get_collection(ColEnum.MARKET)
     try:
@@ -34,6 +35,85 @@ def save(items: List[Dict[str, Any]]) -> None:
         # but you can safely ignore duplicate-key errors here.
         pass
 
+
+def update_moving_average(item: dict):
+    name = item['name']
+    item_type = item['item_type']
+    tier = item['tier']
+    unidentified = item['unidentified']
+    shiny_stat = item['shiny_stat']
+    amount = item['amount']
+    price = item['listing_price']
+
+    if name is None:
+        raise ValueError("Missing item name")
+
+    filter_q = {"name": name, "item_type": item_type, "tier": tier, "unidentified": unidentified, "shiny_stat": shiny_stat}
+
+    # ---- update pipeline (2 stages) ----
+    pipeline = [
+        # Stage 1: stash oldCount & oldAvg, then bump count
+        {
+            "$set": {
+                "item_type": item_type,
+                "unidentified": unidentified,
+                "shiny_stat": shiny_stat,
+                # oldCount = count if exists, else 0
+                "oldCount": {"$ifNull": ["$count", 0]},
+                # oldAvg   = avgPrice if exists, else 0
+                "oldAvg": {"$ifNull": ["$avgPrice", 0]},
+                # new count = oldCount + incoming_amount
+                "count": {
+                    "$add": [
+                        {"$ifNull": ["$count", 0]},
+                        amount
+                    ]
+                },
+                "tier": tier
+            }
+        },
+        # Stage 2: compute new avgPrice using oldCount/oldAvg and then remove temps
+        {
+            "$set": {
+                "avgPrice": {
+                    "$cond": [
+                        # if oldCount was zero (i.e. no prior doc), just use new_price
+                        {"$eq": ["$oldCount", 0]},
+                        price,
+                        {
+                            "$divide": [
+                                # numerator: (oldAvg * oldCount) + (new_price * incoming_amount)
+                                {
+                                    "$add": [
+                                        {"$multiply": ["$oldAvg", "$oldCount"]},
+                                        {"$multiply": [price, amount]}
+                                    ]
+                                },
+                                # denominator: newCount
+                                "$count"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        # Stage 3: clean up temporary fields
+        {
+            "$unset": ["oldCount", "oldAvg"]
+        }
+    ]
+
+    result = get_collection(ColEnum.MARKET_AVERAGE).update_one(
+        filter_q,
+        pipeline,
+        upsert=True
+    )
+
+    if result.matched_count == 0 and result.upserted_id is not None:
+        print(f"Inserted new doc for '{name}', _id={result.upserted_id}")
+    else:
+        print(f"Updated running‐average for '{name}'.")
+        
 
 def get_trade_market_item_listings(
     item_name: Optional[str] = None,

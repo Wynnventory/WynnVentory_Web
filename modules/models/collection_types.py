@@ -2,6 +2,7 @@ from enum import Enum
 
 class Collection(Enum):
     MARKET = "trademarket"
+    MARKET_AVERAGE = "trademarket_averages"
     LOOT = "lootpool"
     RAID = "raidpool"
     MARKET_ARCHIVE = "trademarket_archive"
