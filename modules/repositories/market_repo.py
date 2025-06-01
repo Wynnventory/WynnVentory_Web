@@ -64,6 +64,9 @@ def update_moving_averages(items: List[Dict]):
         # Remove any `_id` key from price_data so Mongo can assign its own ObjectId.
         price_data.pop('_id', None)
 
+        # add update timestamp
+        price_data['timestamp'] = datetime.now(timezone.utc)
+
         # Now build an UpdateOne that sets all fields in price_data,
         # and uses upsert=True so that if no doc matches, it inserts price_data + filter_q.
         ops.append(
