@@ -336,6 +336,10 @@ def get_trademarket_item_price(
         shiny: bool = False,
         tier: Optional[int] = None
 ) -> Dict[str, Any]:
+
+    if tier and tier <= 0:
+        tier = None
+
     filter_q = {
         'name': item_name,
         'tier': tier,
