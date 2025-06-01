@@ -45,11 +45,11 @@ class TestQueueWorker(unittest.TestCase):
         test_item = {"id": "test1", "data": "test_data"}
 
         # Enqueue the item
-        queue_worker.enqueue(Collection.MARKET, test_item)
+        queue_worker.enqueue(Collection.MARKET_LISTINGS, test_item)
 
         # Verify the item was logged
         self.mock_logger.debug.assert_called_with(
-            f"Enqueued item for {Collection.MARKET.name}, queue size: {queue_worker._request_queue.qsize()}"
+            f"Enqueued item for {Collection.MARKET_LISTINGS.name}, queue size: {queue_worker._request_queue.qsize()}"
         )
 
         # Wait a short time for the worker thread to process the item
@@ -69,7 +69,7 @@ class TestQueueWorker(unittest.TestCase):
         raid_item = {"id": "raid1", "data": "raid_data"}
 
         # Enqueue the items
-        queue_worker.enqueue(Collection.MARKET, market_item)
+        queue_worker.enqueue(Collection.MARKET_LISTINGS, market_item)
         queue_worker.enqueue(Collection.LOOT, loot_item)
         queue_worker.enqueue(Collection.RAID, raid_item)
 
@@ -88,14 +88,14 @@ class TestQueueWorker(unittest.TestCase):
         test_item = {"id": "error_test", "data": "error_data"}
 
         # Enqueue the item
-        queue_worker.enqueue(Collection.MARKET, test_item)
+        queue_worker.enqueue(Collection.MARKET_LISTINGS, test_item)
 
         # Wait for the worker thread to process the item
         time.sleep(0.1)
 
         # Verify the error was logged
         self.mock_logger.error.assert_called_with(
-            f"Error processing {Collection.MARKET} item: Test exception"
+            f"Error processing {Collection.MARKET_LISTINGS} item: Test exception"
         )
 
         # Verify the worker continued running despite the error
@@ -147,7 +147,7 @@ class TestQueueWorker(unittest.TestCase):
 
         # Enqueue all items
         for item in test_items:
-            queue_worker.enqueue(Collection.MARKET, item)
+            queue_worker.enqueue(Collection.MARKET_LISTINGS, item)
 
         # Wait for the worker thread to process all items
         # This might take some time, so we'll wait for the queue to be empty
