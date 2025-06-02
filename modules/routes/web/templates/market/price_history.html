@@ -198,7 +198,7 @@
         }
 
         function updateCharts(priceData) {
-            const labels = priceData.map(item => new Date(item.date));
+            const labels = priceData.map(item => new Date(item.timestamp));
             const averagePrices = priceData.map(item => item.average_price);
             const average80Prices = priceData.map(item => item.average_mid_80_percent_price);
             const unidentifiedAveragePrice = priceData.map(item => item.unidentified_average_price);

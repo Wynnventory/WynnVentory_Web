@@ -142,6 +142,7 @@ def get_market_history(item_name):
             start_date=start_date,
             end_date=end_date
         )
+
         return jsonify(result), 200
     except Exception:
         # (log the exception if you have a logger)
