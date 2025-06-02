@@ -436,8 +436,6 @@ def get_price_history(
     """
     Retrieve the price history of an item over a given date range.
     """
-    # build base filter
-    shiny_stat = '$ne' if shiny else '$eq'
     # 1) Shift “now” back by default_days once
     lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
 
@@ -452,12 +450,12 @@ def get_price_history(
 
     query_filter: Dict[str, Any] = {
         'name': item_name,
-        'shiny_stat': {shiny_stat: None},
+        'shiny': shiny,
         '$or': [
             {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
             {'item_type': 'MaterialItem', 'tier': tier}
         ],
-        'date': {
+        'timestamp': {
             '$gte': start_date,
             '$lt': exclusive_end
         }
@@ -465,7 +463,7 @@ def get_price_history(
 
     cursor = get_collection(ColEnum.MARKET_ARCHIVE).find(
         filter=query_filter,
-        sort=[('date', 1)],
+        sort=[('timestamp', 1)],
         projection={'_id': 0}
     )
     return list(cursor)
