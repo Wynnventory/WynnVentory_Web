@@ -147,7 +147,7 @@ def update_moving_averages_complete(force_update: bool = False) -> None:
             "name": key["name"],
             "tier": key["tier"],
             "shiny_stat": shiny_stat,
-            "icon": key["icon"],
+            "icon": key.get("icon"),
             "item_type": key["item_type"],
             "last_ts": entry["last_ts"]
         })
