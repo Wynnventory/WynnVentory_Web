@@ -115,6 +115,8 @@ def update_moving_averages_complete(force_update: bool = False) -> None:
                 "name": 1,
                 "tier": 1,
                 "shiny": { "$cond": [{ "$ne": ["$shiny_stat", None] }, True, False] },
+                "icon": 1,
+                "item_type": 1,
                 "timestamp": 1
             }
         },
@@ -123,7 +125,9 @@ def update_moving_averages_complete(force_update: bool = False) -> None:
                 "_id": {
                     "name": "$name",
                     "tier": "$tier",
-                    "shiny": "$shiny"
+                    "shiny": "$shiny",
+                    "icon": "$icon",
+                    "item_type": "$item_type"
                 },
                 "last_ts": { "$max": "$timestamp" }
             }
@@ -135,19 +139,17 @@ def update_moving_averages_complete(force_update: bool = False) -> None:
     unique_items: List[Dict[str, Any]] = []
     for entry in cursor:
         key = entry["_id"]
-        name = key["name"]
-        tier = key["tier"]
-        shiny_flag = key["shiny"]
-        last_ts = entry["last_ts"]
 
         # Reconstruct a stub. Only shiny_stat != None when shiny_flag is True.
-        shiny_stat = True if shiny_flag else None
+        shiny_stat = True if key["shiny"] else None
 
         unique_items.append({
-            "name": name,
-            "tier": tier,
+            "name": key["name"],
+            "tier": key["tier"],
             "shiny_stat": shiny_stat,
-            "last_ts": last_ts
+            "icon": key["icon"],
+            "item_type": key["item_type"],
+            "last_ts": entry["last_ts"]
         })
 
     if unique_items:
