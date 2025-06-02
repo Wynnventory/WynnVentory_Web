@@ -83,6 +83,39 @@ def update_moving_averages(items: List[Dict]):
         # Execute all upserts in one bulk write.
         get_collection(ColEnum.MARKET_AVERAGES).bulk_write(ops, ordered=False)
 
+def update_moving_averages_complete() -> None:
+    """
+    Look at every document in the TRADEMARKET_LISTINGS collection,
+    extract unique (name, tier, shiny_stat) combinations, and
+    call update_moving_averages(...) on that reduced list.
+    """
+    listing_coll = get_collection(ColEnum.MARKET_LISTINGS)
+
+    # Fetch only the fields we need: name, tier, and shiny_stat.
+    cursor = listing_coll.find(
+        {},
+        {"_id": False, "name": True, "tier": True, "shiny_stat": True}
+    )
+
+    seen = set()
+    unique_items: List[Dict[str, Any]] = []
+
+    for doc in cursor:
+        name = doc["name"]
+        tier = doc.get("tier")
+        shiny_stat = doc.get("shiny_stat")  # could be None or a value
+        key = (name, tier, shiny_stat is not None)
+
+        if key not in seen:
+            seen.add(key)
+            unique_items.append({
+                "name": name,
+                "tier": tier,
+                "shiny_stat": shiny_stat
+            })
+
+    if unique_items:
+        update_moving_averages(unique_items)
 
 def get_trade_market_item_listings(
         item_name: Optional[str] = None,
