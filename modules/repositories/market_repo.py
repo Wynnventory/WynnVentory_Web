@@ -40,13 +40,16 @@ def save(items: List[Dict[str, Any]]) -> None:
         update_moving_averages(items)
 
 
-def update_moving_averages(items: List[Dict[str, Any]]) -> None:
+def update_moving_averages(items: List[Dict[str, Any]], force_update: bool = False) -> None:
     """
-    Given a list of item stubs (each with 'name', 'tier', and 'shiny_stat'),
-    recalculate and upsert the moving‐average document for each in parallel.
+    Given a list of item stubs (each with 'name', 'tier', 'shiny_stat', and 'last_ts'),
+    recalculate and upsert the moving‐average document only if listing data is newer than the saved average.
     """
     if not items:
         return
+
+    if force_update:
+        print("Forcing update of moving averages")
 
     averages_coll = get_collection(ColEnum.MARKET_AVERAGES)
     ts = datetime.now(timezone.utc)
@@ -55,17 +58,30 @@ def update_moving_averages(items: List[Dict[str, Any]]) -> None:
         name = item['name']
         shiny = item.get('shiny_stat') is not None
         tier = item['tier']
+        last_listing_ts = item['last_ts']
+        icon = item.get('icon')
+        item_type = item.get('item_type')
 
+        filter_q = {'name': name, 'tier': tier, 'shiny': shiny}
+
+        if not force_update:
+            # Fetch existing average doc's timestamp
+            existing = averages_coll.find_one(filter_q, {'timestamp': 1})
+            if existing and existing.get('timestamp') and existing['timestamp'] >= last_listing_ts:
+                # No newer listings; skip recalculation
+                return
+
+        # Recalculate only if listings are newer
         price_data = calculate_listing_averages(
             item_name=name,
             shiny=shiny,
             tier=tier
         )
 
-        filter_q = {'name': name, 'tier': tier, 'shiny': shiny}
-
         price_data.pop('_id', None)
         price_data['timestamp'] = ts
+        price_data['icon'] = icon
+        price_data['item_type'] = item_type
 
         averages_coll.update_one(
             filter_q,
@@ -80,24 +96,26 @@ def update_moving_averages(items: List[Dict[str, Any]]) -> None:
                 print("Error updating moving average for an item")
 
 
-def update_moving_averages_complete() -> None:
+def update_moving_averages_complete(force_update: bool = False) -> None:
     """
-    Scan MARKET_LISTINGS via an aggregation that returns only unique
-    (name, tier, shiny‐flag) combinations. Then call update_moving_averages(...)
-    on that reduced list.
+    Scan MARKET_LISTINGS via an aggregation that returns one document per unique
+    (name, tier, shiny‐flag) combination, along with the most recent listing timestamp.
+    Then call update_moving_averages(...) only for those whose listings are newer
+    than the saved average.
     """
     listing_coll = get_collection(ColEnum.MARKET_LISTINGS)
 
     # Pipeline:
-    # 1) Project name, tier, and a boolean “shiny” = whether shiny_stat != null.
-    # 2) Group by those three fields so we get one doc per unique combo.
+    # 1) Project name, tier, shiny‐flag, and timestamp
+    # 2) Group by {name, tier, shiny}, taking the max timestamp
     pipeline = [
         {
             "$project": {
                 "_id": 0,
                 "name": 1,
                 "tier": 1,
-                "shiny": { "$cond": [{ "$ne": ["$shiny_stat", None] }, True, False] }
+                "shiny": { "$cond": [{ "$ne": ["$shiny_stat", None] }, True, False] },
+                "timestamp": 1
             }
         },
         {
@@ -106,12 +124,13 @@ def update_moving_averages_complete() -> None:
                     "name": "$name",
                     "tier": "$tier",
                     "shiny": "$shiny"
-                }
+                },
+                "last_ts": { "$max": "$timestamp" }
             }
         }
     ]
 
-    cursor = listing_coll.aggregate(pipeline)
+    cursor = listing_coll.aggregate(pipeline, allowDiskUse=True)
 
     unique_items: List[Dict[str, Any]] = []
     for entry in cursor:
@@ -119,19 +138,20 @@ def update_moving_averages_complete() -> None:
         name = key["name"]
         tier = key["tier"]
         shiny_flag = key["shiny"]
+        last_ts = entry["last_ts"]
 
-        # Reconstruct an item‐stub so that update_moving_averages sees the correct fields.
-        # We only need shiny_stat to be non‐None when shiny_flag is True.
+        # Reconstruct a stub. Only shiny_stat != None when shiny_flag is True.
         shiny_stat = True if shiny_flag else None
 
         unique_items.append({
             "name": name,
             "tier": tier,
-            "shiny_stat": shiny_stat
+            "shiny_stat": shiny_stat,
+            "last_ts": last_ts
         })
 
     if unique_items:
-        update_moving_averages(unique_items)
+        update_moving_averages(items=unique_items, force_update=force_update)
 
 
 def get_trade_market_item_listings(
