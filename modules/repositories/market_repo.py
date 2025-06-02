@@ -1,4 +1,5 @@
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import timedelta
 from datetime import timezone, datetime
 from typing import List, Dict, Any
@@ -39,11 +40,18 @@ def save(items: List[Dict[str, Any]]) -> None:
         update_moving_averages(items)
 
 
-def update_moving_averages(items: List[Dict]):
-    # Build a list of UpdateOne operations so we can send them in bulk.
-    ops: List[UpdateOne] = []
+def update_moving_averages(items: List[Dict[str, Any]]) -> None:
+    """
+    Given a list of item stubs (each with 'name', 'tier', and 'shiny_stat'),
+    recalculate and upsert the moving‐average document for each in parallel.
+    """
+    if not items:
+        return
 
-    for item in items:
+    averages_coll = get_collection(ColEnum.MARKET_AVERAGES)
+    ts = datetime.now(timezone.utc)
+
+    def worker(item: Dict[str, Any]) -> None:
         name = item['name']
         shiny = item.get('shiny_stat') is not None
         tier = item['tier']
@@ -54,34 +62,76 @@ def update_moving_averages(items: List[Dict]):
             tier=tier
         )
 
-        # We’ll use (name, tier, shiny) as the unique filter.
-        filter_q = {
-            'name': name,
-            'tier': tier,
-            'shiny': shiny
-        }
+        filter_q = {'name': name, 'tier': tier, 'shiny': shiny}
 
-        # Remove any `_id` key from price_data so Mongo can assign its own ObjectId.
         price_data.pop('_id', None)
+        price_data['timestamp'] = ts
 
-        # add update timestamp
-        price_data['timestamp'] = datetime.now(timezone.utc)
-
-        # Now build an UpdateOne that sets all fields in price_data,
-        # and uses upsert=True so that if no doc matches, it inserts price_data + filter_q.
-        ops.append(
-            UpdateOne(
-                filter_q,
-                {
-                    '$set': price_data
-                },
-                upsert=True
-            )
+        averages_coll.update_one(
+            filter_q,
+            {'$set': price_data},
+            upsert=True
         )
 
-    if ops:
-        # Execute all upserts in one bulk write.
-        get_collection(ColEnum.MARKET_AVERAGES).bulk_write(ops, ordered=False)
+    with ThreadPoolExecutor() as executor:
+        futures = [executor.submit(worker, it) for it in items]
+        for fut in as_completed(futures):
+            if fut.exception():
+                print("Error updating moving average for an item")
+
+
+def update_moving_averages_complete() -> None:
+    """
+    Scan MARKET_LISTINGS via an aggregation that returns only unique
+    (name, tier, shiny‐flag) combinations. Then call update_moving_averages(...)
+    on that reduced list.
+    """
+    listing_coll = get_collection(ColEnum.MARKET_LISTINGS)
+
+    # Pipeline:
+    # 1) Project name, tier, and a boolean “shiny” = whether shiny_stat != null.
+    # 2) Group by those three fields so we get one doc per unique combo.
+    pipeline = [
+        {
+            "$project": {
+                "_id": 0,
+                "name": 1,
+                "tier": 1,
+                "shiny": { "$cond": [{ "$ne": ["$shiny_stat", None] }, True, False] }
+            }
+        },
+        {
+            "$group": {
+                "_id": {
+                    "name": "$name",
+                    "tier": "$tier",
+                    "shiny": "$shiny"
+                }
+            }
+        }
+    ]
+
+    cursor = listing_coll.aggregate(pipeline)
+
+    unique_items: List[Dict[str, Any]] = []
+    for entry in cursor:
+        key = entry["_id"]
+        name = key["name"]
+        tier = key["tier"]
+        shiny_flag = key["shiny"]
+
+        # Reconstruct an item‐stub so that update_moving_averages sees the correct fields.
+        # We only need shiny_stat to be non‐None when shiny_flag is True.
+        shiny_stat = True if shiny_flag else None
+
+        unique_items.append({
+            "name": name,
+            "tier": tier,
+            "shiny_stat": shiny_stat
+        })
+
+    if unique_items:
+        update_moving_averages(unique_items)
 
 def update_moving_averages_complete() -> None:
     """
@@ -369,7 +419,6 @@ def get_trademarket_item_price(
         shiny: bool = False,
         tier: Optional[int] = None
 ) -> Dict[str, Any]:
-
     if tier and tier <= 0:
         tier = None
 
