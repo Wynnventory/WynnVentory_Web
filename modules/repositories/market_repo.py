@@ -1,3 +1,4 @@
+import logging
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import timedelta
@@ -5,7 +6,6 @@ from datetime import timezone, datetime
 from typing import List, Dict, Any
 from typing import Optional
 
-from pymongo import UpdateOne
 from pymongo.errors import BulkWriteError
 
 from modules.db import get_collection
@@ -123,7 +123,7 @@ def update_moving_averages(
         for fut in as_completed(future_to_item):
             item = future_to_item[fut]
             if fut.exception():
-                print(f"Error updating moving average for {item.get('name')} with exception {fut.exception()}")
+                logging.error(f"Error updating moving average for {item.get('name')} with exception {fut.exception()}")
 
 
 def update_moving_averages_complete(force_update: bool = False,
@@ -241,7 +241,6 @@ def get_trade_market_item_listings(
                 {"rarity": {"$eq": None}}
             ]
 
-            print(query_filter)
         else:
             escaped = re.escape(rarity)
             query_filter["rarity"] = {
