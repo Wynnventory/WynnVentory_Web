@@ -494,14 +494,15 @@ def get_price_history(
     """
     Retrieve the price history of an item over a given date range.
     """
-    # 1) Shift “now” back by default_days once
-    lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
+    lagged_now = datetime.now(timezone.utc) - timedelta(days=1)
 
     # 2) If end_date wasn’t given, use lagged_now
     end_date = end_date or lagged_now
+    end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 3) If start_date wasn’t given, backfill to a full default_days window
     start_date = start_date or (end_date - timedelta(days=default_days))
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 4) Inclusive end_date via half-open interval
     exclusive_end = end_date + timedelta(days=1)
