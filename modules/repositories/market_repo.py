@@ -1,3 +1,4 @@
+import logging
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import timedelta
@@ -5,7 +6,6 @@ from datetime import timezone, datetime
 from typing import List, Dict, Any
 from typing import Optional
 
-from pymongo import UpdateOne
 from pymongo.errors import BulkWriteError
 
 from modules.db import get_collection
@@ -27,29 +27,32 @@ def save(items: List[Dict[str, Any]]) -> None:
         item['timestamp'] = ts
 
     market_collection = get_collection(ColEnum.MARKET_LISTINGS)
+
     try:
-        # ordered=False => fire off all inserts;
-        # duplicate-key errors don’t stop the rest.
-        market_collection.insert_many(items, ordered=False)
+        res = market_collection.insert_many(items, ordered=False)
+        inserted = len(res.inserted_ids)
     except BulkWriteError as bwe:
-        # Optionally inspect bwe.details['writeErrors'] for logging,
-        # but you can safely ignore duplicate-key errors here.
-        pass
+        # “nInserted” is how many made it in before duplicates/errors
+        inserted = bwe.details.get("nInserted", 0)
 
-        # Option 2 - Saving price document
-        update_moving_averages(items)
+    if inserted > 0:
+        update_moving_averages(items=items)
 
 
-def update_moving_averages(items: List[Dict[str, Any]], force_update: bool = False) -> None:
+def update_moving_averages(
+        items: List[Dict[str, Any]],
+        force_update: bool = False,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+) -> None:
     """
     Given a list of item stubs (each with 'name', 'tier', 'shiny_stat', and 'last_ts'),
-    recalculate and upsert the moving‐average document only if listing data is newer than the saved average.
+    recalculate and upsert the moving‐average document only if:
+      - force_update=True, OR
+      - last_ts is newer than the stored average AND (optionally) within [start_date, end_date).
     """
     if not items:
         return
-
-    if force_update:
-        print("Forcing update of moving averages")
 
     averages_coll = get_collection(ColEnum.MARKET_AVERAGES)
     ts = datetime.now(timezone.utc)
@@ -57,29 +60,55 @@ def update_moving_averages(items: List[Dict[str, Any]], force_update: bool = Fal
     def worker(item: Dict[str, Any]) -> None:
         name = item['name']
         shiny = item.get('shiny_stat') is not None
-        tier = item['tier']
-        last_listing_ts = item['last_ts']
+        tier = item.get('tier')
         icon = item.get('icon')
         item_type = item.get('item_type')
 
-        filter_q = {'name': name, 'tier': tier, 'shiny': shiny}
+        last_listing_ts: datetime = item.get('last_ts') if 'last_ts' in item else item.get('timestamp')
+        if last_listing_ts:
+            last_listing_ts = last_listing_ts.replace(tzinfo=timezone.utc)
+
+        # If a date window was given, skip items outside it
+        if start_date is not None and last_listing_ts < start_date:
+            return
+        if end_date is not None and last_listing_ts >= end_date:
+            return
+
+        filter_q: Dict[str, Any] = {
+            'name': name,
+            'tier': tier,
+            'shiny': shiny
+        }
 
         if not force_update:
             # Fetch existing average doc's timestamp
             existing = averages_coll.find_one(filter_q, {'timestamp': 1})
-            if existing and existing.get('timestamp') and existing['timestamp'] >= last_listing_ts:
-                # No newer listings; skip recalculation
-                return
+            existing_ts = existing.get('timestamp') if existing else None
 
-        # Recalculate only if listings are newer
+            if existing_ts:
+                existing_ts = existing_ts.replace(tzinfo=timezone.utc)
+
+                if existing_ts >= last_listing_ts:
+                    # No newer listings; skip recalculation
+                    return
+
+        # Recalculate only if listings are newer (or forced)
         price_data = calculate_listing_averages(
             item_name=name,
             shiny=shiny,
-            tier=tier
+            tier=tier,
+            start_date=start_date,
+            end_date=end_date
         )
 
+        if not price_data:
+            return
+
         price_data.pop('_id', None)
-        price_data['timestamp'] = ts
+        if start_date is not None:
+            price_data['timestamp'] = last_listing_ts
+        else:
+            price_data['timestamp'] = ts
         price_data['icon'] = icon
         price_data['item_type'] = item_type
 
@@ -90,13 +119,17 @@ def update_moving_averages(items: List[Dict[str, Any]], force_update: bool = Fal
         )
 
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(worker, it) for it in items]
-        for fut in as_completed(futures):
+        future_to_item = {executor.submit(worker, it): it for it in items}
+        for fut in as_completed(future_to_item):
+            item = future_to_item[fut]
             if fut.exception():
-                print("Error updating moving average for an item")
+                logging.error(f"Error updating moving average for {item.get('name')} with exception {fut.exception()}")
 
 
-def update_moving_averages_complete(force_update: bool = False) -> None:
+def update_moving_averages_complete(force_update: bool = False,
+                                    start_date: datetime = None,
+                                    end_date: datetime = None,
+) -> None:
     """
     Scan MARKET_LISTINGS via an aggregation that returns one document per unique
     (name, tier, shiny‐flag) combination, along with the most recent listing timestamp.
@@ -105,10 +138,24 @@ def update_moving_averages_complete(force_update: bool = False) -> None:
     """
     listing_coll = get_collection(ColEnum.MARKET_LISTINGS)
 
+    match_stage: Dict[str, Any] = {}
+    if start_date is not None or end_date is not None:
+        ts_filter: Dict[str, Any] = {}
+        if start_date is not None:
+            ts_filter["$gte"] = start_date
+        if end_date is not None:
+            ts_filter["$lt"] = end_date
+
+        match_stage["timestamp"] = ts_filter
+
+    pipeline: List[Dict[str, Any]] = []
+    if match_stage:
+        pipeline.append({"$match": match_stage})
+
     # Pipeline:
     # 1) Project name, tier, shiny‐flag, and timestamp
     # 2) Group by {name, tier, shiny}, taking the max timestamp
-    pipeline = [
+    pipeline.extend([
         {
             "$project": {
                 "_id": 0,
@@ -132,7 +179,7 @@ def update_moving_averages_complete(force_update: bool = False) -> None:
                 "last_ts": { "$max": "$timestamp" }
             }
         }
-    ]
+    ])
 
     cursor = listing_coll.aggregate(pipeline, allowDiskUse=True)
 
@@ -147,13 +194,13 @@ def update_moving_averages_complete(force_update: bool = False) -> None:
             "name": key["name"],
             "tier": key["tier"],
             "shiny_stat": shiny_stat,
-            "icon": key["icon"],
+            "icon": key.get("icon"),
             "item_type": key["item_type"],
             "last_ts": entry["last_ts"]
         })
 
     if unique_items:
-        update_moving_averages(items=unique_items, force_update=force_update)
+        update_moving_averages(items=unique_items, force_update=force_update, start_date=start_date, end_date=end_date)
 
 
 def get_trade_market_item_listings(
@@ -194,7 +241,6 @@ def get_trade_market_item_listings(
                 {"rarity": {"$eq": None}}
             ]
 
-            print(query_filter)
         else:
             escaped = re.escape(rarity)
             query_filter["rarity"] = {
@@ -262,7 +308,9 @@ def get_trade_market_item_listings(
 def calculate_listing_averages(
         item_name: str,
         shiny: bool = False,
-        tier: Optional[int] = None
+        tier: Optional[int] = None,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
 ) -> Dict[str, Any]:
     """
     Compute price statistics (min, max, avg, mid-80%) for identified and unidentified listings,
@@ -278,6 +326,14 @@ def calculate_listing_averages(
         {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
         {'item_type': 'MaterialItem', 'tier': tier}
     ]}
+
+    if start_date is not None or end_date is not None:
+        ts_filter: Dict[str, Any] = {}
+        if start_date is not None:
+            ts_filter['$gte'] = start_date
+        if end_date is not None:
+            ts_filter['$lt'] = end_date
+        query_filter['timestamp'] = ts_filter
 
     # 2) build pipeline
     pipeline = [
@@ -333,7 +389,9 @@ def calculate_listing_averages(
             'highest_price': {'$round': ['$identifiedMax', 2]},
             'average_price': {'$round': ['$identifiedAvg', 2]},
 
-            'total_count': '$identifiedCount',
+            'total_count': {
+                '$add': ['$identifiedCount', '$unidentifiedCount']
+            },
             'unidentified_count': '$unidentifiedCount',
             'unidentified_average_price': {'$round': ['$unidentifiedAvg', 2]},
 
@@ -484,27 +542,29 @@ def get_historic_average(
     (or up to now for the end).
     """
     # 1) Shift “now” back by default_days once
-    lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
+    lagged_now = datetime.now(timezone.utc) - timedelta(days=1)
 
     # 2) If end_date wasn’t given, use lagged_now
     end_date = end_date or lagged_now
+    end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 3) If start_date wasn’t given, backfill to a full default_days window
     start_date = start_date or (end_date - timedelta(days=default_days))
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 4) Inclusive end_date via half-open interval
     exclusive_end = end_date + timedelta(days=1)
 
+
     # base query
-    shiny_op = '$ne' if shiny else '$eq'
     query: Dict[str, Any] = {
         'name': item_name,
-        'shiny_stat': {shiny_op: None},
+        'shiny': shiny,
         '$or': [
             {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
             {'item_type': 'MaterialItem', 'tier': tier}
         ],
-        'date': {
+        'timestamp': {
             '$gte': start_date,
             '$lt': exclusive_end
         }
@@ -564,19 +624,21 @@ def get_all_items_ranking(
     """
 
     # 1) Shift “now” back by default_days once
-    lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
+    lagged_now = datetime.now(timezone.utc) - timedelta(days=1)
 
     # 2) If end_date wasn’t given, use lagged_now
     end_date = end_date or lagged_now
+    end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 3) If start_date wasn’t given, backfill to a full default_days window
     start_date = start_date or (end_date - timedelta(days=default_days))
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 4) Inclusive end_date via half-open interval
     exclusive_end = end_date + timedelta(days=1)
 
     date_filter: Dict[str, Any] = {
-        'date': {
+        'timestamp': {
             '$gte': start_date,
             '$lt': exclusive_end
         },

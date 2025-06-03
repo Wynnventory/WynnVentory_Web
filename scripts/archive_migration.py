@@ -10,6 +10,7 @@ We break the consolidation into per‐timestamp batches to avoid exceeding Mongo
 
 import logging
 import sys
+from datetime import datetime, timezone
 
 from jobs.archive_tm_items import archive_and_summarize
 from modules.db import get_collection
@@ -204,10 +205,14 @@ if __name__ == "__main__":
     logging.info("Starting migration: normalize & consolidate MARKET_ARCHIVE…")
     migrate_existing_and_consolidate()
 
-    logging.info("Recalculating moving averages on consolidated data…")
-    update_moving_averages_complete(True)
+    # Initial Averages
+    start = datetime(2025, 5, 25, tzinfo=timezone.utc)
+    end   = datetime(2025, 5, 26, tzinfo=timezone.utc)
+
+    logging.info(f"Updating initial averages from {start} to {end}")
+    update_moving_averages_complete(force_update=True, start_date=start, end_date=end)
 
     logging.info("Archiving previous week's TM items…")
-    for i in range(7, -1, -1):
-        logging.info(f"  Archiving TM items from {i} days ago…")
+    for i in range(8, -1, -1):
+        logging.info(f"Archiving TM items from {i} days ago…")
         archive_and_summarize(offset=i, force_update=True)
