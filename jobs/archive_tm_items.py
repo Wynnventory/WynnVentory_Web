@@ -46,8 +46,10 @@ def archive_and_summarize(offset: int = 0, force_update: bool = False):
     logging.info(f"Deleted {delete_result.deleted_count} MARKET_LISTINGS docs older than {offset} days.")
 
     # 3) Recompute moving averages for all remaining items
-    logging.info("Recalculating moving averages for all items...")
-    update_moving_averages_complete(force_update)
+    calc_start = to_day + timedelta(days=1)
+    calc_end = from_day + timedelta(days=1)
+    logging.info(f"Recalculating moving averages for all items between {calc_start.isoformat()} and {calc_end.isoformat()}")
+    update_moving_averages_complete(force_update=force_update, start_date=calc_start, end_date=calc_end)
     logging.info("Recalculation complete. Archive job finished.")
 
 
