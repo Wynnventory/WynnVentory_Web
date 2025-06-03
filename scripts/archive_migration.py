@@ -213,6 +213,6 @@ if __name__ == "__main__":
     update_moving_averages_complete(force_update=True, start_date=start, end_date=end)
 
     logging.info("Archiving previous week's TM items…")
-    for i in range(7, -1, -1):
+    for i in range(8, -1, -1):
         logging.info(f"Archiving TM items from {i} days ago…")
         archive_and_summarize(offset=i, force_update=True)

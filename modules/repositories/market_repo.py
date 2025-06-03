@@ -27,17 +27,16 @@ def save(items: List[Dict[str, Any]]) -> None:
         item['timestamp'] = ts
 
     market_collection = get_collection(ColEnum.MARKET_LISTINGS)
-    try:
-        # ordered=False => fire off all inserts;
-        # duplicate-key errors don’t stop the rest.
-        market_collection.insert_many(items, ordered=False)
-    except BulkWriteError as bwe:
-        # Optionally inspect bwe.details['writeErrors'] for logging,
-        # but you can safely ignore duplicate-key errors here.
-        pass
 
-        # Option 2 - Saving price document
-        update_moving_averages(items)
+    try:
+        res = market_collection.insert_many(items, ordered=False)
+        inserted = len(res.inserted_ids)
+    except BulkWriteError as bwe:
+        # “nInserted” is how many made it in before duplicates/errors
+        inserted = bwe.details.get("nInserted", 0)
+
+    if inserted > 0:
+        update_moving_averages(items=items)
 
 
 def update_moving_averages(
@@ -61,11 +60,13 @@ def update_moving_averages(
     def worker(item: Dict[str, Any]) -> None:
         name = item['name']
         shiny = item.get('shiny_stat') is not None
-        tier = item['tier']
-        last_listing_ts: datetime = item['last_ts']
-        last_listing_ts = last_listing_ts.replace(tzinfo=timezone.utc)
+        tier = item.get('tier')
         icon = item.get('icon')
         item_type = item.get('item_type')
+
+        last_listing_ts: datetime = item.get('last_ts') if 'last_ts' in item else item.get('timestamp')
+        if last_listing_ts:
+            last_listing_ts = last_listing_ts.replace(tzinfo=timezone.utc)
 
         # If a date window was given, skip items outside it
         if start_date is not None and last_listing_ts < start_date:
@@ -82,9 +83,14 @@ def update_moving_averages(
         if not force_update:
             # Fetch existing average doc's timestamp
             existing = averages_coll.find_one(filter_q, {'timestamp': 1})
-            if existing and existing.get('timestamp') and existing['timestamp'] >= last_listing_ts:
-                # No newer listings; skip recalculation
-                return
+            existing_ts = existing.get('timestamp') if existing else None
+
+            if existing_ts:
+                existing_ts = existing_ts.replace(tzinfo=timezone.utc)
+
+                if existing_ts >= last_listing_ts:
+                    # No newer listings; skip recalculation
+                    return
 
         # Recalculate only if listings are newer (or forced)
         price_data = calculate_listing_averages(
@@ -96,7 +102,6 @@ def update_moving_averages(
         )
 
         if not price_data:
-            print(f"No price data available for '{item}'")
             return
 
         price_data.pop('_id', None)
@@ -114,10 +119,11 @@ def update_moving_averages(
         )
 
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(worker, it) for it in items]
-        for fut in as_completed(futures):
+        future_to_item = {executor.submit(worker, it): it for it in items}
+        for fut in as_completed(future_to_item):
+            item = future_to_item[fut]
             if fut.exception():
-                print(f"Error updating moving average for an item {fut.exception()}")
+                print(f"Error updating moving average for {item.get('name')} with exception {fut.exception()}")
 
 
 def update_moving_averages_complete(force_update: bool = False,
@@ -384,7 +390,9 @@ def calculate_listing_averages(
             'highest_price': {'$round': ['$identifiedMax', 2]},
             'average_price': {'$round': ['$identifiedAvg', 2]},
 
-            'total_count': '$identifiedCount',
+            'total_count': {
+                '$add': ['$identifiedCount', '$unidentifiedCount']
+            },
             'unidentified_count': '$unidentifiedCount',
             'unidentified_average_price': {'$round': ['$unidentifiedAvg', 2]},
 
