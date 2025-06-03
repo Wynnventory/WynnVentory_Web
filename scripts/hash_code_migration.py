@@ -3,7 +3,7 @@ from pymongo import UpdateOne
 from modules.db import get_collection
 from modules.models.collection_types import Collection
 
-COLLECTION = get_collection(Collection.MARKET)
+COLLECTION = get_collection(Collection.MARKET_LISTINGS)
 
 
 def int32(x):

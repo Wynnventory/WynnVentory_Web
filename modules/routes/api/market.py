@@ -99,6 +99,7 @@ def get_market_item_price_info(item_name):
     if not item_name:
         return jsonify({'message': 'No item name provided'}), 400
     shiny = request.args.get('shiny', 'false').lower() == 'true'
+
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
 
@@ -141,6 +142,7 @@ def get_market_history(item_name):
             start_date=start_date,
             end_date=end_date
         )
+
         return jsonify(result), 200
     except Exception:
         # (log the exception if you have a logger)
@@ -168,7 +170,6 @@ def get_latest_market_history(item_name):
     except ValueError:
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
 
-    # default‐window logic: past 7 days
     shiny = request.args.get('shiny', 'false').lower() == 'true'
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None
