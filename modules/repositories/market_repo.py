@@ -543,27 +543,29 @@ def get_historic_average(
     (or up to now for the end).
     """
     # 1) Shift “now” back by default_days once
-    lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
+    lagged_now = datetime.now(timezone.utc) - timedelta(days=1)
 
     # 2) If end_date wasn’t given, use lagged_now
     end_date = end_date or lagged_now
+    end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 3) If start_date wasn’t given, backfill to a full default_days window
     start_date = start_date or (end_date - timedelta(days=default_days))
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 4) Inclusive end_date via half-open interval
     exclusive_end = end_date + timedelta(days=1)
 
+
     # base query
-    shiny_op = '$ne' if shiny else '$eq'
     query: Dict[str, Any] = {
         'name': item_name,
-        'shiny_stat': {shiny_op: None},
+        'shiny': shiny,
         '$or': [
             {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
             {'item_type': 'MaterialItem', 'tier': tier}
         ],
-        'date': {
+        'timestamp': {
             '$gte': start_date,
             '$lt': exclusive_end
         }
@@ -623,19 +625,21 @@ def get_all_items_ranking(
     """
 
     # 1) Shift “now” back by default_days once
-    lagged_now = datetime.now(timezone.utc) - timedelta(days=default_days + 1)
+    lagged_now = datetime.now(timezone.utc) - timedelta(days=1)
 
     # 2) If end_date wasn’t given, use lagged_now
     end_date = end_date or lagged_now
+    end_date = end_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 3) If start_date wasn’t given, backfill to a full default_days window
     start_date = start_date or (end_date - timedelta(days=default_days))
+    start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # 4) Inclusive end_date via half-open interval
     exclusive_end = end_date + timedelta(days=1)
 
     date_filter: Dict[str, Any] = {
-        'date': {
+        'timestamp': {
             '$gte': start_date,
             '$lt': exclusive_end
         },

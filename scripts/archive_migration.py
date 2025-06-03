@@ -209,7 +209,7 @@ if __name__ == "__main__":
     start = datetime(2025, 5, 25, tzinfo=timezone.utc)
     end   = datetime(2025, 5, 26, tzinfo=timezone.utc)
 
-    print(f"Updating initial averages from {start} to {end}")
+    logging.info(f"Updating initial averages from {start} to {end}")
     update_moving_averages_complete(force_update=True, start_date=start, end_date=end)
 
     logging.info("Archiving previous week's TM items…")

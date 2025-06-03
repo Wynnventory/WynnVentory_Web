@@ -170,7 +170,6 @@ def get_latest_market_history(item_name):
     except ValueError:
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD.'}), 400
 
-    # default‐window logic: past 7 days
     shiny = request.args.get('shiny', 'false').lower() == 'true'
     tier_param = request.args.get('tier')
     tier = int(tier_param) if tier_param is not None else None

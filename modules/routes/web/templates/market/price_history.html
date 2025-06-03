@@ -158,7 +158,7 @@
         }
 
 
-        const DEFAULT_LAG_DAYS = 8;
+        const DEFAULT_LAG_DAYS = 1;
         const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
         async function fetchPriceData(itemName) {
@@ -426,8 +426,7 @@
             $('#startDate,#endDate').datepicker({
                 format: 'yyyy-mm-dd',
                 autoclose: true,
-                todayHighlight: true,
-                beforeShowDay: onlyOlderThan7Days
+                todayHighlight: true
             });
             document.getElementById('searchBtn').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
             document.getElementById('applyFilter').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
