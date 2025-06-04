@@ -75,6 +75,19 @@ def is_time_valid(pool_type: Collection, time_str):
     elif pool_type == Collection.LOOT:
         reset_day = 4  # Friday
         reset_hour = 18  # 18:00 (6 PM) UTC
+    elif pool_type == Collection.GAMBIT:
+        reset_hour = 19  # 19:00 (7 PM) UTC
+
+        now = datetime.now()
+        reset_today = now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
+        if now.hour > reset_hour: # Already past reset time today = next reset tomorrow at reset hour
+            next_reset = reset_today + timedelta(days=1)
+            previous_reset = reset_today
+        else: # still before reset today = reset today at reset hour
+            next_reset = reset_today
+            previous_reset = reset_today - timedelta(days=1)
+
+        return previous_reset <= time < next_reset
     else:
         return False
 

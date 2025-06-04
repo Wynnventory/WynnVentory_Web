@@ -15,6 +15,13 @@ def save(pool: dict) -> None:
     """
     _repo.save(pool)
 
+def save_gambits(pool: List[Dict]) -> None:
+    """
+    Insert or update a raidpool document for the given region/week/year,
+    applying duplicate checks and timestamp logic.
+    """
+    get_collection(Collection.GAMBIT).insert_one(pool[0])
+
 def fetch_raidpools(    year: Optional[int] = None,
     week: Optional[int] = None,
     page: Optional[int] = 1,
