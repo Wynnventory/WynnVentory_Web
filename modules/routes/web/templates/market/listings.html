@@ -140,7 +140,7 @@
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
                     {% for item in items %}
                         <div class="col item-stats-tooltip {{ item.rarity or 'Normal' }} items-handle">
-                            <div class="item-card">
+                            <div class="item-card d-flex flex-column h-100">
 
                                 <!-- Header -->
                                 <div class="item-header d-flex justify-content-center align-items-center">
@@ -205,7 +205,6 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
-
                                 <div class="item-infobox item-text">
                                     Amount<br/>
                                     <strong>{{ item.amount }}</strong>
@@ -229,13 +228,14 @@
                                     </small>
                                 </div>
                                 {% if item.timestamp %}
-                                    <br/>
+                                    <div class="mt-auto">
                                     <footer class="item-footer mt-2 w-100 text-center">
                                         <small class="text-muted">
                                             Recorded {{ ("%s"|format(item.timestamp))|last_updated }} ago
                                         </small>
                                     </footer>
                                 {% endif %}
+                                </div>
                             </div>
                         </div>
                     {% else %}
