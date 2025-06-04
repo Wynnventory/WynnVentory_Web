@@ -187,8 +187,11 @@
                                             - {{ item.shiny_stat.value }}</strong>
                                     </div>
                                 {% endif %}
+{#
 
-                                {# ─── Top area: *fixed* stats only ────────────────── #}
+                                #}
+{# ─── Top area: *fixed* stats only ────────────────── #}{#
+
                                 {% if item.fixed_identifications %}
                                     <div class="item-infobox item-text">
                                         {% for roll in item.fixed_identifications %}
@@ -196,6 +199,7 @@
                                         {% endfor %}
                                     </div>
                                 {% endif %}
+#}
 
                                 {# ─── Bottom area: all rollable stats (RAW + PERCENT) #}
                                 {% if item.rolled_identifications %}
