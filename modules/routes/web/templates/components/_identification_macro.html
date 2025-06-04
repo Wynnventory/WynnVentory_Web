@@ -1,0 +1,70 @@
+{# --------------------------------------------------------------------
+  id_line(roll)  –  v4  (adds % sign for percentage stats)
+-------------------------------------------------------------------- #}
+{% macro id_line(roll) %}
+
+    {# -------- helper: class based on sign of the number ------------- #}
+    {% macro sign_class(v, suf='') %}
+        {{ 'negative' ~ suf if v|float < 0 else 'positive' ~ suf }}
+    {% endmacro %}
+
+    {# -------- 1. parse & clamp percentage --------------------------- #}
+    {% set pct_raw = roll.actualRollPercentage | default('') %}
+    {% if pct_raw and pct_raw != 'NaN' %}
+        {% set pct_val = pct_raw.rstrip('%') | float %}
+        {% if pct_val < 0 %}{% set pct_val = 0 %}{% endif %}
+        {% if pct_val > 100 %}{% set pct_val = 100 %}{% endif %}
+        {% set pct_txt = '%.2f' % pct_val %}
+    {% else %}
+        {% set pct_val, pct_txt = none, none %}
+    {% endif %}
+
+    {# -------- 2. colour for the [xx.xx%] bracket --------------------- #}
+    {% if pct_val is not none %}
+        {% if pct_val == 0 %}
+            {% set color_hex = '#A80000' %}
+        {% elif pct_val == 100 %}
+            {% set color_hex = '#54fcfc' %}
+        {% else %}
+            {# linear blend  #F85252 → #56FE56, mapped to 0.1–99.9 %  #}
+            {% set ratio = pct_val / 99.9 %}
+            {% set r = (248 + ratio * ( 86 - 248)) | int %}
+            {% set g = ( 82 + ratio * (254 -  82)) | int %}
+            {% set b = ( 82 + ratio * ( 86 -  82)) | int %}
+            {% set color_hex = '#' ~ '%02X%02X%02X' % (r, g, b) %}
+        {% endif %}
+        {% set pct_style = 'color:' ~ color_hex %}
+    {% else %}
+        {% set pct_style = '' %}
+    {% endif %}
+
+    {# -------- 3. is this a single-value rolled stat? ----------------- #}
+    {% set variable = pct_val is not none and not roll.statRange.fixed %}
+
+    {# -------- 4. render --------------------------------------------- #}
+    {% if variable %}
+        {# e.g. “35% Walk Speed [83.87%]” ----------------------------- #}
+        <span class="{{ sign_class(roll.statRoll) }}">
+            {{- roll.statRoll -}}{%- if roll.unit == 'PERCENT' -%}%{% endif %}
+        </span>
+        <span class="stat-name"> {{ roll.displayName }}</span>
+        <span class="roll-pct" style="{{ pct_style }}">[{{ pct_txt }}%]</span><br>
+
+    {% elif roll.unit == 'RAW' %}
+        {# fixed RAW stat --------------------------------------------- #}
+        <span class="{{ sign_class(roll.statRoll) }}">{{ roll.statRoll }}</span>
+        <span class="stat-name"> {{ roll.displayName }}</span><br>
+
+    {% else %}
+        {# fixed PERCENT stat: “9% to 40% Health Regen” --------------- #}
+        <span class="{{ sign_class(roll.statRange.low) }}">
+            {{ roll.statRange.low }}%
+        </span>
+        <span class="{{ sign_class(roll.statRange.low, '-to') }}"> to </span>
+        <span class="{{ sign_class(roll.statRange.high) }}">
+            {{ roll.statRange.high }}%
+        </span>
+        <span class="stat-name"> {{ roll.displayName }}</span><br>
+    {% endif %}
+
+{% endmacro %}

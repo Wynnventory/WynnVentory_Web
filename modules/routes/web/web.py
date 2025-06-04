@@ -175,6 +175,15 @@ def enrich_listings(listings: list[dict]) -> list[dict]:
 
         item["price_averages"] = market_service.get_price(item_name=name, shiny=shiny, tier=tier)
 
+        fixed_stats   = []   # statRange.fixed == True   → always-same value
+        rolled_stats  = []   # statRange.fixed == False  → can roll
+
+        for roll in item["stat_rolls"] or []:
+            (fixed_stats if roll["statRange"]["fixed"] else rolled_stats).append(roll)
+
+        item["fixed_identifications"]  = fixed_stats
+        item["rolled_identifications"] = rolled_stats
+
     return listings
 
 

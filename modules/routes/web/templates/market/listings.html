@@ -1,4 +1,5 @@
 {% extends '/components/_base.html' %}
+{% import '/components/_identification_macro.html' as tt %}
 {% block title %}Trademarket Listings{% endblock %}
 {% block content %}
 
@@ -184,6 +185,24 @@
                                         Shiny Stat<br/>
                                         <strong>{{ item.shiny_stat.statType.displayName }}
                                             - {{ item.shiny_stat.value }}</strong>
+                                    </div>
+                                {% endif %}
+
+                                {# ─── Top area: *fixed* stats only ────────────────── #}
+                                {% if item.fixed_identifications %}
+                                    <div class="item-infobox item-text">
+                                        {% for roll in item.fixed_identifications %}
+                                            {{ tt.id_line(roll) }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+
+                                {# ─── Bottom area: all rollable stats (RAW + PERCENT) #}
+                                {% if item.rolled_identifications %}
+                                    <div class="item-infobox item-text">
+                                        {% for roll in item.rolled_identifications %}
+                                            {{ tt.id_line(roll) }}
+                                        {% endfor %}
                                     </div>
                                 {% endif %}
 
