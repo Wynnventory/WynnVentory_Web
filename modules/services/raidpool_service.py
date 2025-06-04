@@ -32,10 +32,10 @@ def save_gambits(gambits: List[Dict]):
             logging.warning(f"Gambit at index {idx} has unsupported mod version: {mod_version}")
             continue
 
-        collection_time = gambit.get("collectionTime")
+        collection_time = gambit.get("timestamp")
         print(is_time_valid(Collection.GAMBIT, collection_time))
         if not collection_time or not is_time_valid(Collection.GAMBIT, collection_time):
-            logging.warning(f"Item at index {idx} has invalid collectionTime: {collection_time}; skipping")
+            logging.warning(f"Item at index {idx} has invalid timestamp: {collection_time}; skipping")
             return
 
         valid_items.append(gambit)

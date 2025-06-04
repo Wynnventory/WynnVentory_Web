@@ -30,7 +30,7 @@ def save_gambits(gambits: List[Dict]) -> None:
     filter_q = {"year": next_reset.year, "month": next_reset.month, "day": next_reset.day}
 
     gambit_day = {"playerName": gambits[0]["playerName"], "modVersion": gambits[0]["modVersion"]}
-    collection_time = gambits[0].get('collectionTime')
+    collection_time = gambits[0].get('timestamp')
     collection_ts   = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     gambit_day["timestamp"] = collection_ts
     gambit_day["year"] = collection_ts.year
