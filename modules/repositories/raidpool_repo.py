@@ -33,15 +33,13 @@ def save_gambits(gambits: List[Dict]) -> None:
     collection_time = gambits[0].get('timestamp')
     collection_ts   = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     gambit_day["timestamp"] = collection_ts
-    gambit_day["year"] = collection_ts.year
-    gambit_day["month"] = collection_ts.month
-    gambit_day["day"] = collection_ts.day
+    gambit_day["year"] = next_reset.year
+    gambit_day["month"] = next_reset.month
+    gambit_day["day"] = next_reset.day
     gambit_day["gambits"] = gambits
 
-    print(filter_q)
     existing = collection.find_one(filter_q)
     if existing:
-        print("Found existing gambit document")
         existing_ts = existing.get('timestamp')
         if existing_ts.tzinfo is None:
             existing_ts = existing_ts.replace(tzinfo=timezone.utc)

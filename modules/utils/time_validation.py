@@ -39,7 +39,7 @@ def get_current_gambit_day():
 
     now = datetime.now()
     reset_today = now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
-    if now.hour > reset_hour: # Already past reset time today = next reset tomorrow at reset hour
+    if now.hour >= reset_hour: # Already past reset time today = next reset tomorrow at reset hour
         next_reset = reset_today + timedelta(days=1)
         previous_reset = reset_today
     else: # still before reset today = reset today at reset hour
