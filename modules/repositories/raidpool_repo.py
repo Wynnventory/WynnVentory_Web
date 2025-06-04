@@ -1,6 +1,8 @@
 from datetime import timezone, datetime, timedelta
 from typing import List, Dict, Any, Optional, Union
 
+from pydantic.experimental import pipeline
+
 from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.repositories.base_pool_repo import BasePoolRepo, build_pool_pipeline
@@ -62,7 +64,8 @@ def save_gambits(gambits: List[Dict]) -> None:
         collection.insert_one(gambit_day)
 
 
-def fetch_raidpools(    year: Optional[int] = None,
+def fetch_raidpools(
+    year: Optional[int] = None,
     week: Optional[int] = None,
     page: Optional[int] = 1,
     page_size: Optional[int] = 100,
@@ -385,3 +388,15 @@ def fetch_raidpool():
 
     cursor = get_collection(Collection.RAID).aggregate(pipeline)
     return list(cursor)
+
+def fetch_gambits(
+        year: int,
+        month: int,
+        day: int,
+) -> dict:
+    if not year or not month or not day:
+        return {}
+
+    filter_q = {"year": year, "month": month, "day": day}
+
+    return get_collection(Collection.GAMBIT).find_one(filter_q, {"_id": 0})

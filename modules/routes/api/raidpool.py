@@ -5,7 +5,9 @@ from flask import request, jsonify
 from modules.auth import require_scope, mod_allowed
 from modules.models.collection_types import Collection
 from modules.routes.api.base_pool_blueprint import BasePoolBlueprint
+from modules.services import raidpool_service
 from modules.services.raidpool_service import save_gambits
+from modules.utils.time_validation import get_current_gambit_day
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,3 +45,11 @@ def save_gambit_items():
     except Exception as e:
         logger.error(f"Error processing gambits: {str(e)}", exc_info=True)
         return jsonify({'error': 'Internal server error'}), 500
+
+@raidpool_bp.get('/raidpool/gambits/current')
+@require_scope('read:raidpool')
+def get_current_gambits():
+    _, next_reset = get_current_gambit_day()
+
+    result = raidpool_service.get_specific_gambits(year=next_reset.year, month=next_reset.month, day=next_reset.day)
+    return jsonify(result)

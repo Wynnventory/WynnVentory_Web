@@ -1,12 +1,10 @@
 import logging
-from datetime import datetime
-from typing import List, Optional, Any, Dict
+from typing import List, Dict
 
 from modules.config import Config
 from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
-from modules.repositories.market_repo import get_trade_market_item_listings, get_price_history, get_historic_average, \
-    get_all_items_ranking, get_trademarket_item_price
+from modules.repositories import raidpool_repo
 from modules.utils.queue_worker import enqueue
 from modules.utils.time_validation import is_time_valid
 from modules.utils.version import compare_versions
@@ -41,3 +39,7 @@ def save_gambits(gambits: List[Dict]):
 
     if valid_items:
         enqueue(CollectionRequest(type=Collection.GAMBIT, items=valid_items))
+
+
+def get_specific_gambits(year: int, month: int, day: int) -> dict:
+    return raidpool_repo.fetch_gambits(year, month, day)
