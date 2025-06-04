@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 
 from modules.config import Config
 from modules.models.collection_request import CollectionRequest
@@ -20,16 +20,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def save_gambits(gambit_day: dict):
-    mod_version = gambit_day.get("modVersion")
-    if not mod_version or not compare_versions(mod_version, Config.MIN_SUPPORTED_VERSION):
-        logger.warning(f"Gambits were not saved due to an unsupported mod version: {mod_version}")
-        return
+def save_gambits(gambits: List[Dict]):
+    if not gambits:
+        raise ValueError("No gambits provided")
 
-    collection_time = gambit_day.get("collectionTime")
-    print(is_time_valid(Collection.GAMBIT, collection_time))
-    if not collection_time or not is_time_valid(Collection.GAMBIT, collection_time):
-        logging.warning(f"Gambits have invalid collectionTime: {collection_time}")
-        return
+    valid_items = []
 
-    enqueue(CollectionRequest(type=Collection.GAMBIT, items=[gambit_day]))
+    for idx, gambit in enumerate(gambits):
+        mod_version = gambit.get("modVersion")
+        if not mod_version or not compare_versions(mod_version, Config.MIN_SUPPORTED_VERSION):
+            logging.warning(f"Gambit at index {idx} has unsupported mod version: {mod_version}")
+            continue
+
+        collection_time = gambit.get("collectionTime")
+        print(is_time_valid(Collection.GAMBIT, collection_time))
+        if not collection_time or not is_time_valid(Collection.GAMBIT, collection_time):
+            logging.warning(f"Item at index {idx} has invalid collectionTime: {collection_time}; skipping")
+            return
+
+        valid_items.append(gambit)
+
+    if valid_items:
+        enqueue(CollectionRequest(type=Collection.GAMBIT, items=valid_items))
