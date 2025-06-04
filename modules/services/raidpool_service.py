@@ -6,7 +6,7 @@ from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
 from modules.repositories import raidpool_repo
 from modules.utils.queue_worker import enqueue
-from modules.utils.time_validation import is_time_valid
+from modules.utils.time_validation import is_time_valid, get_current_gambit_day
 from modules.utils.version import compare_versions
 
 logging.basicConfig(
@@ -40,6 +40,11 @@ def save_gambits(gambits: List[Dict]):
     if valid_items:
         enqueue(CollectionRequest(type=Collection.GAMBIT, items=valid_items))
 
+
+def get_current_gambits() -> dict:
+    _, next_reset = get_current_gambit_day()
+
+    return get_specific_gambits(year=next_reset.year, month=next_reset.month, day=next_reset.day)
 
 def get_specific_gambits(year: int, month: int, day: int) -> dict:
     return raidpool_repo.fetch_gambits(year, month, day)

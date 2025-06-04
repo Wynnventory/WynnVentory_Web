@@ -32,6 +32,11 @@ def save_gambits(gambits: List[Dict]) -> None:
     filter_q = {"year": next_reset.year, "month": next_reset.month, "day": next_reset.day}
 
     gambit_day = {"playerName": gambits[0]["playerName"], "modVersion": gambits[0]["modVersion"]}
+
+    for gambit in gambits:
+        gambit.pop("playerName")
+        gambit.pop("modVersion")
+
     collection_time = gambits[0].get('timestamp')
     collection_ts   = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     gambit_day["timestamp"] = collection_ts
@@ -399,4 +404,4 @@ def fetch_gambits(
 
     filter_q = {"year": year, "month": month, "day": day}
 
-    return get_collection(Collection.GAMBIT).find_one(filter_q, {"_id": 0})
+    return get_collection(Collection.GAMBIT).find_one(filter_q, projection={"_id": 0, "modVersion": 0, "playerName":0})

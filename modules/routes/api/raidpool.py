@@ -49,7 +49,4 @@ def save_gambit_items():
 @raidpool_bp.get('/raidpool/gambits/current')
 @require_scope('read:raidpool')
 def get_current_gambits():
-    _, next_reset = get_current_gambit_day()
-
-    result = raidpool_service.get_specific_gambits(year=next_reset.year, month=next_reset.month, day=next_reset.day)
-    return jsonify(result)
+    return jsonify(raidpool_service.get_current_gambits())
