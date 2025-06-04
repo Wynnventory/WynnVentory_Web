@@ -70,6 +70,8 @@ def _worker_loop():
                         lootpool_repo.save(items_to_process)
                     elif collection_type == Collection.RAID:
                         raidpool_repo.save(items_to_process)
+                    elif collection_type == Collection.GAMBIT:
+                        raidpool_repo.save_gambits(items_to_process)
                     elif collection_type == Collection.API_USAGE:
                         _usage_repo.save(items_to_process)
                     else:

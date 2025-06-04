@@ -1,9 +1,10 @@
+from datetime import timezone, datetime, timedelta
 from typing import List, Dict, Any, Optional, Union
 
 from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.repositories.base_pool_repo import BasePoolRepo, build_pool_pipeline
-from modules.utils.time_validation import get_raidpool_week
+from modules.utils.time_validation import get_raidpool_week, get_current_gambit_day
 
 # Initialize the base repository and aggregator with the RAID collection type
 _repo = BasePoolRepo(Collection.RAID)
@@ -14,6 +15,54 @@ def save(pool: dict) -> None:
     applying duplicate checks and timestamp logic.
     """
     _repo.save(pool)
+
+def save_gambits(gambits: List[Dict]) -> None:
+    """
+    Insert or update a raidpool document for the given region/week/year,
+    applying duplicate checks and timestamp logic.
+    """
+    collection = get_collection(Collection.GAMBIT)
+    previous_reset, next_reset = get_current_gambit_day()
+
+    previous_reset = previous_reset.replace(tzinfo=timezone.utc)
+    next_reset = next_reset.replace(tzinfo=timezone.utc)
+
+    filter_q = {"year": next_reset.year, "month": next_reset.month, "day": next_reset.day}
+
+    gambit_day = {"playerName": gambits[0]["playerName"], "modVersion": gambits[0]["modVersion"]}
+    collection_time = gambits[0].get('collectionTime')
+    collection_ts   = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+    gambit_day["timestamp"] = collection_ts
+    gambit_day["year"] = collection_ts.year
+    gambit_day["month"] = collection_ts.month
+    gambit_day["day"] = collection_ts.day
+    gambit_day["gambits"] = gambits
+
+    print(filter_q)
+    existing = collection.find_one(filter_q)
+    if existing:
+        print("Found existing gambit document")
+        existing_ts = existing.get('timestamp')
+        if existing_ts.tzinfo is None:
+            existing_ts = existing_ts.replace(tzinfo=timezone.utc)
+
+        if not (collection_ts >= previous_reset and collection_ts < next_reset):
+            return
+
+        existing_ts_age = datetime.now(timezone.utc) - existing_ts
+
+        existing_gambits = existing.get('gambits', [])
+        has_more = len(gambits) > len(existing_gambits)
+        has_enough_and_stale = existing_ts_age > timedelta(hours=1) and len(gambits) >= len(existing_gambits)
+
+        if has_more or has_enough_and_stale:
+            # Replace the old document
+            collection.delete_one(filter_q)
+            collection.insert_one(gambit_day)
+    else:
+        # No duplicate, insert fresh
+        collection.insert_one(gambit_day)
+
 
 def fetch_raidpools(    year: Optional[int] = None,
     week: Optional[int] = None,
