@@ -61,6 +61,15 @@ def build_pool_pipeline(
         }
     })
 
+    # 7) **THIS IS THE CRUCIAL SORT** before we push into the 'regions' array:
+    pipeline.append({
+        "$sort": {
+            "year":   1,
+            "week":   1,
+            "region": 1
+        }
+    })
+
     # 6) gather all regions under each year/week into "regions" list
     pipeline.append({
         "$group": {
