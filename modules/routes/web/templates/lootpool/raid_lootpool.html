@@ -2,40 +2,8 @@
 {% block title %}Raidpool{% endblock %}
 {% block content %}
     <h1 class="pt-2 px-4">Wynncraft Raidpool</h1>
-    <div class="row px-4">
-        <h4 id="raidTime"></h4>
-    </div>
-    <link rel="stylesheet"
-          href="https://unpkg.com/minecraft-text/style.css"/>
 
-    <!-- Side Menu Container -->
-    <div id="filter-sidebar" class="collapsed">
-        <!-- Filters Content -->
-        <div class="side-menu-content">
-            <!-- Search Input Field -->
-            <div class="mb-3">
-                <input type="text" id="searchInput" class="form-control mt-2" placeholder="Search items by name...">
-            </div>
-
-            <!-- Toggle Checkbox Buttons for Groups -->
-            <div class="d-flex flex-wrap mb-3" role="group" aria-label="Group checkbox toggle button group">
-                <input type="checkbox" class="btn-check" id="Aspects" autocomplete="off" checked>
-                <label class="btn btn-outline-primary me-2 mb-2" for="Aspects">Aspects</label>
-
-                <input type="checkbox" class="btn-check" id="Tomes" autocomplete="off" checked>
-                <label class="btn btn-outline-primary me-2 mb-2" for="Tomes">Tomes</label>
-
-                <input type="checkbox" class="btn-check" id="Gear" autocomplete="off" checked>
-                <label class="btn btn-outline-primary me-2 mb-2" for="Gear">Gear</label>
-
-                <input type="checkbox" class="btn-check" id="Misc" autocomplete="off" checked>
-                <label class="btn btn-outline-primary me-2 mb-2" for="Misc">Misc</label>
-            </div>
-        </div>
-    </div>
-    <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
-
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4 g-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4">
         {% for gambit in gambit_data %}
             <div class="col">
                 <div class="card">
@@ -74,6 +42,39 @@
             </div>
         {% endfor %}
     </div>
+
+    <div class="row px-4 g-3">
+        <h4 id="raidTime"></h4>
+    </div>
+    <link rel="stylesheet"
+          href="https://unpkg.com/minecraft-text/style.css"/>
+
+    <!-- Side Menu Container -->
+    <div id="filter-sidebar" class="collapsed">
+        <!-- Filters Content -->
+        <div class="side-menu-content">
+            <!-- Search Input Field -->
+            <div class="mb-3">
+                <input type="text" id="searchInput" class="form-control mt-2" placeholder="Search items by name...">
+            </div>
+
+            <!-- Toggle Checkbox Buttons for Groups -->
+            <div class="d-flex flex-wrap mb-3" role="group" aria-label="Group checkbox toggle button group">
+                <input type="checkbox" class="btn-check" id="Aspects" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="Aspects">Aspects</label>
+
+                <input type="checkbox" class="btn-check" id="Tomes" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="Tomes">Tomes</label>
+
+                <input type="checkbox" class="btn-check" id="Gear" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="Gear">Gear</label>
+
+                <input type="checkbox" class="btn-check" id="Misc" autocomplete="off" checked>
+                <label class="btn btn-outline-primary me-2 mb-2" for="Misc">Misc</label>
+            </div>
+        </div>
+    </div>
+    <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4 g-3">
         {% for region_data in loot_data %}
