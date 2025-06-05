@@ -40,7 +40,6 @@ def create_app():
     def page_not_found(error):
         return redirect(url_for('web.index'))
 
-
     @app.template_filter('emerald_format')
     def emerald_format(emeralds):
         """
@@ -83,26 +82,36 @@ def create_app():
     @app.template_filter("last_updated")
     def format_last_updated(timestamp_str: str) -> str:
         now = datetime.now(timezone.utc)
-
         ts = None
-        # 1) Try ISO format first:
-        try:
-            ts = datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f") \
-                .replace(tzinfo=timezone.utc)
-        except ValueError:
-            # 2) Fall back to RFC‐style if ISO parse fails
-            try:
-                ts = datetime.strptime(timestamp_str, "%a, %d %b %Y %H:%M:%S %Z") \
-                    .replace(tzinfo=timezone.utc)
-            except ValueError:
-                # If neither format matches, you could return a default or raise:
-                return "Invalid timestamp"
 
-        # Now ts is a timezone‐aware datetime
-        minutes = (now - ts).total_seconds() // 60
-        if minutes < 60:
-            return f"{int(minutes)} minutes"
-        hours = minutes // 60
-        return f"{int(hours)} hour{'s' if hours > 1 else ''}"
+        # 1) Try ISO‐style with fractional seconds first:
+        try:
+            ts = (
+                datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f")
+                .replace(tzinfo=timezone.utc)
+            )
+        except ValueError:
+            # 2) Next, try the plain "YYYY-MM-DD HH:MM:SS" format:
+            try:
+                ts = (
+                    datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S")
+                    .replace(tzinfo=timezone.utc)
+                )
+            except ValueError:
+                # 3) Finally, fall back to RFC‐style if both ISO parses failed:
+                try:
+                    ts = (
+                        datetime.strptime(timestamp_str, "%a, %d %b %Y %H:%M:%S %Z")
+                        .replace(tzinfo=timezone.utc)
+                    )
+                except ValueError:
+                    return "Invalid timestamp"
+
+        # At this point, ts is a timezone‐aware datetime
+        diff_minutes = (now - ts).total_seconds() // 60
+        if diff_minutes < 60:
+            return f"{int(diff_minutes)} minutes"
+        diff_hours = diff_minutes // 60
+        return f"{int(diff_hours)} hour{'s' if diff_hours > 1 else ''}"
 
     return app
