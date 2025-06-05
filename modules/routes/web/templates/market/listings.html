@@ -187,10 +187,10 @@
                                             - {{ item.shiny_stat.value }}</strong>
                                     </div>
                                 {% endif %}
-{#
+                                {#
 
                                 #}
-{# ─── Top area: *fixed* stats only ────────────────── #}{#
+                                {# ─── Top area: *fixed* stats only ────────────────── #}{#
 
                                 {% if item.fixed_identifications %}
                                     <div class="item-infobox item-text">
@@ -217,19 +217,21 @@
                                     Price<br/>
                                     <strong>{{ item.listing_price|emerald_format }}</strong>
                                     {# 1) Compute “ratio” based on whether it’s unidentified or not #}
-                                    {% if item.unidentified %}
+                                    {% if item.unidentified and item.price_averages.unidentified_average_mid_80_percent_price %}
                                         {% set ratio = item.listing_price / item.price_averages.unidentified_average_mid_80_percent_price %}
-                                    {% else %}
+                                    {% elif item.price_averages.average_mid_80_percent_price %}
                                         {% set ratio = item.listing_price / item.price_averages.average_mid_80_percent_price %}
                                     {% endif %}
 
-                                    {# 2) Compute the percentage and choose color #}
-                                    {% set pct = (ratio * 100) | round(1) %}
-                                    <small>
-                                        (<span
-                                            style="color: {% if ratio > 1 %}#F85252{% elif ratio < 1 %}#56FE56{% endif %}">{{ pct }}%</span>
-                                        of avg)
-                                    </small>
+                                    {% if ratio %}
+                                        {# 2) Compute the percentage and choose color #}
+                                        {% set pct = (ratio * 100) | round(1) %}
+                                        <small>
+                                            (<span
+                                                style="color: {% if ratio > 1 %}#F85252{% elif ratio < 1 %}#56FE56{% endif %}">{{ pct }}%</span>
+                                            of avg)
+                                        </small>
+                                    {% endif %}
                                 </div>
                                 {% if item.timestamp %}
                                     <div class="mt-auto">
