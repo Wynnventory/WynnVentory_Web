@@ -38,7 +38,7 @@ def save_gambits(gambits: List[Dict]) -> None:
         gambit.pop("modVersion")
 
     collection_time = gambits[0].get('timestamp')
-    collection_ts   = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+    collection_ts   = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S')
     gambit_day["timestamp"] = collection_ts
     gambit_day["year"] = next_reset.year
     gambit_day["month"] = next_reset.month

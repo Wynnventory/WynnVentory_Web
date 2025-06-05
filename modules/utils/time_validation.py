@@ -35,7 +35,7 @@ def get_raidpool_week():
     return get_lootpool_week_for_timestamp(datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'), reset_hour=17)
 
 def get_current_gambit_day():
-    reset_hour = 19  # 19:00 (7 PM) UTC
+    reset_hour = 17  # 17:00 (5 PM) UTC
 
     now = datetime.now()
     reset_today = now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
