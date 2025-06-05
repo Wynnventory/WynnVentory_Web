@@ -12,7 +12,7 @@
     {% set pct_raw = roll.rollPercentage | default('') %}
     {% if pct_raw and pct_raw != 'NaN' %}
         {% set pct_val = pct_raw.rstrip('%') | float %}
-        {% set pct_txt = '%.2f' % pct_val %}
+        {% set pct_txt = '%.1f' % pct_val %}
     {% else %}
         {% set pct_val, pct_txt = none, none %}
     {% endif %}
