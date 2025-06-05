@@ -404,4 +404,9 @@ def fetch_gambits(
 
     filter_q = {"year": year, "month": month, "day": day}
 
-    return get_collection(Collection.GAMBIT).find_one(filter_q, projection={"_id": 0, "modVersion": 0, "playerName":0})
+    result = get_collection(Collection.GAMBIT).find_one(filter_q, projection={"_id": 0, "modVersion": 0, "playerName":0})
+
+    if result is None:
+        return {}
+
+    return result
