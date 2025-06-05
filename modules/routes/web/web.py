@@ -3,7 +3,8 @@ from datetime import datetime, timezone
 from flask import Blueprint, render_template, jsonify, request
 
 from modules.models.collection_types import Collection
-from modules.services import base_pool_service, market_service
+from modules.routes.api import raidpool
+from modules.services import base_pool_service, market_service, raidpool_service
 
 web_bp = Blueprint(
     'web', __name__,
@@ -34,10 +35,14 @@ def lootrun_lootpool():
 
 @web_bp.route("/raid")
 def raid_lootpool():
-    data = jsonify(base_pool_service.get_current_pools(Collection.RAID)).get_json()
-    pools = data if isinstance(data, list) else []
+    raid_data = jsonify(base_pool_service.get_current_pools(Collection.RAID)).get_json()
+    pools = raid_data if isinstance(raid_data, list) else []
     pools = enrich_pools(pools, items_key="group_items")
-    return render_template("lootpool/raid_lootpool.html", loot_data=pools)
+
+    gambit_data = raidpool_service.get_current_gambits()
+    gambits = gambit_data.get("gambits") or []
+
+    return render_template("lootpool/raid_lootpool.html", loot_data=pools, gambit_data=gambits)
 
 
 @web_bp.route("/history/", defaults={'item_name': None})
@@ -174,6 +179,15 @@ def enrich_listings(listings: list[dict]) -> list[dict]:
                 raise TypeError(f"Expected 'tier' to be int‐castable, but got {raw_tier!r}")
 
         item["price_averages"] = market_service.get_price(item_name=name, shiny=shiny, tier=tier)
+
+        fixed_stats   = []   # statRange.fixed == True   → always-same value
+        rolled_stats  = []   # statRange.fixed == False  → can roll
+
+        for roll in item.get("stat_rolls") or []:
+            (fixed_stats if roll["statRange"]["fixed"] else rolled_stats).append(roll)
+
+        item["fixed_identifications"]  = fixed_stats
+        item["rolled_identifications"] = rolled_stats
 
     return listings
 

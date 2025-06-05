@@ -1,10 +1,11 @@
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 
 from flask import Blueprint, request, jsonify
 
 from modules.auth import require_scope, public_endpoint, mod_allowed
-from modules.services.market_service import save_items, get_price, get_item_listings, get_history, get_historic_item_price, \
+from modules.services.market_service import save_items, get_price, get_item_listings, get_history, \
+    get_historic_item_price, \
     get_ranking
 
 logging.basicConfig(

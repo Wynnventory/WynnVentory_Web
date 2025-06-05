@@ -109,7 +109,7 @@ a:hover {
     border: 2px solid var(--tooltip-border-color);
     border-radius: 5px;
     padding: 10px;
-    width: 375px;
+    width: 350px !important;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     z-index: 999;
 }
@@ -918,3 +918,15 @@ body.side-menu-open {
     font-size: 0.75rem;
     color: #aaa;
 }
+
+/* one line of stats */
+.stat-row{
+    display:grid;                  /* simple 3-column grid  */
+    grid-template-columns:auto 1fr auto;   /* value | name (flexes) | % */
+    align-items:center;
+    column-gap:.25rem;             /* optional breathing room */
+}
+
+.stat-value{ text-align:left;  }
+.stat-name { text-align:center;}
+.stat-pct  { text-align:right; white-space:nowrap;}

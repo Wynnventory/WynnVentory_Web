@@ -27,9 +27,9 @@ def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[
         if not mod_version or not compare_versions(mod_version, Config.MIN_SUPPORTED_VERSION):
             raise ValueError(f"Item at index {idx} has unsupported mod version: {mod_version}")
 
-        collection_time = item.get('collectionTime')
+        collection_time = item.get('timestamp')
         if not collection_time or not is_time_valid(collection_type, collection_time):
-            logging.warning(f"Item at index {idx} has invalid collectionTime: {collection_time}; skipping")
+            logging.warning(f"Item at index {idx} has invalid timestamp: {collection_time}; skipping")
             continue
 
         loot_items = item.get('items', [])

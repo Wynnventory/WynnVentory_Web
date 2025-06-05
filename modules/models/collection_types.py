@@ -6,5 +6,6 @@ class Collection(Enum):
     MARKET_ARCHIVE = "trademarket_archive"
     LOOT = "lootpool"
     RAID = "raidpool"
+    GAMBIT = "gambit"
     API_KEYS = "api_keys"
     API_USAGE = "api_usage"

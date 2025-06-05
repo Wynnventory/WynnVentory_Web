@@ -1,4 +1,5 @@
 {% extends '/components/_base.html' %}
+{% import '/components/_identification_macro.html' as tt %}
 {% block title %}Trademarket Listings{% endblock %}
 {% block content %}
 
@@ -139,7 +140,7 @@
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
                     {% for item in items %}
                         <div class="col item-stats-tooltip {{ item.rarity or 'Normal' }} items-handle">
-                            <div class="item-card">
+                            <div class="item-card d-flex flex-column h-100">
 
                                 <!-- Header -->
                                 <div class="item-header d-flex justify-content-center align-items-center">
@@ -186,7 +187,28 @@
                                             - {{ item.shiny_stat.value }}</strong>
                                     </div>
                                 {% endif %}
+                                {#
 
+                                #}
+                                {# ─── Top area: *fixed* stats only ────────────────── #}{#
+
+                                {% if item.fixed_identifications %}
+                                    <div class="item-infobox item-text">
+                                        {% for roll in item.fixed_identifications %}
+                                            {{ tt.id_line(roll) }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+#}
+
+                                {# ─── Bottom area: all rollable stats (RAW + PERCENT) #}
+                                {% if item.rolled_identifications %}
+                                    <div class="item-infobox item-text">
+                                        {% for roll in item.rolled_identifications %}
+                                            {{ tt.id_line(roll) }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
                                 <div class="item-infobox item-text">
                                     Amount<br/>
                                     <strong>{{ item.amount }}</strong>
@@ -195,28 +217,31 @@
                                     Price<br/>
                                     <strong>{{ item.listing_price|emerald_format }}</strong>
                                     {# 1) Compute “ratio” based on whether it’s unidentified or not #}
-                                    {% if item.unidentified %}
+                                    {% if item.unidentified and item.price_averages.unidentified_average_mid_80_percent_price %}
                                         {% set ratio = item.listing_price / item.price_averages.unidentified_average_mid_80_percent_price %}
-                                    {% else %}
+                                    {% elif item.price_averages.average_mid_80_percent_price %}
                                         {% set ratio = item.listing_price / item.price_averages.average_mid_80_percent_price %}
                                     {% endif %}
 
-                                    {# 2) Compute the percentage and choose color #}
-                                    {% set pct = (ratio * 100) | round(1) %}
-                                    <small>
-                                        (<span
-                                            style="color: {% if ratio > 1 %}#F85252{% elif ratio < 1 %}#56FE56{% endif %}">{{ pct }}%</span>
-                                        of avg)
-                                    </small>
+                                    {% if ratio %}
+                                        {# 2) Compute the percentage and choose color #}
+                                        {% set pct = (ratio * 100) | round(1) %}
+                                        <small>
+                                            (<span
+                                                style="color: {% if ratio > 1 %}#F85252{% elif ratio < 1 %}#56FE56{% endif %}">{{ pct }}%</span>
+                                            of avg)
+                                        </small>
+                                    {% endif %}
                                 </div>
                                 {% if item.timestamp %}
-                                    <br/>
+                                    <div class="mt-auto">
                                     <footer class="item-footer mt-2 w-100 text-center">
                                         <small class="text-muted">
                                             Recorded {{ ("%s"|format(item.timestamp))|last_updated }} ago
                                         </small>
                                     </footer>
                                 {% endif %}
+                                </div>
                             </div>
                         </div>
                     {% else %}

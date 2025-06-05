@@ -206,8 +206,8 @@ if __name__ == "__main__":
     migrate_existing_and_consolidate()
 
     # Initial Averages
-    start = datetime(2025, 5, 25, tzinfo=timezone.utc)
-    end   = datetime(2025, 5, 26, tzinfo=timezone.utc)
+    start = datetime(2025, 6, 3, tzinfo=timezone.utc)
+    end   = datetime(2025, 6, 4, tzinfo=timezone.utc)
 
     logging.info(f"Updating initial averages from {start} to {end}")
     update_moving_averages_complete(force_update=True, start_date=start, end_date=end)

@@ -108,8 +108,8 @@ class BasePoolRepo:
         collection = get_collection(self.collection_type)
 
         for pool in pools:
-            # Compute week/year from the payload's collectionTime
-            year, week = get_lootpool_week_for_timestamp(pool.get('collectionTime'))
+            # Compute week/year from the payload's timestamp
+            year, week = get_lootpool_week_for_timestamp(pool.get('timestamp'))
             pool['week'] = week
             pool['year'] = year
             pool['timestamp'] = datetime.now(timezone.utc)
