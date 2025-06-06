@@ -50,7 +50,7 @@ def get_current_gambit_day():
 
 def get_week_range(reset_day, reset_hour, now=None):
     if now is None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now()
 
     # Calculate days since the last reset day
     days_since_reset_day = (now.weekday() - reset_day + 7) % 7
