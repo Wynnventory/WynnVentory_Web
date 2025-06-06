@@ -1,8 +1,6 @@
 from datetime import timezone, datetime, timedelta
 from typing import List, Dict, Any, Optional, Union
 
-from pydantic.experimental import pipeline
-
 from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.repositories.base_pool_repo import BasePoolRepo, build_pool_pipeline
