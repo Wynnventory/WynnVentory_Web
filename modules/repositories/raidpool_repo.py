@@ -26,9 +26,6 @@ def save_gambits(gambits: List[Dict]) -> None:
     collection = get_collection(Collection.GAMBIT)
     previous_reset, next_reset = get_current_gambit_day()
 
-    previous_reset = previous_reset.replace(tzinfo=timezone.utc)
-    next_reset = next_reset.replace(tzinfo=timezone.utc)
-
     filter_q = {"year": next_reset.year, "month": next_reset.month, "day": next_reset.day}
 
     gambit_day = {"playerName": gambits[0]["playerName"], "modVersion": gambits[0]["modVersion"]}
