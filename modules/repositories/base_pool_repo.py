@@ -140,9 +140,8 @@ class BasePoolRepo:
 
                 has_more = len(new_items) > len(old_items)
                 has_enough_and_stale = age > timedelta(hours=1) and len(new_items) >= len(old_items)
-                is_older_week = (existing['year'], existing['week']) < (year, week)
 
-                if has_more or has_enough_and_stale or is_older_week:
+                if has_more or has_enough_and_stale:
                     # Replace the old document
                     collection.delete_one(filter_q)
                     collection.insert_one(pool)

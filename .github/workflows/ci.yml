@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - test
+      - main
+  pull_request:
+    branches:
+      - test
+      - main
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BOT_PAT }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run test suite
+        run: |
+          # example for pytest; change to whatever your test command is
+          pytest --maxfail=1 --disable-warnings -q
