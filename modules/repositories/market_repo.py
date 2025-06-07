@@ -559,7 +559,7 @@ def get_historic_average(
         'shiny': shiny,
         '$or': [
             {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': 'MaterialItem', 'tier': tier}
+            {'item_type': {'$in': ['MaterialItem', 'PowderItem']}, 'tier': tier}
         ],
         'timestamp': {
             '$gte': start_date,
