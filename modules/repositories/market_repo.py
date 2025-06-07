@@ -11,6 +11,8 @@ from pymongo.errors import BulkWriteError
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 
+TIERLESS_TYPES = ['GearItem', 'IngredientItem']
+TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem"]
 
 def save(items: List[Dict[str, Any]]) -> None:
     """
@@ -258,22 +260,22 @@ def get_trade_market_item_listings(
         if item_type is not None:
             # explicit single-type + optional tier
             query_filter['item_type'] = item_type
-            if tier is not None and (item_type == 'MaterialItem' or item_type == 'PowderItem'):
+            if tier is not None and item_type in TIERED_TYPES:
                 query_filter['tier'] = tier
 
         else:
             # fallback to original OR logic
             if tier is not None:
                 query_filter['$or'] = [
-                    {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-                    {'item_type': {'$in': ['MaterialItem', 'PowderItem']}, 'tier': tier}
+                    {'item_type': {'$in': TIERLESS_TYPES}},
+                    {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
                 ]
 
     # 2) NO-NAME branch
     else:
         if item_type is not None:
             query_filter['item_type'] = item_type
-            if tier is not None and (item_type == 'MaterialItem' or item_type == 'PowderItem'):
+            if tier is not None and item_type in TIERED_TYPES:
                 query_filter['tier'] = tier
         else:
             if tier is not None:
@@ -319,8 +321,8 @@ def calculate_listing_averages(
     """
     shiny_stat = '$ne' if shiny else '$eq'
     query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
-        {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-        {'item_type': {'$in': ['MaterialItem', 'PowderItem']}, 'tier': tier}
+        {'item_type': {'$in': TIERLESS_TYPES}},
+        {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
     ]}
 
     if start_date is not None or end_date is not None:
@@ -507,8 +509,8 @@ def get_price_history(
         'name': item_name,
         'shiny': shiny,
         '$or': [
-            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': {'$in': ['MaterialItem', 'PowderItem']}, 'tier': tier}
+            {'item_type': {'$in': TIERLESS_TYPES}},
+            {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
         ],
         'timestamp': {
             '$gte': start_date,
@@ -558,8 +560,8 @@ def get_historic_average(
         'name': item_name,
         'shiny': shiny,
         '$or': [
-            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': {'$in': ['MaterialItem', 'PowderItem']}, 'tier': tier}
+            {'item_type': {'$in': TIERLESS_TYPES}},
+            {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
         ],
         'timestamp': {
             '$gte': start_date,

@@ -175,7 +175,7 @@
                                             ></span>Shiny
                                         {% endif %}
                                         {{ item.name }}
-                                        {% if item.item_type == "MaterialItem" %}
+                                        {% if item.item_type != "GearItem" and item.item_type != "IngredientItem" %}
                                             {{ item.tier }}
                                         {% endif %}
                                     </h5>
