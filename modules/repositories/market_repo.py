@@ -258,7 +258,7 @@ def get_trade_market_item_listings(
         if item_type is not None:
             # explicit single-type + optional tier
             query_filter['item_type'] = item_type
-            if tier is not None and item_type == 'MaterialItem':
+            if tier is not None and (item_type == 'MaterialItem' or item_type == 'PowderItem'):
                 query_filter['tier'] = tier
 
         else:
@@ -266,20 +266,16 @@ def get_trade_market_item_listings(
             if tier is not None:
                 query_filter['$or'] = [
                     {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-                    {'item_type': 'MaterialItem', 'tier': tier}
+                    {'item_type': {'$in': ['MaterialItem', 'PowderItem']}, 'tier': tier}
                 ]
 
     # 2) NO-NAME branch
     else:
         if item_type is not None:
             query_filter['item_type'] = item_type
-            if tier is not None and item_type == 'MaterialItem':
+            if tier is not None and (item_type == 'MaterialItem' or item_type == 'PowderItem'):
                 query_filter['tier'] = tier
         else:
-            # no name & no type: include all three types
-            query_filter['item_type'] = {
-                '$in': ['GearItem', 'IngredientItem', 'MaterialItem']
-            }
             if tier is not None:
                 query_filter['tier'] = tier
 
@@ -324,7 +320,7 @@ def calculate_listing_averages(
     shiny_stat = '$ne' if shiny else '$eq'
     query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
         {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-        {'item_type': 'MaterialItem', 'tier': tier}
+        {'item_type': {'$in': ['MaterialItem', 'PowderItem']}, 'tier': tier}
     ]}
 
     if start_date is not None or end_date is not None:
@@ -512,7 +508,7 @@ def get_price_history(
         'shiny': shiny,
         '$or': [
             {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': 'MaterialItem', 'tier': tier}
+            {'item_type': {'$in': ['MaterialItem', 'PowderItem']}, 'tier': tier}
         ],
         'timestamp': {
             '$gte': start_date,
