@@ -175,8 +175,8 @@
                                             ></span>Shiny
                                         {% endif %}
                                         {{ item.name }}
-                                        {% if item.overall_roll %}
-                                            [{{ '%.1f' % item.overall_roll }}%]
+                                        {% if item.overall_roll and item.overall_roll_color %}
+                                            <span style="color: {{ item.overall_roll_color }} !important;">[{{ '%.1f' % item.overall_roll }}%]</span>
                                         {% endif %}
                                         {% if item.item_type in TIERED_TYPES %}
                                             {{ item.tier }}
