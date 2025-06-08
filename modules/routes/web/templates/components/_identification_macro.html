@@ -8,13 +8,26 @@
         {{ 'negative' ~ suf if v|float < 0 else 'positive' ~ suf }}
     {% endmacro %}
 
-    {# ------------ 1 · parse & sanitise rollPercentage ---------------- #}
+    {# 1) grab the raw value, defaulting to empty #}
     {% set pct_raw = roll.rollPercentage | default('') %}
-    {% if pct_raw and pct_raw != 'NaN' %}
+
+    {# 2) figure out a numeric pct_val #}
+    {% if pct_raw is number %}
+        {# already a float/int → keep as-is #}
+        {% set pct_val = pct_raw %}
+    {% elif pct_raw and pct_raw != 'NaN' %}
+        {# a non-empty string → strip “%” then float it #}
         {% set pct_val = pct_raw.rstrip('%') | float %}
+    {% else %}
+        {# missing or NaN → nothing #}
+        {% set pct_val = none %}
+    {% endif %}
+
+    {# 3) format pct_txt if we have a number #}
+    {% if pct_val is not none %}
         {% set pct_txt = '%.1f' % pct_val %}
     {% else %}
-        {% set pct_val, pct_txt = none, none %}
+        {% set pct_txt = none %}
     {% endif %}
 
     {# ------------ 2 · colour: take it directly from JSON ------------- #}
