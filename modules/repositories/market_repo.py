@@ -11,7 +11,6 @@ from pymongo.errors import BulkWriteError
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 
-TIERLESS_TYPES = ['GearItem', 'IngredientItem']
 TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem"]
 
 def save(items: List[Dict[str, Any]]) -> None:
@@ -267,7 +266,7 @@ def get_trade_market_item_listings(
             # fallback to original OR logic
             if tier is not None:
                 query_filter['$or'] = [
-                    {'item_type': {'$in': TIERLESS_TYPES}},
+                    {'item_type': {'$nin': TIERED_TYPES}},
                     {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
                 ]
 
@@ -321,7 +320,7 @@ def calculate_listing_averages(
     """
     shiny_stat = '$ne' if shiny else '$eq'
     query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
-        {'item_type': {'$in': TIERLESS_TYPES}},
+        {'item_type': {'$nin': TIERED_TYPES}},
         {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
     ]}
 
@@ -509,7 +508,7 @@ def get_price_history(
         'name': item_name,
         'shiny': shiny,
         '$or': [
-            {'item_type': {'$in': TIERLESS_TYPES}},
+            {'item_type': {'$nin': TIERED_TYPES}},
             {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
         ],
         'timestamp': {
@@ -560,7 +559,7 @@ def get_historic_average(
         'name': item_name,
         'shiny': shiny,
         '$or': [
-            {'item_type': {'$in': TIERLESS_TYPES}},
+            {'item_type': {'$nin': TIERED_TYPES}},
             {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
         ],
         'timestamp': {

@@ -781,7 +781,7 @@ li .SET:hover {
     width: 32px; height: 32px;
 }
 
-.bg-insulator {
+.bg-insulator, .bg-corkianinsulator {
     background-position: -160px -32px;
     width: 32px; height: 32px;
 }
@@ -791,7 +791,7 @@ li .SET:hover {
     width: 32px; height: 32px;
 }
 
-.bg-simulator {
+.bg-simulator, .bg-corkiansimulator {
     background-position: -160px -96px;
     width: 32px; height: 32px;
 }
