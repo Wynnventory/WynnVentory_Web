@@ -396,6 +396,11 @@ li .FABLED:hover {
     cursor: pointer;
 }
 
+.corrupted {
+    color: #AA0000;
+    --tooltip-border-color: #AA0000;
+}
+
 .legendary,
 .Legendary,
 .LEGENDARY {
@@ -494,45 +499,55 @@ li .SET:hover {
     color: rgb(230, 153, 0);
 }
 
-.air::before {
+.air::before,
+.AirPowder {
     content: '❋' ' ';
     color: rgb(255, 255, 255);
+    --tooltip-border-color: rgb(255, 255, 255);
 }
 
 .air span:first-child {
     color: rgb(255, 255, 255);
 }
 
-.thunder::before {
+.thunder::before,
+.ThunderPowder {
     content: '✦' ' ';
     color: rgb(252, 252, 84);
+    --tooltip-border-color: rgb(252, 252, 84);
 }
 
 .thunder span:first-child {
     color: rgb(252, 252, 84);
 }
 
-.fire::before {
+.fire::before,
+.FirePowder {
     content: '✹' ' ';
     color: rgb(254, 84, 84);
+    --tooltip-border-color: rgb(254, 84, 84);
 }
 
 .fire span:first-child {
     color: rgb(254, 84, 84);
 }
 
-.water::before {
+.water::before,
+.WaterPowder {
     content: '❉' ' ';
     color: rgb(89, 255, 255);
+    --tooltip-border-color: rgb(89, 255, 255);
 }
 
 .water span:first-child {
     color: rgb(89, 255, 255);
 }
 
-.earth::before {
+.earth::before,
+.EarthPowder {
     content: '✤' ' ';
     color: rgb(0, 175, 0);
+    --tooltip-border-color: rgb(0, 175, 0);
 }
 
 .earth span:first-child {
