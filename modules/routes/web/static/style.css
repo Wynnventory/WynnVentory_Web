@@ -636,22 +636,26 @@ li .SET:hover {
     width: 30px; height: 30px;
 }
 
-.bg-az {
+.bg-az,
+.bg-azrune{
     background-position: -0 -0;
     width: 32px; height: 32px;
 }
 
-.bg-nii {
+.bg-nii,
+.bg-niirune{
     background-position: -32px -0;
     width: 32px; height: 32px;
 }
 
-.bg-tol {
+.bg-tol,
+.bg-tolrune {
     background-position: -0 -32px;
     width: 32px; height: 32px;
 }
 
-.bg-uth {
+.bg-uth,
+.bg-uthrune{
     background-position: -32px -32px;
     width: 32px; height: 32px;
 }
@@ -668,6 +672,12 @@ li .SET:hover {
 
 .bg-dungeonkey {
     background-position: -0 -64px;
+    width: 32px; height: 32px;
+}
+
+/* only match classes that start with "bg-" and somewhere include "rune" */
+[class*="bg-"][class*="key"] {
+    background-position: -0 -64px !important;
     width: 32px; height: 32px;
 }
 
