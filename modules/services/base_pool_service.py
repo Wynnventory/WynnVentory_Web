@@ -6,7 +6,7 @@ from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
 from modules.repositories import lootpool_repo, raidpool_repo
 from modules.utils.queue_worker import enqueue
-from modules.utils.time_validation import is_time_valid, get_lootpool_week, get_raidpool_week
+from modules.utils.time_validation import is_time_valid
 from modules.utils.version import compare_versions
 
 

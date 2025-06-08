@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field, conint
 from typing import List, Optional, Tuple
+
+from pydantic import BaseModel, Field, conint
+
 
 class ItemSearchRequest(BaseModel):
     query: Optional[str] = None

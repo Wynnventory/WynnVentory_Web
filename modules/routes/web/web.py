@@ -4,7 +4,6 @@ from flask import Blueprint, render_template, jsonify, request
 
 from modules.models.collection_types import Collection
 from modules.repositories.market_repo import TIERED_TYPES
-from modules.routes.api import raidpool
 from modules.services import base_pool_service, market_service, raidpool_service
 
 web_bp = Blueprint(
