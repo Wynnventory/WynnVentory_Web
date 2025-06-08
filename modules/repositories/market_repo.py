@@ -278,7 +278,9 @@ def get_trade_market_item_listings(
                 query_filter['tier'] = tier
         else:
             if tier is not None:
-                query_filter['tier'] = tier
+                query_filter['item_type'] = {'$in': TIERED_TYPES}
+                query_filter['tier']      = tier
+
 
     coll = get_collection(ColEnum.MARKET_LISTINGS)
     total = coll.count_documents(query_filter)
