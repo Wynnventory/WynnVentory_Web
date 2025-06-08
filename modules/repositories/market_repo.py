@@ -11,7 +11,7 @@ from pymongo.errors import BulkWriteError
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 
-TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem"]
+TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
 
 def save(items: List[Dict[str, Any]]) -> None:
     """

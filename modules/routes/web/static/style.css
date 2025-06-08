@@ -846,6 +846,11 @@ li .SET:hover {
     width: 30px; height: 30px;
 }
 
+.bg-emeraldpouch {
+    background-image: url('icons/icons/emerald_pouch.webp') !important;
+    width: 30px; height: 30px;
+}
+
 .bg-brownhorse,
 .bg-blackhorse,
 .bg-chestnuthorse,
