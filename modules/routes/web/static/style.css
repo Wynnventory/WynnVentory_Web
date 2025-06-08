@@ -846,6 +846,14 @@ li .SET:hover {
     width: 30px; height: 30px;
 }
 
+.bg-brownhorse,
+.bg-blackhorse,
+.bg-chestnuthorse,
+.bg-whitehorse {
+    background-image: url('icons-minecraft-184.png') !important;
+    background-position: -800px -1120px;
+}
+
 /* Side Menu Styles */
 #sideMenu {
     position: fixed;
