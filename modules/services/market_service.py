@@ -33,6 +33,7 @@ def _format_item_for_db(item: dict) -> dict:
         "unidentified": item_data.get('unidentified'),
         "shiny_stat": item_data.get('shinyStat'),
         "overall_roll": item_data.get('overallRollPercentage'),
+        "overall_roll_color": item_data.get('overallRollPercentageColor'),
         "stat_rolls": item_data.get('actualStatsWithPercentage'),
         "reroll_count": item_data.get('rerollCount'),
         "amount": item.get('amount'),
