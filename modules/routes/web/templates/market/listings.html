@@ -188,7 +188,7 @@
                                             <span style="color: {{ item.overall_roll_color }} !important;">[{{ '%.1f' % item.overall_roll }}%]</span>
                                         {% endif %}
                                         {% if item.item_type in TIERED_TYPES %}
-                                            {{ item.tier }}
+                                            {{ item.tier|to_roman }}
                                         {% endif %}
                                     </h5>
                                 </div>
