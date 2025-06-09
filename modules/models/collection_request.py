@@ -1,5 +1,7 @@
 from typing import List, Any
+
 from .collection_types import Collection
+
 
 class CollectionRequest:
     """

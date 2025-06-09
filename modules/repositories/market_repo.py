@@ -11,6 +11,7 @@ from pymongo.errors import BulkWriteError
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 
+TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
 
 def save(items: List[Dict[str, Any]]) -> None:
     """
@@ -210,6 +211,7 @@ def get_trade_market_item_listings(
         rarity: Optional[str] = None,
         tier: Optional[int] = None,
         item_type: Optional[str] = None,
+        sub_type: Optional[str] = None,
         page: Optional[int] = 1,
         page_size: Optional[int] = 50,
 ) -> Dict[str, Any]:
@@ -258,30 +260,29 @@ def get_trade_market_item_listings(
         if item_type is not None:
             # explicit single-type + optional tier
             query_filter['item_type'] = item_type
-            if tier is not None and item_type == 'MaterialItem':
+            if tier is not None and item_type in TIERED_TYPES:
                 query_filter['tier'] = tier
-
         else:
             # fallback to original OR logic
             if tier is not None:
                 query_filter['$or'] = [
-                    {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-                    {'item_type': 'MaterialItem', 'tier': tier}
+                    {'item_type': {'$nin': TIERED_TYPES}},
+                    {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
                 ]
-
     # 2) NO-NAME branch
     else:
         if item_type is not None:
             query_filter['item_type'] = item_type
-            if tier is not None and item_type == 'MaterialItem':
+            if tier is not None and item_type in TIERED_TYPES:
                 query_filter['tier'] = tier
         else:
-            # no name & no type: include all three types
-            query_filter['item_type'] = {
-                '$in': ['GearItem', 'IngredientItem', 'MaterialItem']
-            }
             if tier is not None:
-                query_filter['tier'] = tier
+                query_filter['item_type'] = {'$in': TIERED_TYPES}
+                query_filter['tier']      = tier
+
+    if sub_type is not None:
+        query_filter['type'] = sub_type
+
 
     coll = get_collection(ColEnum.MARKET_LISTINGS)
     total = coll.count_documents(query_filter)
@@ -323,8 +324,8 @@ def calculate_listing_averages(
     """
     shiny_stat = '$ne' if shiny else '$eq'
     query_filter: Dict[str, Any] = {'name': item_name, 'shiny_stat': {shiny_stat: None}, '$or': [
-        {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-        {'item_type': 'MaterialItem', 'tier': tier}
+        {'item_type': {'$nin': TIERED_TYPES}},
+        {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
     ]}
 
     if start_date is not None or end_date is not None:
@@ -511,8 +512,8 @@ def get_price_history(
         'name': item_name,
         'shiny': shiny,
         '$or': [
-            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': 'MaterialItem', 'tier': tier}
+            {'item_type': {'$nin': TIERED_TYPES}},
+            {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
         ],
         'timestamp': {
             '$gte': start_date,
@@ -562,8 +563,8 @@ def get_historic_average(
         'name': item_name,
         'shiny': shiny,
         '$or': [
-            {'item_type': {'$in': ['GearItem', 'IngredientItem']}},
-            {'item_type': 'MaterialItem', 'tier': tier}
+            {'item_type': {'$nin': TIERED_TYPES}},
+            {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
         ],
         'timestamp': {
             '$gte': start_date,

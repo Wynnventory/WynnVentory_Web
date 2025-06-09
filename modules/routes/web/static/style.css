@@ -396,6 +396,11 @@ li .FABLED:hover {
     cursor: pointer;
 }
 
+.corrupted {
+    color: #AA0000;
+    --tooltip-border-color: #AA0000;
+}
+
 .legendary,
 .Legendary,
 .LEGENDARY {
@@ -494,45 +499,55 @@ li .SET:hover {
     color: rgb(230, 153, 0);
 }
 
-.air::before {
+.air::before,
+.AirPowder {
     content: '❋' ' ';
     color: rgb(255, 255, 255);
+    --tooltip-border-color: rgb(255, 255, 255);
 }
 
 .air span:first-child {
     color: rgb(255, 255, 255);
 }
 
-.thunder::before {
+.thunder::before,
+.ThunderPowder {
     content: '✦' ' ';
     color: rgb(252, 252, 84);
+    --tooltip-border-color: rgb(252, 252, 84);
 }
 
 .thunder span:first-child {
     color: rgb(252, 252, 84);
 }
 
-.fire::before {
+.fire::before,
+.FirePowder {
     content: '✹' ' ';
     color: rgb(254, 84, 84);
+    --tooltip-border-color: rgb(254, 84, 84);
 }
 
 .fire span:first-child {
     color: rgb(254, 84, 84);
 }
 
-.water::before {
+.water::before,
+.WaterPowder {
     content: '❉' ' ';
     color: rgb(89, 255, 255);
+    --tooltip-border-color: rgb(89, 255, 255);
 }
 
 .water span:first-child {
     color: rgb(89, 255, 255);
 }
 
-.earth::before {
+.earth::before,
+.EarthPowder {
     content: '✤' ' ';
     color: rgb(0, 175, 0);
+    --tooltip-border-color: rgb(0, 175, 0);
 }
 
 .earth span:first-child {
@@ -636,22 +651,26 @@ li .SET:hover {
     width: 30px; height: 30px;
 }
 
-.bg-az {
+.bg-az,
+.bg-azrune{
     background-position: -0 -0;
     width: 32px; height: 32px;
 }
 
-.bg-nii {
+.bg-nii,
+.bg-niirune{
     background-position: -32px -0;
     width: 32px; height: 32px;
 }
 
-.bg-tol {
+.bg-tol,
+.bg-tolrune {
     background-position: -0 -32px;
     width: 32px; height: 32px;
 }
 
-.bg-uth {
+.bg-uth,
+.bg-uthrune{
     background-position: -32px -32px;
     width: 32px; height: 32px;
 }
@@ -668,6 +687,12 @@ li .SET:hover {
 
 .bg-dungeonkey {
     background-position: -0 -64px;
+    width: 32px; height: 32px;
+}
+
+/* only match classes that start with "bg-" and somewhere include "rune" */
+[class*="bg-"][class*="key"] {
+    background-position: -0 -64px !important;
     width: 32px; height: 32px;
 }
 
@@ -781,7 +806,7 @@ li .SET:hover {
     width: 32px; height: 32px;
 }
 
-.bg-insulator {
+.bg-insulator, .bg-corkianinsulator {
     background-position: -160px -32px;
     width: 32px; height: 32px;
 }
@@ -791,7 +816,7 @@ li .SET:hover {
     width: 32px; height: 32px;
 }
 
-.bg-simulator {
+.bg-simulator, .bg-corkiansimulator {
     background-position: -160px -96px;
     width: 32px; height: 32px;
 }
@@ -844,6 +869,19 @@ li .SET:hover {
 .bg-set {
     background-position: -120px -190px;
     width: 30px; height: 30px;
+}
+
+.bg-emeraldpouch {
+    background-image: url('icons/icons/emerald_pouch.webp') !important;
+    width: 30px; height: 30px;
+}
+
+.bg-brownhorse,
+.bg-blackhorse,
+.bg-chestnuthorse,
+.bg-whitehorse {
+    background-image: url('icons-minecraft-184.png') !important;
+    background-position: -800px -1120px;
 }
 
 /* Side Menu Styles */

@@ -3,8 +3,39 @@ from datetime import datetime, timezone
 from flask import Blueprint, render_template, jsonify, request
 
 from modules.models.collection_types import Collection
-from modules.routes.api import raidpool
+from modules.repositories.market_repo import TIERED_TYPES
 from modules.services import base_pool_service, market_service, raidpool_service
+
+SUBTYPE_OPTIONS = {
+    "GearItem": [
+        ("BOW",           "Bow"),
+        ("DAGGER",        "Dagger"),
+        ("WAND",          "Wand"),
+        ("SPEAR",         "Spear"),
+        ("RELIK",         "Relik"),
+        ("HELMET",        "Helmet"),
+        ("CHESTPLATE",    "Chestplate"),
+        ("LEGGINGS",      "Leggings"),
+        ("BOOTS",         "Boots"),
+        ("NECKLACE",      "Necklace"),
+        ("RING",          "Ring"),
+        ("BRACELET",      "Bracelet"),
+    ],
+    "PowderItem": [
+        ("WaterPowder",     "Water"),
+        ("FirePowder",      "Fire"),
+        ("ThunderPowder",   "Thunder"),
+        ("AirPowder",       "Air"),
+        ("EarthPowder",     "Earth")
+    ],
+    "RuneItem": [
+        ("UthRune",     "Uth"),
+        ("AzRune",      "Az"),
+        ("NiiRune",   "Nii"),
+        ("TolRune",     "Tol")
+    ]
+}
+
 
 web_bp = Blueprint(
     'web', __name__,
@@ -79,6 +110,10 @@ def trademarket_listings(item_name):
     if filter_type == "":
         filter_type = None
 
+    filter_sub_type = request.args.get('subType', type=str)
+    if filter_sub_type == "":
+        filter_sub_type = None
+
     # Define a simple mapping from lowercase strings to booleans:
     _bool_map = {"true": True, "false": False}
 
@@ -101,6 +136,7 @@ def trademarket_listings(item_name):
     result = market_service.get_item_listings(
         item_name=query_name,
         item_type=filter_type,
+        sub_type=filter_sub_type,
         shiny=shiny,
         unidentified=unidentified,
         rarity=rarity,
@@ -128,6 +164,9 @@ def trademarket_listings(item_name):
         # (your template reads search and itemType via request.args,
         #  but you can also pass them explicitly if you like)
         itemType=filter_type,
+        subType=filter_sub_type,
+        TIERED_TYPES=TIERED_TYPES,
+        SUBTYPE_OPTIONS=SUBTYPE_OPTIONS,
     )
 
 

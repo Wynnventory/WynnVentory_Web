@@ -9,7 +9,6 @@ collection should contain exactly **one** document – the one with the highest
 Usage:
     python cleanup_duplicates.py 2025-06-02
 """
-import argparse
 import logging
 import sys
 from datetime import datetime, timezone

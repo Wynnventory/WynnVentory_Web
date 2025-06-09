@@ -1,10 +1,10 @@
-import unittest
-import sys
-import os
 import logging
-from unittest.mock import patch, MagicMock, call
+import os
+import sys
 import time
+import unittest
 from queue import Queue
+from unittest.mock import patch, MagicMock, call
 
 # Add the parent directory to sys.path to import the module
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

@@ -1,5 +1,4 @@
 from flask import Blueprint, request, jsonify
-from typing import Any
 
 from modules.auth import require_scope, mod_allowed
 from modules.models.collection_types import Collection

@@ -27,21 +27,19 @@
                     <!-- Filter by type -->
                     <div class="w-100 mb-3">
                         <label for="itemType" class="form-label">Type</label>
-                        <select id="itemType"
-                                name="itemType"
-                                class="form-select">
+                        <select id="itemType"name="itemType" class="form-select">
                             <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
-                            <option value="GearItem"
-                                    {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear
-                            </option>
-                            <option value="MaterialItem"
-                                    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Material
-                            </option>
-                            <option value="IngredientItem"
-                                    {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>
-                                Ingredient
-                            </option>
+                            <option value="GearItem"        {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear</option>
+                            <option value="MaterialItem"    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Materials</option>
+                            <option value="IngredientItem"  {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>Ingredients</option>
+                            <option value="PowderItem"      {% if request.args.get('itemType')=='PowderItem' %}selected{% endif %}>Powders</option>
+                            <option value="RuneItem"  {% if request.args.get('itemType')=='RuneItem' %}selected{% endif %}>Runes</option>
+                            <option value="DungeonKeyItem"  {% if request.args.get('itemType')=='DungeonKeyItem' %}selected{% endif %}>Dungeon Keys</option>
                         </select>
+                    </div>
+                    <div class="w-100 mb-3" id="subTypeOptions" style="display: none;">
+                        <label for="subType" class="form-label">Sub Type</label>
+                        <select id="subType" name="subType" class="form-select"></select>
                     </div>
                     <div class="w-100 mb-3">
                         <label for="rarity" class="form-label">Rarity</label>
@@ -139,7 +137,16 @@
 
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
                     {% for item in items %}
-                        <div class="col item-stats-tooltip {{ item.rarity or 'Normal' }} items-handle">
+                        {# compute the dynamic bit once #}
+                        {% if item.item_type == 'PowderItem' %}
+                            {% set dynamic = item.type %}
+                        {% elif item.item_type == 'DungeonKeyItem' and 'Corrupted' in item.name %}
+                            {% set dynamic = 'corrupted' %}
+                        {% else %}
+                            {% set dynamic = item.rarity or 'Normal' %}
+                        {% endif %}
+
+                        <div class="col item-stats-tooltip {{ dynamic }} items-handle">
                             <div class="item-card d-flex flex-column h-100">
 
                                 <!-- Header -->
@@ -175,8 +182,11 @@
                                             ></span>Shiny
                                         {% endif %}
                                         {{ item.name }}
-                                        {% if item.item_type == "MaterialItem" %}
-                                            {{ item.tier }}
+                                        {% if item.overall_roll and item.overall_roll_color %}
+                                            <span style="color: {{ item.overall_roll_color }} !important;">[{{ '%.1f' % item.overall_roll }}%]</span>
+                                        {% endif %}
+                                        {% if item.item_type in TIERED_TYPES %}
+                                            {{ item.tier|to_roman }}
                                         {% endif %}
                                     </h5>
                                 </div>
@@ -280,4 +290,51 @@
         </div>
     </div>
 
+    <script>
+        // Inject the URL-provided subType (or empty) into JS
+        let initialSubType = "{{ request.args.get('subType','') }}";
+        const SUBTYPE_OPTIONS = {{ SUBTYPE_OPTIONS|tojson }};
+        const itemTypeSelect  = document.getElementById('itemType');
+        const subTypeSelect   = document.getElementById('subType');
+        const subTypeDiv      = document.getElementById('subTypeOptions');
+
+        function rebuildSubtypes() {
+            const opts = SUBTYPE_OPTIONS[itemTypeSelect.value] || [];
+
+            // Show/hide container
+            if (opts.length > 0) {
+                subTypeDiv.style.display = 'block';
+            } else {
+                subTypeDiv.style.display = 'none';
+            }
+
+            // Rebuild <select>
+            subTypeSelect.innerHTML = '';
+            if (opts.length > 0) {
+                // default "All"
+                subTypeSelect.append(new Option('All', ''));
+
+                // add each option
+                opts.forEach(([val, label]) => {
+                    subTypeSelect.append(new Option(label, val));
+                });
+
+                // restore the one from the URL, if any
+                if (initialSubType) {
+                    subTypeSelect.value = initialSubType;
+                }
+            } else {
+                // if hiding, also clear any selection
+                subTypeSelect.value = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', rebuildSubtypes);
+        itemTypeSelect.addEventListener('change', () => {
+            // clear the URL-default so it only applies on first load
+            // (optional: remove if you always want to restore)
+            initialSubType = '';
+            rebuildSubtypes();
+        });
+    </script>
 {% endblock %}

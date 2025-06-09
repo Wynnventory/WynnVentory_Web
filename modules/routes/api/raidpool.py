@@ -7,7 +7,6 @@ from modules.models.collection_types import Collection
 from modules.routes.api.base_pool_blueprint import BasePoolBlueprint
 from modules.services import raidpool_service
 from modules.services.raidpool_service import save_gambits
-from modules.utils.time_validation import get_current_gambit_day
 
 logging.basicConfig(
     level=logging.INFO,
