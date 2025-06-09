@@ -27,14 +27,28 @@
                     <!-- Filter by type -->
                     <div class="w-100 mb-3">
                         <label for="itemType" class="form-label">Type</label>
-                        <select id="itemType"name="itemType" class="form-select">
+                        <select id="itemType" name="itemType" class="form-select">
                             <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
-                            <option value="GearItem"        {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear</option>
-                            <option value="MaterialItem"    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Materials</option>
-                            <option value="IngredientItem"  {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>Ingredients</option>
-                            <option value="PowderItem"      {% if request.args.get('itemType')=='PowderItem' %}selected{% endif %}>Powders</option>
-                            <option value="RuneItem"  {% if request.args.get('itemType')=='RuneItem' %}selected{% endif %}>Runes</option>
-                            <option value="DungeonKeyItem"  {% if request.args.get('itemType')=='DungeonKeyItem' %}selected{% endif %}>Dungeon Keys</option>
+                            <option value="GearItem"
+                                    {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear
+                            </option>
+                            <option value="MaterialItem"
+                                    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Materials
+                            </option>
+                            <option value="IngredientItem"
+                                    {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>
+                                Ingredients
+                            </option>
+                            <option value="PowderItem"
+                                    {% if request.args.get('itemType')=='PowderItem' %}selected{% endif %}>Powders
+                            </option>
+                            <option value="RuneItem"
+                                    {% if request.args.get('itemType')=='RuneItem' %}selected{% endif %}>Runes
+                            </option>
+                            <option value="DungeonKeyItem"
+                                    {% if request.args.get('itemType')=='DungeonKeyItem' %}selected{% endif %}>Dungeon
+                                Keys
+                            </option>
                         </select>
                     </div>
                     <div class="w-100 mb-3" id="subTypeOptions" style="display: none;">
@@ -108,6 +122,12 @@
                             <option value="1" {% if request.args.get('tier')=='1' %}selected{% endif %}>1</option>
                             <option value="2" {% if request.args.get('tier')=='2' %}selected{% endif %}>2</option>
                             <option value="3" {% if request.args.get('tier')=='3' %}selected{% endif %}>3</option>
+                            <option value="4" {% if request.args.get('tier')=='4' %}selected{% endif %}>4</option>
+                            <option value="5" {% if request.args.get('tier')=='5' %}selected{% endif %}>5</option>
+                            <option value="6" {% if request.args.get('tier')=='6' %}selected{% endif %}>6</option>
+                            <option value="7" {% if request.args.get('tier')=='7' %}selected{% endif %}>7</option>
+                            <option value="8" {% if request.args.get('tier')=='8' %}selected{% endif %}>8</option>
+                            <option value="9" {% if request.args.get('tier')=='9' %}selected{% endif %}>9</option>
                         </select>
                     </div>
 
@@ -268,20 +288,28 @@
                     <div>
                         {% if page > 1 %}
                             <a href="{{ url_for('web.trademarket_listings',
-                                item_name=item_name,
+                                search=request.args.get('search',''),
+                                itemType=request.args.get('itemType',''),
+                                subType=request.args.get('subType',''),
+                                rarity=request.args.get('rarity',''),
+                                shiny=request.args.get('shiny',''),
+                                unidentified=request.args.get('unidentified',''),
+                                tier=request.args.get('tier',''),
                                 page=page - 1,
-                                page_size=page_size,
-                                search=request.args.get('search'),
-                                itemType=request.args.get('itemType')) }}"
+                                page_size=page_size) }}"
                                class="px-3 py-1 bg-gray-200 rounded">‹ Prev</a>
                         {% endif %}
                         {% if page < last_page %}
                             <a href="{{ url_for('web.trademarket_listings',
-                                item_name=item_name,
+                                search=request.args.get('search',''),
+                                itemType=request.args.get('itemType',''),
+                                subType=request.args.get('subType',''),
+                                rarity=request.args.get('rarity',''),
+                                shiny=request.args.get('shiny',''),
+                                unidentified=request.args.get('unidentified',''),
+                                tier=request.args.get('tier',''),
                                 page=page + 1,
-                                page_size=page_size,
-                                search=request.args.get('search'),
-                                itemType=request.args.get('itemType')) }}"
+                                page_size=page_size) }}"
                                class="px-3 py-1 bg-gray-200 rounded">Next ›</a>
                         {% endif %}
                     </div>
@@ -294,9 +322,9 @@
         // Inject the URL-provided subType (or empty) into JS
         let initialSubType = "{{ request.args.get('subType','') }}";
         const SUBTYPE_OPTIONS = {{ SUBTYPE_OPTIONS|tojson }};
-        const itemTypeSelect  = document.getElementById('itemType');
-        const subTypeSelect   = document.getElementById('subType');
-        const subTypeDiv      = document.getElementById('subTypeOptions');
+        const itemTypeSelect = document.getElementById('itemType');
+        const subTypeSelect = document.getElementById('subType');
+        const subTypeDiv = document.getElementById('subTypeOptions');
 
         function rebuildSubtypes() {
             const opts = SUBTYPE_OPTIONS[itemTypeSelect.value] || [];
