@@ -79,6 +79,10 @@ def trademarket_listings(item_name):
     if filter_type == "":
         filter_type = None
 
+    filter_sub_type = request.args.get('subType', type=str)
+    if filter_sub_type == "":
+        filter_sub_type = None
+
     # Define a simple mapping from lowercase strings to booleans:
     _bool_map = {"true": True, "false": False}
 
@@ -101,6 +105,7 @@ def trademarket_listings(item_name):
     result = market_service.get_item_listings(
         item_name=query_name,
         item_type=filter_type,
+        sub_type=filter_sub_type,
         shiny=shiny,
         unidentified=unidentified,
         rarity=rarity,
@@ -128,6 +133,7 @@ def trademarket_listings(item_name):
         # (your template reads search and itemType via request.args,
         #  but you can also pass them explicitly if you like)
         itemType=filter_type,
+        subType=filter_sub_type,
         TIERED_TYPES=TIERED_TYPES
     )
 

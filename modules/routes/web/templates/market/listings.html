@@ -43,58 +43,22 @@
                             </option>
                         </select>
                     </div>
-                    <div class="w-100 mb-3" id="gearOptions" style="display: none;">
-                        <label for="gearType" class="form-label">Gear Type</label>
-                        <select id="gearType" name="gearType" class="form-select">
-                            <option value="" {% if not request.args.get('gearType') %}selected{% endif %}>All</option>
-                            <option value="BOW"
-                                    {% if request.args.get('gearType')=='BOW' %}selected{% endif %}>
-                                Bow
-                            </option>
-                            <option value="DAGGER"
-                                    {% if request.args.get('gearType')=='DAGGER' %}selected{% endif %}>
-                                Dagger
-                            </option>
-                            <option value="WAND"
-                                    {% if request.args.get('gearType')=='WAND' %}selected{% endif %}>
-                                Wand
-                            </option>
-                            <option value="SPEAR"
-                                    {% if request.args.get('gearType')=='SPEAR' %}selected{% endif %}>
-                                Spear
-                            </option>
-                            <option value="RELIK"
-                                    {% if request.args.get('gearType')=='RELIK' %}selected{% endif %}>
-                                Relik
-                            </option>
-                            <option value="HELMET"
-                                    {% if request.args.get('gearType')=='HELMET' %}selected{% endif %}>
-                                Helmet
-                            </option>
-                            <option value="CHESTPLATE"
-                                    {% if request.args.get('gearType')=='CHESTPLATE' %}selected{% endif %}>
-                                Chestplate
-                            </option>
-                            <option value="LEGGINGS"
-                                    {% if request.args.get('gearType')=='LEGGINGS' %}selected{% endif %}>
-                                Leggings
-                            </option>
-                            <option value="BOOTS"
-                                    {% if request.args.get('gearType')=='BOOTS' %}selected{% endif %}>
-                                Boots
-                            </option>
-                            <option value="NECKLACE"
-                                    {% if request.args.get('gearType')=='NECKLACE' %}selected{% endif %}>
-                                Necklace
-                            </option>
-                            <option value="RING"
-                                    {% if request.args.get('gearType')=='RING' %}selected{% endif %}>
-                                Ring
-                            </option>
-                            <option value="BRACELET"
-                                    {% if request.args.get('gearType')=='BRACELET' %}selected{% endif %}>
-                                Bracelet
-                            </option>
+                    <div class="w-100 mb-3" id="subTypeOptions" style="display: none;">
+                        <label for="subType" class="form-label">Sub Type</label>
+                        <select id="subType" name="subType" class="form-select">
+                            <option value=""          {% if not request.args.get('subType') %}selected{% endif %}>All</option>
+                            <option value="BOW"           {% if request.args.get('subType')=='BOW'           %}selected{% endif %}>Bow</option>
+                            <option value="DAGGER"        {% if request.args.get('subType')=='DAGGER'        %}selected{% endif %}>Dagger</option>
+                            <option value="WAND"          {% if request.args.get('subType')=='WAND'          %}selected{% endif %}>Wand</option>
+                            <option value="SPEAR"         {% if request.args.get('subType')=='SPEAR'         %}selected{% endif %}>Spear</option>
+                            <option value="RELIK"         {% if request.args.get('subType')=='RELIK'         %}selected{% endif %}>Relik</option>
+                            <option value="HELMET"        {% if request.args.get('subType')=='HELMET'        %}selected{% endif %}>Helmet</option>
+                            <option value="CHESTPLATE"    {% if request.args.get('subType')=='CHESTPLATE'    %}selected{% endif %}>Chestplate</option>
+                            <option value="LEGGINGS"      {% if request.args.get('subType')=='LEGGINGS'      %}selected{% endif %}>Leggings</option>
+                            <option value="BOOTS"         {% if request.args.get('subType')=='BOOTS'         %}selected{% endif %}>Boots</option>
+                            <option value="NECKLACE"      {% if request.args.get('subType')=='NECKLACE'      %}selected{% endif %}>Necklace</option>
+                            <option value="RING"          {% if request.args.get('subType')=='RING'          %}selected{% endif %}>Ring</option>
+                            <option value="BRACELET"      {% if request.args.get('subType')=='BRACELET'      %}selected{% endif %}>Bracelet</option>
                         </select>
                     </div>
                     <div class="w-100 mb-3">
@@ -347,15 +311,20 @@
     </div>
 
     <script>
-        const typeSelect = document.getElementById('itemType');
-        const gearDiv   = document.getElementById('gearOptions');
+        const typeSelect   = document.getElementById('itemType');
+        const subTypeDiv      = document.getElementById('subTypeOptions');
+        const subTypeSel  = document.getElementById('subType');
 
         function toggleGearOptions(){
-            gearDiv.style.display = typeSelect.value === 'GearItem' ? 'block' : 'none';
+            if (typeSelect.value === 'GearItem') {
+                subTypeDiv.style.display = 'block';
+            } else {
+                subTypeDiv.style.display = 'none';
+                subTypeSel.value = '';
+            }
         }
-        // run on load…
+
         document.addEventListener('DOMContentLoaded', toggleGearOptions);
-        // …and on change
         typeSelect.addEventListener('change', toggleGearOptions);
     </script>
 {% endblock %}
