@@ -43,6 +43,60 @@
                             </option>
                         </select>
                     </div>
+                    <div class="w-100 mb-3" id="gearOptions" style="display: none;">
+                        <label for="gearType" class="form-label">Gear Type</label>
+                        <select id="gearType" name="gearType" class="form-select">
+                            <option value="" {% if not request.args.get('gearType') %}selected{% endif %}>All</option>
+                            <option value="BOW"
+                                    {% if request.args.get('gearType')=='BOW' %}selected{% endif %}>
+                                Bow
+                            </option>
+                            <option value="DAGGER"
+                                    {% if request.args.get('gearType')=='DAGGER' %}selected{% endif %}>
+                                Dagger
+                            </option>
+                            <option value="WAND"
+                                    {% if request.args.get('gearType')=='WAND' %}selected{% endif %}>
+                                Wand
+                            </option>
+                            <option value="SPEAR"
+                                    {% if request.args.get('gearType')=='SPEAR' %}selected{% endif %}>
+                                Spear
+                            </option>
+                            <option value="RELIK"
+                                    {% if request.args.get('gearType')=='RELIK' %}selected{% endif %}>
+                                Relik
+                            </option>
+                            <option value="HELMET"
+                                    {% if request.args.get('gearType')=='HELMET' %}selected{% endif %}>
+                                Helmet
+                            </option>
+                            <option value="CHESTPLATE"
+                                    {% if request.args.get('gearType')=='CHESTPLATE' %}selected{% endif %}>
+                                Chestplate
+                            </option>
+                            <option value="LEGGINGS"
+                                    {% if request.args.get('gearType')=='LEGGINGS' %}selected{% endif %}>
+                                Leggings
+                            </option>
+                            <option value="BOOTS"
+                                    {% if request.args.get('gearType')=='BOOTS' %}selected{% endif %}>
+                                Boots
+                            </option>
+                            <option value="NECKLACE"
+                                    {% if request.args.get('gearType')=='NECKLACE' %}selected{% endif %}>
+                                Necklace
+                            </option>
+                            <option value="RING"
+                                    {% if request.args.get('gearType')=='RING' %}selected{% endif %}>
+                                Ring
+                            </option>
+                            <option value="BRACELET"
+                                    {% if request.args.get('gearType')=='BRACELET' %}selected{% endif %}>
+                                Bracelet
+                            </option>
+                        </select>
+                    </div>
                     <div class="w-100 mb-3">
                         <label for="rarity" class="form-label">Rarity</label>
                         <select id="rarity"
@@ -292,4 +346,16 @@
         </div>
     </div>
 
+    <script>
+        const typeSelect = document.getElementById('itemType');
+        const gearDiv   = document.getElementById('gearOptions');
+
+        function toggleGearOptions(){
+            gearDiv.style.display = typeSelect.value === 'GearItem' ? 'block' : 'none';
+        }
+        // run on load…
+        document.addEventListener('DOMContentLoaded', toggleGearOptions);
+        // …and on change
+        typeSelect.addEventListener('change', toggleGearOptions);
+    </script>
 {% endblock %}
