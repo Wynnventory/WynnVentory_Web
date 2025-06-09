@@ -6,6 +6,37 @@ from modules.models.collection_types import Collection
 from modules.repositories.market_repo import TIERED_TYPES
 from modules.services import base_pool_service, market_service, raidpool_service
 
+SUBTYPE_OPTIONS = {
+    "GearItem": [
+        ("BOW",           "Bow"),
+        ("DAGGER",        "Dagger"),
+        ("WAND",          "Wand"),
+        ("SPEAR",         "Spear"),
+        ("RELIK",         "Relik"),
+        ("HELMET",        "Helmet"),
+        ("CHESTPLATE",    "Chestplate"),
+        ("LEGGINGS",      "Leggings"),
+        ("BOOTS",         "Boots"),
+        ("NECKLACE",      "Necklace"),
+        ("RING",          "Ring"),
+        ("BRACELET",      "Bracelet"),
+    ],
+    "PowderItem": [
+        ("WaterPowder",     "Water"),
+        ("FirePowder",      "Fire"),
+        ("ThunderPowder",   "Thunder"),
+        ("AirPowder",       "Air"),
+        ("EarthPowder",     "Earth")
+    ],
+    "RuneItem": [
+        ("UthRune",     "Uth"),
+        ("AzRune",      "Az"),
+        ("NiiRune",   "Nii"),
+        ("TolRune",     "Tol")
+    ]
+}
+
+
 web_bp = Blueprint(
     'web', __name__,
     template_folder='templates/',
@@ -134,7 +165,8 @@ def trademarket_listings(item_name):
         #  but you can also pass them explicitly if you like)
         itemType=filter_type,
         subType=filter_sub_type,
-        TIERED_TYPES=TIERED_TYPES
+        TIERED_TYPES=TIERED_TYPES,
+        SUBTYPE_OPTIONS=SUBTYPE_OPTIONS,
     )
 
 

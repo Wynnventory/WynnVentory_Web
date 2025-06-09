@@ -27,39 +27,19 @@
                     <!-- Filter by type -->
                     <div class="w-100 mb-3">
                         <label for="itemType" class="form-label">Type</label>
-                        <select id="itemType"
-                                name="itemType"
-                                class="form-select">
+                        <select id="itemType"name="itemType" class="form-select">
                             <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
-                            <option value="GearItem"
-                                    {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear
-                            </option>
-                            <option value="MaterialItem"
-                                    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Material
-                            </option>
-                            <option value="IngredientItem"
-                                    {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>
-                                Ingredient
-                            </option>
+                            <option value="GearItem"        {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear</option>
+                            <option value="MaterialItem"    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Materials</option>
+                            <option value="IngredientItem"  {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>Ingredients</option>
+                            <option value="PowderItem"      {% if request.args.get('itemType')=='PowderItem' %}selected{% endif %}>Powders</option>
+                            <option value="RuneItem"  {% if request.args.get('itemType')=='RuneItem' %}selected{% endif %}>Runes</option>
+                            <option value="DungeonKeyItem"  {% if request.args.get('itemType')=='DungeonKeyItem' %}selected{% endif %}>Dungeon Keys</option>
                         </select>
                     </div>
                     <div class="w-100 mb-3" id="subTypeOptions" style="display: none;">
                         <label for="subType" class="form-label">Sub Type</label>
-                        <select id="subType" name="subType" class="form-select">
-                            <option value=""          {% if not request.args.get('subType') %}selected{% endif %}>All</option>
-                            <option value="BOW"           {% if request.args.get('subType')=='BOW'           %}selected{% endif %}>Bow</option>
-                            <option value="DAGGER"        {% if request.args.get('subType')=='DAGGER'        %}selected{% endif %}>Dagger</option>
-                            <option value="WAND"          {% if request.args.get('subType')=='WAND'          %}selected{% endif %}>Wand</option>
-                            <option value="SPEAR"         {% if request.args.get('subType')=='SPEAR'         %}selected{% endif %}>Spear</option>
-                            <option value="RELIK"         {% if request.args.get('subType')=='RELIK'         %}selected{% endif %}>Relik</option>
-                            <option value="HELMET"        {% if request.args.get('subType')=='HELMET'        %}selected{% endif %}>Helmet</option>
-                            <option value="CHESTPLATE"    {% if request.args.get('subType')=='CHESTPLATE'    %}selected{% endif %}>Chestplate</option>
-                            <option value="LEGGINGS"      {% if request.args.get('subType')=='LEGGINGS'      %}selected{% endif %}>Leggings</option>
-                            <option value="BOOTS"         {% if request.args.get('subType')=='BOOTS'         %}selected{% endif %}>Boots</option>
-                            <option value="NECKLACE"      {% if request.args.get('subType')=='NECKLACE'      %}selected{% endif %}>Necklace</option>
-                            <option value="RING"          {% if request.args.get('subType')=='RING'          %}selected{% endif %}>Ring</option>
-                            <option value="BRACELET"      {% if request.args.get('subType')=='BRACELET'      %}selected{% endif %}>Bracelet</option>
-                        </select>
+                        <select id="subType" name="subType" class="form-select"></select>
                     </div>
                     <div class="w-100 mb-3">
                         <label for="rarity" class="form-label">Rarity</label>
@@ -311,20 +291,50 @@
     </div>
 
     <script>
-        const typeSelect   = document.getElementById('itemType');
+        // Inject the URL-provided subType (or empty) into JS
+        let initialSubType = "{{ request.args.get('subType','') }}";
+        const SUBTYPE_OPTIONS = {{ SUBTYPE_OPTIONS|tojson }};
+        const itemTypeSelect  = document.getElementById('itemType');
+        const subTypeSelect   = document.getElementById('subType');
         const subTypeDiv      = document.getElementById('subTypeOptions');
-        const subTypeSel  = document.getElementById('subType');
 
-        function toggleGearOptions(){
-            if (typeSelect.value === 'GearItem') {
+        function rebuildSubtypes() {
+            const opts = SUBTYPE_OPTIONS[itemTypeSelect.value] || [];
+
+            // Show/hide container
+            if (opts.length > 0) {
                 subTypeDiv.style.display = 'block';
             } else {
                 subTypeDiv.style.display = 'none';
-                subTypeSel.value = '';
+            }
+
+            // Rebuild <select>
+            subTypeSelect.innerHTML = '';
+            if (opts.length > 0) {
+                // default "All"
+                subTypeSelect.append(new Option('All', ''));
+
+                // add each option
+                opts.forEach(([val, label]) => {
+                    subTypeSelect.append(new Option(label, val));
+                });
+
+                // restore the one from the URL, if any
+                if (initialSubType) {
+                    subTypeSelect.value = initialSubType;
+                }
+            } else {
+                // if hiding, also clear any selection
+                subTypeSelect.value = '';
             }
         }
 
-        document.addEventListener('DOMContentLoaded', toggleGearOptions);
-        typeSelect.addEventListener('change', toggleGearOptions);
+        document.addEventListener('DOMContentLoaded', rebuildSubtypes);
+        itemTypeSelect.addEventListener('change', () => {
+            // clear the URL-default so it only applies on first load
+            // (optional: remove if you always want to restore)
+            initialSubType = '';
+            rebuildSubtypes();
+        });
     </script>
 {% endblock %}
