@@ -202,8 +202,8 @@
                                             ></span>Shiny
                                         {% endif %}
                                         {{ item.name }}
-                                        {% if item.overall_roll and item.overall_roll_color %}
-                                            <span style="color: {{ item.overall_roll_color }} !important;">[{{ '%.1f' % item.overall_roll }}%]</span>
+                                        {% if item.overall_roll is not none %}
+                                            <span class="stat-overall-pct" data-pct="{{ item.overall_roll }}">[{{ '%.1f' % item.overall_roll }}%]</span>
                                         {% endif %}
                                         {% if item.item_type in TIERED_TYPES %}
                                             {{ item.tier|to_roman }}
@@ -363,6 +363,73 @@
             // (optional: remove if you always want to restore)
             initialSubType = '';
             rebuildSubtypes();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1) define your gradient stops
+            const stops = [
+                {pct: 0, color: '#FF5555'},  // red
+                {pct: 40, color: '#FFAA00'},  // gold
+                {pct: 70, color: '#FFFF55'},  // yellow
+                {pct: 90, color: '#55FF55'},  // green
+                {pct: 100, color: '#55FFFF'}   // aqua
+            ];
+
+            // 2) helper to parse a "#RRGGBB" hex into [r,g,b]
+            function hexToRgb(hex) {
+                const n = parseInt(hex.slice(1), 16);
+                return [(n >> 16) & 0xFF, (n >> 8) & 0xFF, n & 0xFF];
+            }
+
+            // 3) lerp between two numbers
+            function lerp(a, b, t) {
+                return Math.round(a + (b - a) * t);
+            }
+
+            // 4) given a pct (0–100), return the interpolated hex
+            function lerpColor(pct) {
+                // clamp
+                pct = Math.max(0, Math.min(100, pct));
+                // find floor & ceil stops
+                let lo = stops[0], hi = stops[stops.length - 1];
+                for (const s of stops) {
+                    if (pct <= s.pct) {
+                        hi = s;
+                        break;
+                    }
+                    lo = s;
+                }
+                if (lo.pct === hi.pct) return hi.color;
+
+                // fraction between them
+                const t = (pct - lo.pct) / (hi.pct - lo.pct);
+                const [r1, g1, b1] = hexToRgb(lo.color);
+                const [r2, g2, b2] = hexToRgb(hi.color);
+
+                const r = lerp(r1, r2, t),
+                    g = lerp(g1, g2, t),
+                    b = lerp(b1, b2, t);
+
+                // back to hex
+                const h = ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+                return `#${h.toUpperCase()}`;
+            }
+
+            // 5) apply to every .stat-pct
+            document.querySelectorAll('.stat-pct[data-pct]').forEach(el => {
+                const raw = el.dataset.pct;
+                const pct = parseFloat(raw);
+                if (!isNaN(pct)) {
+                    el.style.color = lerpColor(pct);
+                }
+            });
+
+            document.querySelectorAll('.stat-overall-pct[data-pct]').forEach(el => {
+                const pct = parseFloat(el.dataset.pct);
+                if (!isNaN(pct)) {
+                    el.style.color = lerpColor(pct);
+                }
+            });
         });
     </script>
 {% endblock %}

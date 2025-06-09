@@ -1,5 +1,5 @@
 {# --------------------------------------------------------------------
-  id_line(roll) – v6  (uses roll.rollPercentageColor from back-end)
+  id_line(roll) – v7
 -------------------------------------------------------------------- #}
 {% macro id_line(roll) %}
 
@@ -30,13 +30,6 @@
         {% set pct_txt = none %}
     {% endif %}
 
-    {# ------------ 2 · colour: take it directly from JSON ------------- #}
-    {% if roll.rollPercentageColor %}
-        {% set pct_style = 'color:' ~ roll.rollPercentageColor %}
-    {% else %}
-        {% set pct_style = '' %}
-    {% endif %}
-
     {# ------------ 3 · variable? fixed? ------------------------------- #}
     {% set variable = pct_val is not none and not roll.statRange.fixed %}
 
@@ -47,7 +40,7 @@
                 {{- roll.statRoll -}}{% if roll.unit == 'PERCENT' %}%{% endif %}
             </span>
             <span class="stat-name">{{ roll.displayName }}</span>
-            <span class="stat-pct" style="{{ pct_style }}">[{{ pct_txt }}%]</span>
+            <span class="stat-pct" data-pct="{{ pct_val|default('') }}">[{{ pct_txt }}%]<span>
         </div>
 
     {% elif roll.statRange.fixed %}
