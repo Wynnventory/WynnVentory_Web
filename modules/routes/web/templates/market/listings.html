@@ -202,7 +202,7 @@
                                             ></span>Shiny
                                         {% endif %}
                                         {{ item.name }}
-                                        {% if item.overall_roll is not none %}
+                                        {% if item.unidentified == false and item.overall_roll is not none %}
                                             <span class="stat-overall-pct" data-pct="{{ item.overall_roll }}">[{{ '%.1f' % item.overall_roll }}%]</span>
                                         {% endif %}
                                         {% if item.item_type in TIERED_TYPES %}
