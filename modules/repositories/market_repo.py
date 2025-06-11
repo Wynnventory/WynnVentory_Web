@@ -644,7 +644,7 @@ def get_all_items_ranking(
             '$gte': start_date,
             '$lt': exclusive_end
         },
-        'shiny_stat': {'$eq': None}
+        'shiny': False
     }
 
     pipeline: List[Dict[str, Any]] = [{'$match': date_filter}]
