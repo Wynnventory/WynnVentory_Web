@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Dict, Any, Callable, Optional
 
 import requests
+import unicodedata
 
 BASE_URL = "https://api.wynncraft.com/v3"
 
@@ -112,19 +113,21 @@ def search_items(payload, page=1):
 @api_request
 def quick_search_item(item_name):
     url = f"{BASE_URL}/item/search"
-    # Add timeout to prevent hanging requests
-
     response = requests.get(f"{url}/{item_name}", timeout=10)
+
+    if response.status_code != 200:
+        return None
+
     data = response.json()
+    normalized_target = clean_name(item_name)
 
-    if response.status_code == 200:
-        item_name = next(iter(data))
-        first_obj = data[item_name]
+    for key, obj in data.items():
+        print(f"{normalized_target} -> {clean_name(key)}")
+        if clean_name(key) == normalized_target:
+            obj['item_name'] = key
+            return obj
 
-        first_obj['item_name'] = item_name
-        return first_obj
-
-    return None
+    return None  # No match found
 
 
 @cached(ttl=1800)  # Cache for 30 minutes
@@ -141,3 +144,14 @@ def get_aspect_by_name(class_name, aspect_name):
 
     logging.warning(f"Aspect not found: {aspect_name}")
     return None
+
+def clean_name(name: str) -> str:
+    """Normalize and remove all non-ASCII characters for accurate matching."""
+    # Normalize to decomposed form (e.g., é → e + ́)
+    name = unicodedata.normalize('NFKD', name)
+    # Remove combining marks and non-ASCII characters
+    cleaned = ''.join(
+        c for c in name
+        if not unicodedata.combining(c) and ord(c) < 128
+    )
+    return cleaned.strip().casefold()
