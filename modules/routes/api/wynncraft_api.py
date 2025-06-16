@@ -122,7 +122,6 @@ def quick_search_item(item_name):
     normalized_target = clean_name(item_name)
 
     for key, obj in data.items():
-        print(f"{normalized_target} -> {clean_name(key)}")
         if clean_name(key) == normalized_target:
             obj['item_name'] = key
             return obj
