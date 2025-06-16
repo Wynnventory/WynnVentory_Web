@@ -119,19 +119,15 @@ def quick_search_item(item_name):
         return None
 
     data = response.json()
+    normalized_target = clean_name(item_name)
 
-    normalized_target = normalize_name(item_name).casefold()
-
-    # Try to find the exact normalized match
     for key, obj in data.items():
-        if normalize_name(key).casefold() == normalized_target:
+        print(f"{normalized_target} -> {clean_name(key)}")
+        if clean_name(key) == normalized_target:
             obj['item_name'] = key
             return obj
 
-    # Fallback to first entry if nothing matched exactly
-    first_key = next(iter(data))
-    data[first_key]['item_name'] = first_key
-    return data[first_key]
+    return None  # No match found
 
 
 @cached(ttl=1800)  # Cache for 30 minutes
@@ -149,9 +145,13 @@ def get_aspect_by_name(class_name, aspect_name):
     logging.warning(f"Aspect not found: {aspect_name}")
     return None
 
-def normalize_name(name: str) -> str:
-    """Normalize Unicode characters to compare item names safely."""
-    return ''.join(
-        c for c in unicodedata.normalize('NFKD', name)
-        if not unicodedata.combining(c)
+def clean_name(name: str) -> str:
+    """Normalize and remove all non-ASCII characters for accurate matching."""
+    # Normalize to decomposed form (e.g., é → e + ́)
+    name = unicodedata.normalize('NFKD', name)
+    # Remove combining marks and non-ASCII characters
+    cleaned = ''.join(
+        c for c in name
+        if not unicodedata.combining(c) and ord(c) < 128
     )
+    return cleaned.strip().casefold()
