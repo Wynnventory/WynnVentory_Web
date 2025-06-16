@@ -3,7 +3,7 @@ name: Notify Discord on Feature Request
 
 on:
   issues:
-    types: [opened]
+    types: [ opened ]
 
 jobs:
   notify_discord:

@@ -1,8 +1,9 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 
 from modules.auth import require_scope, mod_allowed
 from modules.models.collection_types import Collection
 from modules.services import base_pool_service
+from modules.utils.param_utils import api_response, handle_request_error
 from modules.utils.time_validation import get_lootpool_week, get_raidpool_week
 
 
@@ -40,15 +41,15 @@ class BasePoolBlueprint:
             """
             data = request.get_json()
             if not data:
-                return jsonify({'message': 'No items provided'}), 400
+                return api_response({'message': 'No items provided'}, 400)
 
             try:
                 base_pool_service.save(collection_type=self.collection_type, raw_data=data)
-                return jsonify({'message': 'Items received successfully'}), 200
+                return api_response({'message': 'Items received successfully'})
             except ValueError as ve:
-                return jsonify({'error': str(ve)}), 400
-            except Exception:
-                return jsonify({'error': 'Internal server error'}), 500
+                return handle_request_error(ve, error_msg="Validation error while processing items", status_code=400)
+            except Exception as e:
+                return handle_request_error(e)
 
         @self.blueprint.get(f'/{self.name}/items')
         @require_scope(f'read:{self.name}')
@@ -59,9 +60,9 @@ class BasePoolBlueprint:
             """
             try:
                 items = base_pool_service.get_current_pools(self.collection_type)
-                return jsonify(items), 200
-            except Exception:
-                return jsonify({'error': 'Internal server error'}), 500
+                return api_response(items)
+            except Exception as e:
+                return handle_request_error(e)
 
         @self.blueprint.get(f'/{self.name}/current')
         @require_scope(f'read:{self.name}')
@@ -79,9 +80,9 @@ class BasePoolBlueprint:
                     year, week = get_raidpool_week()
                     return get_specific_pool(year, week)
 
-                return jsonify({'message': 'No data found'}), 404
-            except Exception:
-                return jsonify({'error': 'Internal server error'}), 500
+                return api_response({'message': 'No data found'}, 404)
+            except Exception as e:
+                return handle_request_error(e)
 
         @self.blueprint.get(f'/{self.name}/all')
         @require_scope(f'read:{self.name}')
@@ -90,7 +91,7 @@ class BasePoolBlueprint:
             GET /api/{name}/all
             Retrieve all pools
             """
-            page      = max(1, request.args.get('page', 1, type=int))
+            page = max(1, request.args.get('page', 1, type=int))
             page_size = min(5, request.args.get('page_size', 5, type=int))  # cap at 5 weeks
 
             skip = (page - 1) * page_size
@@ -103,9 +104,9 @@ class BasePoolBlueprint:
                     skip=skip
                 )
 
-                return jsonify(raw), 200
-            except Exception:
-                return jsonify({'error': 'Internal server error'}), 500
+                return api_response(raw)
+            except Exception as e:
+                return handle_request_error(e)
 
         @self.blueprint.get(f'/{self.name}/<int:year>/<int:week>')
         @require_scope(f'read:{self.name}')
@@ -116,6 +117,6 @@ class BasePoolBlueprint:
             """
             try:
                 raw = base_pool_service.get_specific_pool(self.collection_type, year, week)
-                return jsonify(raw), 200
-            except Exception:
-                return jsonify({'error': 'Internal server error'}), 500
+                return api_response(raw)
+            except Exception as e:
+                return handle_request_error(e)

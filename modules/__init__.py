@@ -118,7 +118,7 @@ def create_app():
     def to_roman_numeral(num):
         if type(num) is not int:
             return num
-        
+
         lookup = [
             (1000, 'M'),
             (900, 'CM'),

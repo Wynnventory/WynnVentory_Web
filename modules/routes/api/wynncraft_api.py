@@ -122,7 +122,6 @@ def quick_search_item(item_name):
     normalized_target = clean_name(item_name)
 
     for key, obj in data.items():
-        print(f"{normalized_target} -> {clean_name(key)}")
         if clean_name(key) == normalized_target:
             obj['item_name'] = key
             return obj
@@ -144,6 +143,7 @@ def get_aspect_by_name(class_name, aspect_name):
 
     logging.warning(f"Aspect not found: {aspect_name}")
     return None
+
 
 def clean_name(name: str) -> str:
     """Normalize and remove all non-ASCII characters for accurate matching."""

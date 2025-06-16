@@ -10,8 +10,10 @@ from pymongo.errors import BulkWriteError
 
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
+from modules.models.sort_options import SortOption
 
 TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
+
 
 def save(items: List[Dict[str, Any]]) -> None:
     """
@@ -130,7 +132,7 @@ def update_moving_averages(
 def update_moving_averages_complete(force_update: bool = False,
                                     start_date: datetime = None,
                                     end_date: datetime = None,
-) -> None:
+                                    ) -> None:
     """
     Scan MARKET_LISTINGS via an aggregation that returns one document per unique
     (name, tier, shiny‐flag) combination, along with the most recent listing timestamp.
@@ -162,7 +164,7 @@ def update_moving_averages_complete(force_update: bool = False,
                 "_id": 0,
                 "name": 1,
                 "tier": 1,
-                "shiny": { "$cond": [{ "$ne": ["$shiny_stat", None] }, True, False] },
+                "shiny": {"$cond": [{"$ne": ["$shiny_stat", None]}, True, False]},
                 "icon": 1,
                 "item_type": 1,
                 "timestamp": 1
@@ -177,7 +179,7 @@ def update_moving_averages_complete(force_update: bool = False,
                     "icon": "$icon",
                     "item_type": "$item_type"
                 },
-                "last_ts": { "$max": "$timestamp" }
+                "last_ts": {"$max": "$timestamp"}
             }
         }
     ])
@@ -212,6 +214,7 @@ def get_trade_market_item_listings(
         tier: Optional[int] = None,
         item_type: Optional[str] = None,
         sub_type: Optional[str] = None,
+        sort_option: Optional[SortOption] = SortOption.TIMESTAMP_DESC,
         page: Optional[int] = 1,
         page_size: Optional[int] = 50,
 ) -> Dict[str, Any]:
@@ -223,6 +226,7 @@ def get_trade_market_item_listings(
       - item_type
     """
     skip = (page - 1) * page_size
+    sort_option = sort_option or SortOption.TIMESTAMP_DESC
 
     query_filter: Dict[str, Any] = {}
 
@@ -278,14 +282,15 @@ def get_trade_market_item_listings(
         else:
             if tier is not None:
                 query_filter['item_type'] = {'$in': TIERED_TYPES}
-                query_filter['tier']      = tier
+                query_filter['tier'] = tier
 
     if sub_type is not None:
         query_filter['type'] = sub_type
 
-
     coll = get_collection(ColEnum.MARKET_LISTINGS)
     total = coll.count_documents(query_filter)
+
+    sort_field, sort_dir = sort_option.to_mongo_sort()
 
     cursor = coll.find(
         filter=query_filter,
@@ -293,7 +298,7 @@ def get_trade_market_item_listings(
             '_id': 0,
             'player_name': 0
         }
-    ).sort('timestamp', -1).skip(skip).limit(page_size)
+    ).sort(sort_field, sort_dir).skip(skip).limit(page_size)
 
     items = list(cursor)
 
@@ -556,7 +561,6 @@ def get_historic_average(
 
     # 4) Inclusive end_date via half-open interval
     exclusive_end = end_date + timedelta(days=1)
-
 
     # base query
     query: Dict[str, Any] = {

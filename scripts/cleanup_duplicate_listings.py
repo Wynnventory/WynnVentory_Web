@@ -8,9 +8,9 @@ duplicate group and delete the others.
 Usage:
     python cleanup_listing_duplicates.py
 """
+import json
 import logging
 import sys
-import json
 from typing import Dict, Tuple, Any, List
 
 from modules.db import get_collection
@@ -21,6 +21,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
+
 
 def cleanup_duplicates() -> None:
     """
@@ -74,5 +75,5 @@ def cleanup_duplicates() -> None:
 if __name__ == "__main__":
     cleanup_duplicates()
 
-    logging.info(f"Updating moving averages")
+    logging.info("Updating moving averages")
     update_moving_averages_complete(force_update=True)

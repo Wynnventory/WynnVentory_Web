@@ -5,7 +5,8 @@ from .item_types import ItemType
 
 
 class Item:
-    def __init__(self, name, rarity, powder_slots, item_type, item_subtype, drop_restriction, base, identifications, requirements, drop_meta=None, lore=None):
+    def __init__(self, name, rarity, powder_slots, item_type, item_subtype, drop_restriction, base, identifications,
+                 requirements, drop_meta=None, lore=None):
         self.name = name
         self.rarity = rarity.capitalize() if isinstance(rarity, str) else rarity
         self.powder_slots = powder_slots
@@ -28,11 +29,11 @@ class Item:
         requirements = {k.capitalize(): v for k, v in data.get('requirements', {}).items()}
 
         # Determine the correct item subtype from the data
-        item_subtype = data.get('weaponType', 
-                                data.get('armorType', 
-                                        data.get('accessoryType', 
-                                                 data.get('tomeType',
-                                                          data.get('type', 'Unknown Subtype')))))
+        item_subtype = data.get('weaponType',
+                                data.get('armorType',
+                                         data.get('accessoryType',
+                                                  data.get('tomeType',
+                                                           data.get('type', 'Unknown Subtype')))))
 
         return Item(
             name=name,
@@ -61,5 +62,5 @@ class Item:
             'requirements': self.requirements,
             'drop_meta': self.drop_meta,
             'lore': self.lore,
-            'icon': map_local_icons(self.item_subtype.lower().replace(' ', '_') + ".png") 
+            'icon': map_local_icons(self.item_subtype.lower().replace(' ', '_') + ".png")
         }

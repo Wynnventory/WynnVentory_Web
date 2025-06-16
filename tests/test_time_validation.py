@@ -1,12 +1,7 @@
-import os
-import sys
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import patch
 
-# Add the parent directory to sys.path to import the module
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+from modules.models.collection_types import Collection
 from modules.utils.time_validation import (
     get_lootpool_week,
     get_lootpool_week_for_timestamp,
@@ -15,19 +10,46 @@ from modules.utils.time_validation import (
     get_week_range,
     is_time_valid
 )
-from modules.models.collection_types import Collection
+from tests.test_base import BaseTestCase
 
 
-class TestTimeValidation(unittest.TestCase):
+class TestTimeValidation(BaseTestCase):
     """Test cases for the time_validation module."""
 
-    @patch('modules.utils.time_validation.datetime')
-    def test_get_lootpool_week_for_timestamp(self, mock_datetime):
+    def assert_datetime_equal(self, actual, expected):
+        """Assert that two datetime objects are equal by comparing their components."""
+        self.assertEqual(actual.year, expected.year)
+        self.assertEqual(actual.month, expected.month)
+        self.assertEqual(actual.day, expected.day)
+        self.assertEqual(actual.hour, expected.hour)
+        self.assertEqual(actual.minute, expected.minute)
+        self.assertEqual(actual.second, expected.second)
+
+    def verify_time_validity(self, collection_type, valid_time, invalid_time_before=None, invalid_time_after=None):
+        """Verify time validity for a given collection type and time values."""
+        # Test a time within the range
+        result = is_time_valid(collection_type, valid_time)
+        self.assertTrue(result)
+
+        # Test a time before the range if provided
+        if invalid_time_before:
+            result = is_time_valid(collection_type, invalid_time_before)
+            self.assertFalse(result)
+
+        # Test a time after the range if provided
+        if invalid_time_after:
+            result = is_time_valid(collection_type, invalid_time_after)
+            self.assertFalse(result)
+
+    def test_get_lootpool_week_for_timestamp(self):
         """Test get_lootpool_week_for_timestamp with various scenarios."""
         # Create mock datetime objects for our test cases
         friday_before_reset = datetime(2025, 5, 2, 17, 59, 59)  # Friday at 5:59:59 PM
         friday_after_reset = datetime(2025, 5, 2, 18, 0, 1)  # Friday at 6:00:01 PM
         middle_of_week = datetime(2025, 5, 5, 12, 0, 0)  # Monday at noon
+
+        # Create a mock for datetime
+        mock_datetime = self.create_patch('modules.utils.time_validation.datetime')
 
         # Mock the strptime method to return our test datetimes
         mock_datetime.strptime.side_effect = lambda ts, fmt: {
@@ -75,50 +97,47 @@ class TestTimeValidation(unittest.TestCase):
         self.assertEqual(week2, week3)  # Both should be the same week
         self.assertNotEqual(week1, week2)  # These should be different weeks
 
-    @patch('modules.utils.time_validation.datetime')
-    def test_get_lootpool_week(self, mock_datetime):
+    def test_get_lootpool_week(self):
         """Test get_lootpool_week function."""
-        # Mock the datetime.now() to return a fixed date
+        # Set up a fixed date and mocks
         mock_now = datetime(2025, 5, 8, 12, 0, 0, tzinfo=timezone.utc)
-        mock_datetime.now.return_value = mock_now
-        mock_datetime.strptime.return_value = mock_now
+        mocks = self.setup_time_validation_mocks(
+            current_time=mock_now,
+            week_tuple=(2025, 19)  # Example week number
+        )
 
         # Call the function
-        with patch('modules.utils.time_validation.get_lootpool_week_for_timestamp') as mock_get_week:
-            mock_get_week.return_value = (2025, 19)  # Example week number
-            year, week = get_lootpool_week()
+        year, week = get_lootpool_week()
 
-            # Verify the function was called with the correct timestamp
-            mock_get_week.assert_called_once_with(mock_now.strftime('%Y-%m-%d %H:%M:%S'))
+        # Verify the function was called with the correct timestamp
+        mocks['get_week'].assert_called_once_with(mock_now.strftime('%Y-%m-%d %H:%M:%S'))
 
-            # Verify the result
-            self.assertEqual((year, week), (2025, 19))
+        # Verify the result
+        self.assertEqual((year, week), (2025, 19))
 
-    @patch('modules.utils.time_validation.datetime')
-    def test_get_raidpool_week(self, mock_datetime):
+    def test_get_raidpool_week(self):
         """Test get_raidpool_week function."""
-        # Mock the datetime.now() to return a fixed date
+        # Set up a fixed date and mocks
         mock_now = datetime(2025, 5, 8, 12, 0, 0, tzinfo=timezone.utc)
-        mock_datetime.now.return_value = mock_now
-        mock_datetime.strptime.return_value = mock_now
+        mocks = self.setup_time_validation_mocks(
+            current_time=mock_now,
+            week_tuple=(2025, 19)  # Example week number
+        )
 
         # Call the function
-        with patch('modules.utils.time_validation.get_lootpool_week_for_timestamp') as mock_get_week:
-            mock_get_week.return_value = (2025, 19)  # Example week number
-            year, week = get_raidpool_week()
+        year, week = get_raidpool_week()
 
-            # Verify the function was called with the correct timestamp and reset hour
-            mock_get_week.assert_called_once_with(mock_now.strftime('%Y-%m-%d %H:%M:%S'), reset_hour=17)
+        # Verify the function was called with the correct timestamp and reset hour
+        mocks['get_week'].assert_called_once_with(mock_now.strftime('%Y-%m-%d %H:%M:%S'), reset_hour=17)
 
-            # Verify the result
-            self.assertEqual((year, week), (2025, 19))
+        # Verify the result
+        self.assertEqual((year, week), (2025, 19))
 
-    @patch('modules.utils.time_validation.datetime')
-    def test_get_current_gambit_day(self, mock_datetime):
+    def test_get_current_gambit_day(self):
         """Test get_current_gambit_day function."""
         # Test case 1: Before reset (5 PM UTC)
         mock_now = datetime(2025, 5, 8, 16, 0, 0)  # 4 PM UTC
-        mock_datetime.now.return_value = mock_now
+        mock_datetime = self.setup_datetime_mock(mock_now, 'modules.utils.time_validation')
 
         previous_reset, next_reset = get_current_gambit_day()
 
@@ -127,20 +146,9 @@ class TestTimeValidation(unittest.TestCase):
         # Next reset should be today at 5 PM
         expected_next = datetime(2025, 5, 8, 17, 0, 0, 0)
 
-        # Compare year, month, day, hour, minute, second
-        self.assertEqual(previous_reset.year, expected_previous.year)
-        self.assertEqual(previous_reset.month, expected_previous.month)
-        self.assertEqual(previous_reset.day, expected_previous.day)
-        self.assertEqual(previous_reset.hour, expected_previous.hour)
-        self.assertEqual(previous_reset.minute, expected_previous.minute)
-        self.assertEqual(previous_reset.second, expected_previous.second)
-
-        self.assertEqual(next_reset.year, expected_next.year)
-        self.assertEqual(next_reset.month, expected_next.month)
-        self.assertEqual(next_reset.day, expected_next.day)
-        self.assertEqual(next_reset.hour, expected_next.hour)
-        self.assertEqual(next_reset.minute, expected_next.minute)
-        self.assertEqual(next_reset.second, expected_next.second)
+        # Compare datetime objects
+        self.assert_datetime_equal(previous_reset, expected_previous)
+        self.assert_datetime_equal(next_reset, expected_next)
 
         # Test case 2: After reset (5 PM UTC)
         mock_now = datetime(2025, 5, 8, 18, 0, 0)  # 6 PM UTC
@@ -153,20 +161,9 @@ class TestTimeValidation(unittest.TestCase):
         # Next reset should be tomorrow at 5 PM
         expected_next = datetime(2025, 5, 9, 17, 0, 0, 0)
 
-        # Compare year, month, day, hour, minute, second
-        self.assertEqual(previous_reset.year, expected_previous.year)
-        self.assertEqual(previous_reset.month, expected_previous.month)
-        self.assertEqual(previous_reset.day, expected_previous.day)
-        self.assertEqual(previous_reset.hour, expected_previous.hour)
-        self.assertEqual(previous_reset.minute, expected_previous.minute)
-        self.assertEqual(previous_reset.second, expected_previous.second)
-
-        self.assertEqual(next_reset.year, expected_next.year)
-        self.assertEqual(next_reset.month, expected_next.month)
-        self.assertEqual(next_reset.day, expected_next.day)
-        self.assertEqual(next_reset.hour, expected_next.hour)
-        self.assertEqual(next_reset.minute, expected_next.minute)
-        self.assertEqual(next_reset.second, expected_next.second)
+        # Compare datetime objects
+        self.assert_datetime_equal(previous_reset, expected_previous)
+        self.assert_datetime_equal(next_reset, expected_next)
 
     def test_get_week_range(self):
         """Test get_week_range function."""
@@ -214,58 +211,46 @@ class TestTimeValidation(unittest.TestCase):
     def test_is_time_valid(self):
         """Test is_time_valid function."""
         # Test case 1: Valid LOOT time
-        with patch('modules.utils.time_validation.get_week_range') as mock_get_range:
-            # Mock the week range to return a fixed range
-            week_start = datetime(2025, 5, 2, 18, 0, 0)
-            week_end = datetime(2025, 5, 9, 18, 0, 0)
-            mock_get_range.return_value = (week_start, week_end)
+        mock_get_range = self.create_patch('modules.utils.time_validation.get_week_range')
+        # Mock the week range to return a fixed range
+        week_start = datetime(2025, 5, 2, 18, 0, 0)
+        week_end = datetime(2025, 5, 9, 18, 0, 0)
+        mock_get_range.return_value = (week_start, week_end)
 
-            # Test a time within the range
-            valid_time = "2025-05-05 12:00:00"  # Monday at noon
-            result = is_time_valid(Collection.LOOT, valid_time)
-            self.assertTrue(result)
-
-            # Test a time before the range
-            invalid_time_before = "2025-05-02 17:00:00"  # Friday at 5 PM (before reset)
-            result = is_time_valid(Collection.LOOT, invalid_time_before)
-            self.assertFalse(result)
-
-            # Test a time after the range
-            invalid_time_after = "2025-05-09 19:00:00"  # Next Friday at 7 PM (after reset)
-            result = is_time_valid(Collection.LOOT, invalid_time_after)
-            self.assertFalse(result)
+        # Verify LOOT time validity
+        self.verify_time_validity(
+            Collection.LOOT,
+            valid_time="2025-05-05 12:00:00",  # Monday at noon
+            invalid_time_before="2025-05-02 17:00:00",  # Friday at 5 PM (before reset)
+            invalid_time_after="2025-05-09 19:00:00"  # Next Friday at 7 PM (after reset)
+        )
 
         # Test case 2: Valid RAID time
-        with patch('modules.utils.time_validation.get_week_range') as mock_get_range:
-            week_start, week_end = get_week_range(reset_day=4, reset_hour=18, now=datetime(2025, 5, 2, 18, 0, 0))
-            mock_get_range.return_value = (week_start, week_end)
+        # Reset the mock for get_week_range
+        mock_get_range.reset_mock()
+        week_start, week_end = get_week_range(reset_day=4, reset_hour=18, now=datetime(2025, 5, 2, 18, 0, 0))
+        mock_get_range.return_value = (week_start, week_end)
 
-            # Test a time within the range
-            valid_time = "2025-05-05 12:00:00"  # Monday at noon
-            result = is_time_valid(Collection.RAID, valid_time)
-            self.assertTrue(result)
+        # Verify RAID time validity
+        self.verify_time_validity(
+            Collection.RAID,
+            valid_time="2025-05-05 12:00:00"  # Monday at noon
+        )
 
         # Test case 3: Valid GAMBIT time
-        with patch('modules.utils.time_validation.get_current_gambit_day') as mock_get_day:
-            # Mock the gambit day to return a fixed range
-            day_start = datetime(2025, 5, 5, 17, 0, 0)
-            day_end = datetime(2025, 5, 6, 17, 0, 0)
-            mock_get_day.return_value = (day_start, day_end)
+        mock_get_day = self.create_patch('modules.utils.time_validation.get_current_gambit_day')
+        # Mock the gambit day to return a fixed range
+        day_start = datetime(2025, 5, 5, 17, 0, 0)
+        day_end = datetime(2025, 5, 6, 17, 0, 0)
+        mock_get_day.return_value = (day_start, day_end)
 
-            # Test a time within the range
-            valid_time = "2025-05-05 18:00:00"  # Monday at 6 PM
-            result = is_time_valid(Collection.GAMBIT, valid_time)
-            self.assertTrue(result)
-
-            # Test a time before the range
-            invalid_time_before = "2025-05-05 16:00:00"  # Monday at 4 PM (before reset)
-            result = is_time_valid(Collection.GAMBIT, invalid_time_before)
-            self.assertFalse(result)
-
-            # Test a time after the range
-            invalid_time_after = "2025-05-09 18:00:00"  # Tuesday at 6 PM (after reset)
-            result = is_time_valid(Collection.GAMBIT, invalid_time_after)
-            self.assertFalse(result)
+        # Verify GAMBIT time validity
+        self.verify_time_validity(
+            Collection.GAMBIT,
+            valid_time="2025-05-05 18:00:00",  # Monday at 6 PM
+            invalid_time_before="2025-05-05 16:00:00",  # Monday at 4 PM (before reset)
+            invalid_time_after="2025-05-09 18:00:00"  # Tuesday at 6 PM (after reset)
+        )
 
         # Test case 4: Invalid collection type
         result = is_time_valid("INVALID_TYPE", "2025-05-05 12:00:00")

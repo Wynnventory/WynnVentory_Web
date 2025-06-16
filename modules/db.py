@@ -8,6 +8,7 @@ from modules.models.collection_types import Collection
 _admin_client = None
 _current_client = None
 
+
 def get_client(db: str = "current") -> MongoClient:
     """
     Returns a MongoClient pointed at:

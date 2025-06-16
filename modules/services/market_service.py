@@ -5,6 +5,7 @@ from typing import List, Optional, Any
 from modules.config import Config
 from modules.models.collection_request import CollectionRequest
 from modules.models.collection_types import Collection
+from modules.models.sort_options import SortOption
 from modules.repositories.market_repo import get_trade_market_item_listings, get_price_history, get_historic_average, \
     get_all_items_ranking, get_trademarket_item_price
 from modules.utils.queue_worker import enqueue
@@ -86,7 +87,7 @@ def get_historic_item_price(
         shiny: bool = False,
         tier: Optional[int] = None,
         start_date: datetime = None,
-        end_date:   datetime = None
+        end_date: datetime = None
 ) -> dict:
     """
     Retrieve aggregated statistics from the most recent price history documents.
@@ -99,7 +100,7 @@ def get_history(
         shiny: bool = False,
         tier: Optional[int] = None,
         start_date: datetime = None,
-        end_date:   datetime = None
+        end_date: datetime = None
 ) -> List[dict]:
     """
     Retrieve historical price data for an item between start_date and end_date (inclusive).
@@ -126,6 +127,7 @@ def get_item_listings(
         tier: Optional[int] = None,
         item_type: Optional[str] = None,
         sub_type: Optional[str] = None,
+        sort_option: Optional[SortOption] = SortOption.TIMESTAMP_DESC,
         page: Optional[int] = 1,
         page_size: Optional[int] = 50
 ) -> dict[str, Any]:
@@ -140,13 +142,14 @@ def get_item_listings(
         tier=tier,
         item_type=item_type,
         sub_type=sub_type,
+        sort_option=sort_option,
         page=page,
         page_size=page_size)
 
 
 def get_ranking(
         start_date: Optional[datetime] = None,
-        end_date:   Optional[datetime] = None
+        end_date: Optional[datetime] = None
 ) -> List[dict]:
     """
     Retrieve a ranking of items based on archived price data.

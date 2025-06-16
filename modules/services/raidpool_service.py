@@ -46,5 +46,6 @@ def get_current_gambits() -> dict:
 
     return get_specific_gambits(year=next_reset.year, month=next_reset.month, day=next_reset.day)
 
+
 def get_specific_gambits(year: int, month: int, day: int) -> dict:
     return raidpool_repo.fetch_gambits(year, month, day)

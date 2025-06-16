@@ -1,5 +1,5 @@
 {
-    "sonarCloudOrganization": "wynnventory",
-    "projectKey": "Wynnventory_WynnVentory_Web",
-    "region": "EU"
+  "sonarCloudOrganization": "wynnventory",
+  "projectKey": "Wynnventory_WynnVentory_Web",
+  "region": "EU"
 }

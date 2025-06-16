@@ -32,6 +32,7 @@ _request_queue = Queue()
 
 _usage_repo = UsageRepository()
 
+
 # ─── WORKER LOOP ────────────────────────────────────────────────────────────────
 def _worker_loop():
     """
@@ -53,13 +54,15 @@ def _worker_loop():
             collection_type = request.type
             if collection_type is not None:
                 if collection_type != Collection.API_USAGE:
-                    logger.info(f"Processing {collection_type.name} item, queue size: {queue_size}, items in request: {len(request.items)}")
+                    logger.info(
+                        f"Processing {collection_type.name} item, queue size: {queue_size}, items in request: {len(request.items)}")
             else:
-                logger.warning(f"Processing item with unknown collection type, queue size: {queue_size}. Skipping request")
+                logger.warning(
+                    f"Processing item with unknown collection type, queue size: {queue_size}. Skipping request")
                 _request_queue.task_done()
                 continue
 
-        # Process the item based on its collection type
+            # Process the item based on its collection type
             try:
                 items_to_process = request.items
 

@@ -1,0 +1,169 @@
+{% extends '/components/_base.html' %}
+{% block title %}Emerald Calculator{% endblock %}
+{% block content %}
+    <h1 class="pt-2 px-4">Emerald Calculator</h1>
+    <div class="container mt-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label for="fromSelect" class="col-form-label">From:</label>
+            </div>
+            <div class="col-auto">
+                <select class="form-select" id="fromSelect">
+                    <option value="int">Raw Emeralds</option>
+                    <option value="formatted">Formatted</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-outline-secondary" id="swapBtn">
+                    <i class="bi bi-arrow-left-right"></i>
+                </button>
+            </div>
+            <div class="col-auto">
+                <label for="toSelect" class="col-form-label">To:</label>
+            </div>
+            <div class="col-auto">
+                <select class="form-select" id="toSelect">
+                    <option value="formatted">Formatted</option>
+                    <option value="int">Raw Emeralds</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Dynamic input section will render here -->
+        <div class="mt-4" id="inputSection"></div>
+
+        <div class="mt-4">
+            <button class="btn btn-success" onclick="convertEmeralds()">Convert</button>
+        </div>
+
+        <div class="mt-4">
+            <h4>Result:</h4>
+            <h3 id="resultArea" class="bg-dark p-3 rounded text-light">—</h3>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const fromSelect = document.getElementById("fromSelect");
+            const toSelect = document.getElementById("toSelect");
+
+            function getOpposite(value) {
+                return value === "int" ? "formatted" : "int";
+            }
+
+            function updateOtherSelect(changed, other) {
+                const newValue = getOpposite(changed.value);
+                if (other.value !== newValue) {
+                    other.value = newValue;
+                    updateInputs();
+                }
+            }
+
+            fromSelect.addEventListener("change", () => {
+                updateOtherSelect(fromSelect, toSelect);
+            });
+
+            toSelect.addEventListener("change", () => {
+                updateOtherSelect(toSelect, fromSelect);
+            });
+
+            document.getElementById("swapBtn").addEventListener("click", () => {
+                const temp = fromSelect.value;
+                fromSelect.value = toSelect.value;
+                toSelect.value = temp;
+                updateInputs();
+            });
+
+            function attachEnterListenerToInputs() {
+                const inputs = document.querySelectorAll("#inputSection input");
+                inputs.forEach(input => {
+                    input.addEventListener("keydown", event => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            convertEmeralds();
+                        }
+                    });
+                });
+            }
+
+            function updateInputs() {
+                const inputSection = document.getElementById("inputSection");
+                const resultArea = document.getElementById("resultArea");
+                resultArea.textContent = "—";
+                inputSection.innerHTML = "";
+
+                if (fromSelect.value === "formatted") {
+                    inputSection.innerHTML = `
+                <div class="row g-3">
+                    <div class="col">
+                        <label for="stxInput" class="form-label">Stx</label>
+                        <input type="number" min="0" id="stxInput" class="form-control" value="0">
+                    </div>
+                    <div class="col">
+                        <label for="leInput" class="form-label">LE</label>
+                        <input type="number" min="0" id="leInput" class="form-control" value="0">
+                    </div>
+                    <div class="col">
+                        <label for="ebInput" class="form-label">EB</label>
+                        <input type="number" min="0" id="ebInput" class="form-control" value="0">
+                    </div>
+                    <div class="col">
+                        <label for="eInput" class="form-label">E</label>
+                        <input type="number" min="0" id="eInput" class="form-control" value="0">
+                    </div>
+                </div>
+            `;
+                } else {
+                    inputSection.innerHTML = `
+                <label for="intInput" class="form-label">Emeralds (integer)</label>
+                <input type="number" min="0" id="intInput" class="form-control" value="0">
+            `;
+                }
+
+                attachEnterListenerToInputs();
+            }
+
+            updateInputs();
+        });
+
+        function convertEmeralds() {
+            const from = document.getElementById("fromSelect").value;
+            const to = document.getElementById("toSelect").value;
+            let result = "";
+
+            if (from === to) {
+                result = "Same format selected — no conversion needed.";
+            } else if (from === "formatted") {
+                const stx = parseInt(document.getElementById("stxInput")?.value || 0);
+                const le = parseInt(document.getElementById("leInput")?.value || 0);
+                const eb = parseInt(document.getElementById("ebInput")?.value || 0);
+                const e = parseInt(document.getElementById("eInput")?.value || 0);
+                const total = stx * 64 ** 3 + le * 64 ** 2 + eb * 64 + e;
+                result = `${total} emeralds`;
+            } else if (from === "int") {
+                let rem = Math.floor(parseInt(document.getElementById("intInput")?.value || 0));
+                const stx = Math.floor(rem / 64 ** 3);
+                rem %= 64 ** 3;
+                const le = Math.floor(rem / 64 ** 2);
+                rem %= 64 ** 2;
+                const eb = Math.floor(rem / 64);
+                rem %= 64;
+
+                if (stx > 0) {
+                    let dec = le + eb / 64 + rem / (64 ** 2);
+                    dec = Math.round(dec * 100) / 100;
+                    let dec_str = dec === 0 ? "" : dec % 1 === 0 ? String(dec | 0) : String(dec).replace(/\.00$/, "").replace(/\.0$/, "");
+                    result = dec_str ? `${stx}stx ${dec_str}le` : `${stx}stx`;
+                } else {
+                    const parts = [];
+                    if (le) parts.push(`${le}le`);
+                    if (eb) parts.push(`${eb}eb`);
+                    if (rem) parts.push(`${rem}e`);
+                    result = parts.join(" ") || "0e";
+                }
+            }
+
+            document.getElementById("resultArea").textContent = result;
+        }
+    </script>
+{% endblock %}

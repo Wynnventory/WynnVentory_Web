@@ -1,10 +1,11 @@
 # ------------------------------------------------------
 # 1) Enable INFO-level logging for both your app and Gunicorn
-loglevel  = "info"
+loglevel = "info"
 
 # 2) Ship Gunicorn’s error- and access-logs to stdout (Heroku captures stdout)
-errorlog  = "-"
+errorlog = "-"
 accesslog = "-"
+
 
 # ------------------------------------------------------
 

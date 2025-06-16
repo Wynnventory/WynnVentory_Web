@@ -207,7 +207,7 @@ if __name__ == "__main__":
 
     # Initial Averages
     start = datetime(2025, 6, 3, tzinfo=timezone.utc)
-    end   = datetime(2025, 6, 4, tzinfo=timezone.utc)
+    end = datetime(2025, 6, 4, tzinfo=timezone.utc)
 
     logging.info(f"Updating initial averages from {start} to {end}")
     update_moving_averages_complete(force_update=True, start_date=start, end_date=end)

@@ -8,6 +8,7 @@ from modules.utils.time_validation import get_lootpool_week
 # Initialize the base repository and aggregator with the LOOT collection type
 _repo = BasePoolRepo(Collection.LOOT)
 
+
 def save(pool: dict) -> None:
     """
     Insert or update a lootpool document for the given region/week/year,
@@ -17,11 +18,11 @@ def save(pool: dict) -> None:
 
 
 def fetch_lootpools(
-    year: Optional[int] = None,
-    week: Optional[int] = None,
-    page: Optional[int] = 1,
-    page_size: Optional[int] = 100,
-    skip: Optional[int] = 0
+        year: Optional[int] = None,
+        week: Optional[int] = None,
+        page: Optional[int] = 1,
+        page_size: Optional[int] = 100,
+        skip: Optional[int] = 0
 ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
     """
     If both year and week are passed, returns a single dict (or {} if none found).
@@ -92,7 +93,7 @@ def fetch_lootpool() -> List[dict]:
                                             "branches": [
                                                 # If itemType is 'AspectItem', group is 'Aspect'
                                                 {
-                                                    "case": { "$eq": ["$$item.itemType", "AspectItem"] },
+                                                    "case": {"$eq": ["$$item.itemType", "AspectItem"]},
                                                     "then": "Aspect"
                                                 },
                                                 # If type contains 'TOME' (case-insensitive), group is 'Tomes'
@@ -110,15 +111,15 @@ def fetch_lootpool() -> List[dict]:
                                             # Default group is the item's rarity (properly formatted), or 'Misc'
                                             "default": {
                                                 "$cond": {
-                                                    "if": { "$ne": ["$$item.rarity", None] },
+                                                    "if": {"$ne": ["$$item.rarity", None]},
                                                     "then": {
                                                         "$concat": [
-                                                            { "$toUpper": { "$substr": ["$$item.rarity", 0, 1] } },
+                                                            {"$toUpper": {"$substr": ["$$item.rarity", 0, 1]}},
                                                             {
                                                                 "$substr": [
                                                                     "$$item.rarity",
                                                                     1,
-                                                                    { "$subtract": [{ "$strLenCP": "$$item.rarity" }, 1] }
+                                                                    {"$subtract": [{"$strLenCP": "$$item.rarity"}, 1]}
                                                                 ]
                                                             }
                                                         ]
@@ -131,18 +132,18 @@ def fetch_lootpool() -> List[dict]:
                                     # Determine the new type for specific itemTypes
                                     "newType": {
                                         "$cond": {
-                                            "if": { "$in": ["$$item.itemType", ["PowderItem", "AmplifierItem"]] },
+                                            "if": {"$in": ["$$item.itemType", ["PowderItem", "AmplifierItem"]]},
                                             "then": {
                                                 "$reduce": {
                                                     "input": {
                                                         "$slice": [
-                                                            { "$split": ["$$item.name", " "] },
+                                                            {"$split": ["$$item.name", " "]},
                                                             0,
                                                             2
                                                         ]
                                                     },
                                                     "initialValue": "",
-                                                    "in": { "$concat": ["$$value", "$$this"] }
+                                                    "in": {"$concat": ["$$value", "$$this"]}
                                                 }
                                             },
                                             "else": "$$item.type"
@@ -174,7 +175,7 @@ def fetch_lootpool() -> List[dict]:
             "$group": {
                 "_id": {
                     "region": "$region",
-                    "group": { "$toLower": "$items.group" },
+                    "group": {"$toLower": "$items.group"},
                     "shiny": "$items.shiny"
                 },
                 "itemsList": {
@@ -189,7 +190,7 @@ def fetch_lootpool() -> List[dict]:
                         "icon": "$items.icon"
                     }
                 },
-                "timestamp": { "$first": "$timestamp" }
+                "timestamp": {"$first": "$timestamp"}
             }
         },
         # Sort itemsList by name within each group
@@ -198,7 +199,7 @@ def fetch_lootpool() -> List[dict]:
                 "itemsList": {
                     "$sortArray": {
                         "input": "$itemsList",
-                        "sortBy": { "name": 1 }
+                        "sortBy": {"name": 1}
                     }
                 }
             }
@@ -207,29 +208,29 @@ def fetch_lootpool() -> List[dict]:
         {
             "$group": {
                 "_id": "$_id.region",
-                "week": { "$first": week },
-                "year": { "$first": year },
-                "timestamp": { "$first": "$timestamp" },
+                "week": {"$first": week},
+                "year": {"$first": year},
+                "timestamp": {"$first": "$timestamp"},
                 "itemsByGroup": {
                     "$push": {
                         "group": {
                             "$cond": {
-                                "if": { "$eq": ["$_id.shiny", True] },
+                                "if": {"$eq": ["$_id.shiny", True]},
                                 "then": "Shiny",
                                 "else": {
                                     "$let": {
                                         "vars": {
                                             "groupLower": "$_id.group",
-                                            "groupLength": { "$strLenCP": "$_id.group" }
+                                            "groupLength": {"$strLenCP": "$_id.group"}
                                         },
                                         "in": {
                                             "$concat": [
-                                                { "$toUpper": { "$substr": ["$$groupLower", 0, 1] } },
+                                                {"$toUpper": {"$substr": ["$$groupLower", 0, 1]}},
                                                 {
                                                     "$substr": [
                                                         "$$groupLower",
                                                         1,
-                                                        { "$subtract": ["$$groupLength", 1] }
+                                                        {"$subtract": ["$$groupLength", 1]}
                                                     ]
                                                 }
                                             ]
@@ -258,17 +259,17 @@ def fetch_lootpool() -> List[dict]:
                             "sortKey": {
                                 "$switch": {
                                     "branches": [
-                                        { "case": { "$eq": ["$$item.group", "Shiny"] }, "then": 0 },
-                                        { "case": { "$eq": ["$$item.group", "Aspect"] }, "then": 1 },
-                                        { "case": { "$eq": ["$$item.group", "Mythic"] }, "then": 2 },
-                                        { "case": { "$eq": ["$$item.group", "Fabled"] }, "then": 3 },
-                                        { "case": { "$eq": ["$$item.group", "Legendary"] }, "then": 4 },
-                                        { "case": { "$eq": ["$$item.group", "Rare"] }, "then": 5 },
-                                        { "case": { "$eq": ["$$item.group", "Set"] }, "then": 6 },
-                                        { "case": { "$eq": ["$$item.group", "Unique"] }, "then": 7 },
-                                        { "case": { "$eq": ["$$item.group", "Tomes"] }, "then": 8 },
-                                        { "case": { "$eq": ["$$item.group", "Common"] }, "then": 9 },
-                                        { "case": { "$eq": ["$$item.group", "Misc"] }, "then": 10 }
+                                        {"case": {"$eq": ["$$item.group", "Shiny"]}, "then": 0},
+                                        {"case": {"$eq": ["$$item.group", "Aspect"]}, "then": 1},
+                                        {"case": {"$eq": ["$$item.group", "Mythic"]}, "then": 2},
+                                        {"case": {"$eq": ["$$item.group", "Fabled"]}, "then": 3},
+                                        {"case": {"$eq": ["$$item.group", "Legendary"]}, "then": 4},
+                                        {"case": {"$eq": ["$$item.group", "Rare"]}, "then": 5},
+                                        {"case": {"$eq": ["$$item.group", "Set"]}, "then": 6},
+                                        {"case": {"$eq": ["$$item.group", "Unique"]}, "then": 7},
+                                        {"case": {"$eq": ["$$item.group", "Tomes"]}, "then": 8},
+                                        {"case": {"$eq": ["$$item.group", "Common"]}, "then": 9},
+                                        {"case": {"$eq": ["$$item.group", "Misc"]}, "then": 10}
                                     ],
                                     "default": 11
                                 }
@@ -284,7 +285,7 @@ def fetch_lootpool() -> List[dict]:
                 "itemsByGroup": {
                     "$sortArray": {
                         "input": "$itemsByGroup",
-                        "sortBy": { "sortKey": 1 }
+                        "sortBy": {"sortKey": 1}
                     }
                 }
             }
@@ -326,10 +327,9 @@ def fetch_lootpool() -> List[dict]:
         },
         # Sort the final results by region
         {
-            "$sort": { "region": 1 }
+            "$sort": {"region": 1}
         }
     ]
 
     cursor = get_collection(Collection.LOOT).aggregate(pipeline)
     return list(cursor)
-

@@ -1,6 +1,7 @@
 import re
 from functools import total_ordering
 
+
 @total_ordering
 class VersionPart:
     """
@@ -49,15 +50,15 @@ class VersionPart:
 
         # 2a) dev _always_ ranks highest
         if is_dev(self.suffix) and not is_dev(other.suffix):
-            return False   # self (dev) > other → not less
+            return False  # self (dev) > other → not less
         if is_dev(other.suffix) and not is_dev(self.suffix):
-            return True    # other (dev) > self → self < other
+            return True  # other (dev) > self → self < other
 
         # 2b) empty suffix (final) > any other non‑dev pre‑release
         if self.suffix == "":
-            return False   # self (final) > other → not less
+            return False  # self (final) > other → not less
         if other.suffix == "":
-            return True    # other (final) > self → self < other
+            return True  # other (final) > self → self < other
 
         # 2c) both non‑empty, non‑dev → lexicographic
         return self.suffix < other.suffix

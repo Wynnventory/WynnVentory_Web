@@ -3,7 +3,7 @@ name: Notify Discord on Bug Issue
 
 on:
   issues:
-    types: [opened]
+    types: [ opened ]
 
 jobs:
   notify_discord:
