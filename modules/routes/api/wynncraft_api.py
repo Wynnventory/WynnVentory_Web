@@ -4,6 +4,7 @@ from functools import wraps
 from typing import Dict, Any, Callable, Optional
 
 import requests
+import unicodedata
 
 BASE_URL = "https://api.wynncraft.com/v3"
 
@@ -112,19 +113,25 @@ def search_items(payload, page=1):
 @api_request
 def quick_search_item(item_name):
     url = f"{BASE_URL}/item/search"
-    # Add timeout to prevent hanging requests
-
     response = requests.get(f"{url}/{item_name}", timeout=10)
+
+    if response.status_code != 200:
+        return None
+
     data = response.json()
 
-    if response.status_code == 200:
-        item_name = next(iter(data))
-        first_obj = data[item_name]
+    normalized_target = normalize_name(item_name).casefold()
 
-        first_obj['item_name'] = item_name
-        return first_obj
+    # Try to find the exact normalized match
+    for key, obj in data.items():
+        if normalize_name(key).casefold() == normalized_target:
+            obj['item_name'] = key
+            return obj
 
-    return None
+    # Fallback to first entry if nothing matched exactly
+    first_key = next(iter(data))
+    data[first_key]['item_name'] = first_key
+    return data[first_key]
 
 
 @cached(ttl=1800)  # Cache for 30 minutes
@@ -141,3 +148,10 @@ def get_aspect_by_name(class_name, aspect_name):
 
     logging.warning(f"Aspect not found: {aspect_name}")
     return None
+
+def normalize_name(name: str) -> str:
+    """Normalize Unicode characters to compare item names safely."""
+    return ''.join(
+        c for c in unicodedata.normalize('NFKD', name)
+        if not unicodedata.combining(c)
+    )
