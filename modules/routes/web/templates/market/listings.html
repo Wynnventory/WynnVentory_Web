@@ -131,6 +131,18 @@
                         </select>
                     </div>
 
+                    <!-- Sort Options -->
+                    <div class="w-100 mb-3">
+                        <label for="sort" class="form-label">Sort By</label>
+                        <select id="sort" name="sort" class="form-select">
+                            {% for opt in SORT_OPTIONS %}
+                                <option value="{{ opt.value }}" {% if sort == opt %}selected{% endif %}>
+                                    {{ opt.label() }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
                     <!-- Page size -->
                     <div class="w-100 mb-3">
                         <label for="page_size" class="form-label">Page Size</label>
@@ -295,6 +307,7 @@
                                 shiny=request.args.get('shiny',''),
                                 unidentified=request.args.get('unidentified',''),
                                 tier=request.args.get('tier',''),
+                                sort=request.args.get('sort',''),
                                 page=page - 1,
                                 page_size=page_size) }}"
                                class="px-3 py-1 bg-gray-200 rounded">‹ Prev</a>
@@ -308,6 +321,7 @@
                                 shiny=request.args.get('shiny',''),
                                 unidentified=request.args.get('unidentified',''),
                                 tier=request.args.get('tier',''),
+                                sort=request.args.get('sort',''),
                                 page=page + 1,
                                 page_size=page_size) }}"
                                class="px-3 py-1 bg-gray-200 rounded">Next ›</a>

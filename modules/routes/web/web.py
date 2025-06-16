@@ -3,39 +3,39 @@ from datetime import datetime, timezone
 from flask import Blueprint, render_template, jsonify, request
 
 from modules.models.collection_types import Collection
+from modules.models.sort_options import SortOption
 from modules.repositories.market_repo import TIERED_TYPES
 from modules.services import base_pool_service, market_service, raidpool_service
 
 SUBTYPE_OPTIONS = {
     "GearItem": [
-        ("BOW",           "Bow"),
-        ("DAGGER",        "Dagger"),
-        ("WAND",          "Wand"),
-        ("SPEAR",         "Spear"),
-        ("RELIK",         "Relik"),
-        ("HELMET",        "Helmet"),
-        ("CHESTPLATE",    "Chestplate"),
-        ("LEGGINGS",      "Leggings"),
-        ("BOOTS",         "Boots"),
-        ("NECKLACE",      "Necklace"),
-        ("RING",          "Ring"),
-        ("BRACELET",      "Bracelet"),
+        ("BOW", "Bow"),
+        ("DAGGER", "Dagger"),
+        ("WAND", "Wand"),
+        ("SPEAR", "Spear"),
+        ("RELIK", "Relik"),
+        ("HELMET", "Helmet"),
+        ("CHESTPLATE", "Chestplate"),
+        ("LEGGINGS", "Leggings"),
+        ("BOOTS", "Boots"),
+        ("NECKLACE", "Necklace"),
+        ("RING", "Ring"),
+        ("BRACELET", "Bracelet"),
     ],
     "PowderItem": [
-        ("WaterPowder",     "Water"),
-        ("FirePowder",      "Fire"),
-        ("ThunderPowder",   "Thunder"),
-        ("AirPowder",       "Air"),
-        ("EarthPowder",     "Earth")
+        ("WaterPowder", "Water"),
+        ("FirePowder", "Fire"),
+        ("ThunderPowder", "Thunder"),
+        ("AirPowder", "Air"),
+        ("EarthPowder", "Earth")
     ],
     "RuneItem": [
-        ("UthRune",     "Uth"),
-        ("AzRune",      "Az"),
-        ("NiiRune",   "Nii"),
-        ("TolRune",     "Tol")
+        ("UthRune", "Uth"),
+        ("AzRune", "Az"),
+        ("NiiRune", "Nii"),
+        ("TolRune", "Tol")
     ]
 }
-
 
 web_bp = Blueprint(
     'web', __name__,
@@ -88,6 +88,11 @@ def ranking():
     return render_template("market/price_ranking.html")
 
 
+@web_bp.route("/emerald_calculator")
+def emerald_calculator():
+    return render_template("emerald_calculator.html")
+
+
 @web_bp.route('/listings', defaults={'item_name': None})
 @web_bp.route('/listings/<item_name>')
 def trademarket_listings(item_name):
@@ -113,6 +118,13 @@ def trademarket_listings(item_name):
     filter_sub_type = request.args.get('subType', type=str)
     if filter_sub_type == "":
         filter_sub_type = None
+
+
+    sort_str = request.args.get("sort", SortOption.TIMESTAMP_DESC.value)
+    try:
+        sort = SortOption(sort_str)
+    except ValueError:
+        sort = SortOption.TIMESTAMP_DESC
 
     # Define a simple mapping from lowercase strings to booleans:
     _bool_map = {"true": True, "false": False}
@@ -141,6 +153,7 @@ def trademarket_listings(item_name):
         unidentified=unidentified,
         rarity=rarity,
         tier=tier,
+        sort_option=sort,
         page=page,
         page_size=page_size
     )
@@ -165,6 +178,8 @@ def trademarket_listings(item_name):
         #  but you can also pass them explicitly if you like)
         itemType=filter_type,
         subType=filter_sub_type,
+        sort=sort,
+        SORT_OPTIONS=list(SortOption),
         TIERED_TYPES=TIERED_TYPES,
         SUBTYPE_OPTIONS=SUBTYPE_OPTIONS,
     )
@@ -209,7 +224,7 @@ def enrich_listings(listings: list[dict]) -> list[dict]:
         name: str = item.get("name")
         shiny: bool = (item.get("shiny_stat") is not None)
         tier: int | None = None
-        
+
         raw_tier = item.get("tier")
         if raw_tier is not None:
             try:
@@ -219,13 +234,13 @@ def enrich_listings(listings: list[dict]) -> list[dict]:
 
         item["price_averages"] = market_service.get_price(item_name=name, shiny=shiny, tier=tier)
 
-        fixed_stats   = []   # statRange.fixed == True   → always-same value
-        rolled_stats  = []   # statRange.fixed == False  → can roll
+        fixed_stats = []  # statRange.fixed == True   → always-same value
+        rolled_stats = []  # statRange.fixed == False  → can roll
 
         for roll in item.get("stat_rolls") or []:
             (fixed_stats if roll["statRange"]["fixed"] else rolled_stats).append(roll)
 
-        item["fixed_identifications"]  = fixed_stats
+        item["fixed_identifications"] = fixed_stats
         item["rolled_identifications"] = rolled_stats
 
     return listings

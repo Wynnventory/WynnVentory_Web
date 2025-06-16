@@ -10,6 +10,7 @@ from pymongo.errors import BulkWriteError
 
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
+from modules.models.sort_options import SortOption
 
 TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
 
@@ -212,6 +213,7 @@ def get_trade_market_item_listings(
         tier: Optional[int] = None,
         item_type: Optional[str] = None,
         sub_type: Optional[str] = None,
+        sort_option: Optional[SortOption] = SortOption.TIMESTAMP_DESC,
         page: Optional[int] = 1,
         page_size: Optional[int] = 50,
 ) -> Dict[str, Any]:
@@ -287,13 +289,15 @@ def get_trade_market_item_listings(
     coll = get_collection(ColEnum.MARKET_LISTINGS)
     total = coll.count_documents(query_filter)
 
+    sort_field, sort_dir = sort_option.to_mongo_sort()
+
     cursor = coll.find(
         filter=query_filter,
         projection={
             '_id': 0,
             'player_name': 0
         }
-    ).sort('timestamp', -1).skip(skip).limit(page_size)
+    ).sort(sort_field, sort_dir).skip(skip).limit(page_size)
 
     items = list(cursor)
 
