@@ -226,6 +226,7 @@ def get_trade_market_item_listings(
       - item_type
     """
     skip = (page - 1) * page_size
+    sort_option = sort_option or SortOption.TIMESTAMP_DESC
 
     query_filter: Dict[str, Any] = {}
 
