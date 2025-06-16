@@ -64,8 +64,8 @@ def build_pool_pipeline(
     # 7) **THIS IS THE CRUCIAL SORT** before we push into the 'regions' array:
     pipeline.append({
         "$sort": {
-            "year":   1,
-            "week":   1,
+            "year": 1,
+            "week": 1,
             "region": 1
         }
     })
@@ -78,7 +78,7 @@ def build_pool_pipeline(
                 "region": "$region",
                 "timestamp": "$timestamp",
                 "items": "$items",
-                "type": "$type" 
+                "type": "$type"
             }}
         }
     })
@@ -171,4 +171,3 @@ class BasePoolRepo:
             return get_raidpool_week()
         else:
             return get_lootpool_week()
-

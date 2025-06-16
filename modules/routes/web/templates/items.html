@@ -2,53 +2,57 @@
 {% block title %}Items{% endblock %}
 {% block content %}
 
-<div class="container-fluid h-100">
-    <div class="row h-100">
-        <!-- Filter Sidebar -->
-        <div id="filter-sidebar"
-            class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 sidebar d-flex order-1 order-lg-2">
-            <div class="d-flex flex-column flex-grow-1 align-items-center align-items-sm-start px-3 pt-4">
-                <div class="w-100 mb-3">
-                    <div class="">
-                    <label for="search-query" class="form-label">Search Query</label>
-                    <input type="text" id="search-query" class="form-control" placeholder="Enter item name">
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <!-- Filter Sidebar -->
+            <div id="filter-sidebar"
+                 class="col-12 col-sm-3 col-xl-2 px-sm-2 px-0 sidebar d-flex order-1 order-lg-2">
+                <div class="d-flex flex-column flex-grow-1 align-items-center align-items-sm-start px-3 pt-4">
+                    <div class="w-100 mb-3">
+                        <div class="">
+                            <label for="search-query" class="form-label">Search Query</label>
+                            <input type="text" id="search-query" class="form-control" placeholder="Enter item name">
                         </div>
-                    <div>
-                    <button class="btn btn-primary w-100 mt-3" onclick="submitSearch()">Search</button>
+                        <div>
+                            <button class="btn btn-primary w-100 mt-3" onclick="submitSearch()">Search</button>
                         </div>
-                </div>
-         <!--Search Filters-->
-                <div class="w-100">
-                    <div class="toggle-container form-label" data-bs-toggle="collapse" data-bs-target="#toggleContent"
-                        aria-expanded="false" aria-controls="toggleContent">
-                        <span>Type</span>
-                        <span class="arrow">▼</span>
                     </div>
-                    <div class="collapse" id="toggleContent">
-                        <div class="mt-2">
-                            <button class="btn btn-outline-secondary my-1"
-                                onclick="toggleFilter(this, 'weapon')">Weapons</button>
-                            <button class="btn btn-outline-secondary my-1"
-                                onclick="toggleFilter(this, 'helmet, chestplate, leggings, boots')">Armor</button>
-                            <button class="btn btn-outline-secondary my-1"
-                                onclick="toggleFilter(this, 'necklace, bracelet, ring')">Accessories</button>
+                    <!--Search Filters-->
+                    <div class="w-100">
+                        <div class="toggle-container form-label" data-bs-toggle="collapse"
+                             data-bs-target="#toggleContent"
+                             aria-expanded="false" aria-controls="toggleContent">
+                            <span>Type</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="collapse" id="toggleContent">
+                            <div class="mt-2">
+                                <button class="btn btn-outline-secondary my-1"
+                                        onclick="toggleFilter(this, 'weapon')">Weapons
+                                </button>
+                                <button class="btn btn-outline-secondary my-1"
+                                        onclick="toggleFilter(this, 'helmet, chestplate, leggings, boots')">Armor
+                                </button>
+                                <button class="btn btn-outline-secondary my-1"
+                                        onclick="toggleFilter(this, 'necklace, bracelet, ring')">Accessories
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3">></button>
+            <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3">></button>
 
-        <!-- Display items area -->
-        <div id="items-container" class="order-2 order-lg-1">
-            <h1 class="py-2">Wynncraft Items</h1>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
-                <!-- Items will be inserted here -->
+            <!-- Display items area -->
+            <div id="items-container" class="order-2 order-lg-1">
+                <h1 class="py-2">Wynncraft Items</h1>
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
+                    <!-- Items will be inserted here -->
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
 

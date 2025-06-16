@@ -8,6 +8,7 @@ from modules.utils.param_utils import api_response, handle_request_error
 
 item_bp = Blueprint('item', __name__, url_prefix='/api')
 
+
 @item_bp.get('/item/<item_name>')
 @public_endpoint
 def get_item(item_name):
@@ -17,6 +18,7 @@ def get_item(item_name):
         return api_response(data)
 
     return api_response({'message': 'Item not found'}, 404)
+
 
 @item_bp.post('/items')
 @public_endpoint

@@ -18,7 +18,7 @@ def archive_and_summarize(offset: int = 0, force_update: bool = False):
     # Define the window: documents where "timestamp" is >= start_date and < end_date
     today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     start_date = today - timedelta(days=offset + 1)
-    end_date   = today - timedelta(days=offset)
+    end_date = today - timedelta(days=offset)
 
     logging.info(f"Archiving MARKET_AVERAGES docs from {start_date.isoformat()} to {end_date.isoformat()}")
 
@@ -27,8 +27,8 @@ def archive_and_summarize(offset: int = 0, force_update: bool = False):
 
     ops = []
     for doc in cursor:
-        doc.pop("_id", None)             # remove existing _id so Mongo generates a new one
-        doc["timestamp"] = start_date        # update timestamp
+        doc.pop("_id", None)  # remove existing _id so Mongo generates a new one
+        doc["timestamp"] = start_date  # update timestamp
         ops.append(InsertOne(doc))
 
     if ops:
@@ -48,7 +48,8 @@ def archive_and_summarize(offset: int = 0, force_update: bool = False):
     # 3) Recompute moving averages for all remaining items
     calc_start = start_date + timedelta(days=1)
     calc_end = end_date + timedelta(days=1)
-    logging.info(f"Recalculating moving averages for all items between {calc_start.isoformat()} and {calc_end.isoformat()}")
+    logging.info(
+        f"Recalculating moving averages for all items between {calc_start.isoformat()} and {calc_end.isoformat()}")
     update_moving_averages_complete(force_update=force_update, start_date=calc_start, end_date=calc_end)
     logging.info("Recalculation complete. Archive job finished.")
 

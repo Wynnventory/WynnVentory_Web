@@ -9,12 +9,14 @@ from modules.utils.time_validation import get_raidpool_week, get_current_gambit_
 # Initialize the base repository and aggregator with the RAID collection type
 _repo = BasePoolRepo(Collection.RAID)
 
+
 def save(pool: dict) -> None:
     """
     Insert or update a raidpool document for the given region/week/year,
     applying duplicate checks and timestamp logic.
     """
     _repo.save(pool)
+
 
 def save_gambits(gambits: List[Dict]) -> None:
     """
@@ -33,7 +35,7 @@ def save_gambits(gambits: List[Dict]) -> None:
         gambit.pop("modVersion")
 
     collection_time = gambits[0].get('timestamp')
-    collection_ts   = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S')
+    collection_ts = datetime.strptime(collection_time, '%Y-%m-%d %H:%M:%S')
     gambit_day["timestamp"] = collection_ts
     gambit_day["year"] = next_reset.year
     gambit_day["month"] = next_reset.month
@@ -65,11 +67,11 @@ def save_gambits(gambits: List[Dict]) -> None:
 
 
 def fetch_raidpools(
-    year: Optional[int] = None,
-    week: Optional[int] = None,
-    page: Optional[int] = 1,
-    page_size: Optional[int] = 100,
-    skip: Optional[int] = 0
+        year: Optional[int] = None,
+        week: Optional[int] = None,
+        page: Optional[int] = 1,
+        page_size: Optional[int] = 100,
+        skip: Optional[int] = 0
 ) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
     """
     If both year and week are passed, returns a single dict (or {} if none found).
@@ -135,11 +137,11 @@ def fetch_raidpool():
                                         "$switch": {
                                             "branches": [
                                                 {
-                                                    "case": { "$eq": ["$$item.itemType", "AspectItem"] },
+                                                    "case": {"$eq": ["$$item.itemType", "AspectItem"]},
                                                     "then": "Aspects"
                                                 },
                                                 {
-                                                    "case": { "$eq": ["$$item.itemType", "GearItem"] },
+                                                    "case": {"$eq": ["$$item.itemType", "GearItem"]},
                                                     "then": "Gear"
                                                 },
                                                 {
@@ -154,7 +156,8 @@ def fetch_raidpool():
                                                 },
                                                 {
                                                     "case": {
-                                                        "$in": ["$$item.itemType", ["PowderItem", "EmeraldItem", "AmplifierItem"]]
+                                                        "$in": ["$$item.itemType",
+                                                                ["PowderItem", "EmeraldItem", "AmplifierItem"]]
                                                     },
                                                     "then": "Misc"
                                                 }
@@ -165,7 +168,7 @@ def fetch_raidpool():
                                     # Format 'rarity' with only the first character uppercase
                                     "rarityFormatted": {
                                         "$cond": {
-                                            "if": { "$ne": ["$$item.rarity", None] },
+                                            "if": {"$ne": ["$$item.rarity", None]},
                                             "then": {
                                                 "$concat": [
                                                     {
@@ -178,7 +181,7 @@ def fetch_raidpool():
                                                             "$substr": [
                                                                 "$$item.rarity",
                                                                 1,
-                                                                { "$strLenCP": "$$item.rarity" }
+                                                                {"$strLenCP": "$$item.rarity"}
                                                             ]
                                                         }
                                                     }
@@ -214,7 +217,7 @@ def fetch_raidpool():
                 "itemsList": {
                     "$push": "$items"
                 },
-                "timestamp": { "$first": "$timestamp" }
+                "timestamp": {"$first": "$timestamp"}
             }
         },
         # Assign 'raritySortKey' to items in 'itemsList' based on 'rarityLower'
@@ -231,13 +234,13 @@ def fetch_raidpool():
                                     "raritySortKey": {
                                         "$switch": {
                                             "branches": [
-                                                { "case": { "$eq": ["$$item.rarityLower", "mythic"] }, "then": 1 },
-                                                { "case": { "$eq": ["$$item.rarityLower", "fabled"] }, "then": 2 },
-                                                { "case": { "$eq": ["$$item.rarityLower", "legendary"] }, "then": 3 },
-                                                { "case": { "$eq": ["$$item.rarityLower", "rare"] }, "then": 4 },
-                                                { "case": { "$eq": ["$$item.rarityLower", "unique"] }, "then": 5 },
-                                                { "case": { "$eq": ["$$item.rarityLower", "common"] }, "then": 6 },
-                                                { "case": { "$eq": ["$$item.rarityLower", "set"] }, "then": 7 }
+                                                {"case": {"$eq": ["$$item.rarityLower", "mythic"]}, "then": 1},
+                                                {"case": {"$eq": ["$$item.rarityLower", "fabled"]}, "then": 2},
+                                                {"case": {"$eq": ["$$item.rarityLower", "legendary"]}, "then": 3},
+                                                {"case": {"$eq": ["$$item.rarityLower", "rare"]}, "then": 4},
+                                                {"case": {"$eq": ["$$item.rarityLower", "unique"]}, "then": 5},
+                                                {"case": {"$eq": ["$$item.rarityLower", "common"]}, "then": 6},
+                                                {"case": {"$eq": ["$$item.rarityLower", "set"]}, "then": 7}
                                             ],
                                             "default": 8  # For rarities not specified
                                         }
@@ -253,9 +256,9 @@ def fetch_raidpool():
         {
             "$group": {
                 "_id": "$_id.region",
-                "week": { "$first": week },
-                "year": { "$first": year },
-                "timestamp": { "$first": "$timestamp" },
+                "week": {"$first": week},
+                "year": {"$first": year},
+                "timestamp": {"$first": "$timestamp"},
                 "itemsByGroup": {
                     "$push": {
                         "group": "$_id.group",
@@ -278,10 +281,10 @@ def fetch_raidpool():
                                     "groupSortKey": {
                                         "$switch": {
                                             "branches": [
-                                                { "case": { "$eq": ["$$item.group", "Aspects"] }, "then": 1 },
-                                                { "case": { "$eq": ["$$item.group", "Tomes"] }, "then": 2 },
-                                                { "case": { "$eq": ["$$item.group", "Gear"] }, "then": 3 },
-                                                { "case": { "$eq": ["$$item.group", "Misc"] }, "then": 4 }
+                                                {"case": {"$eq": ["$$item.group", "Aspects"]}, "then": 1},
+                                                {"case": {"$eq": ["$$item.group", "Tomes"]}, "then": 2},
+                                                {"case": {"$eq": ["$$item.group", "Gear"]}, "then": 3},
+                                                {"case": {"$eq": ["$$item.group", "Misc"]}, "then": 4}
                                             ],
                                             "default": 5  # 'Other' or any unspecified group
                                         }
@@ -299,7 +302,7 @@ def fetch_raidpool():
                 "itemsByGroup": {
                     "$sortArray": {
                         "input": "$itemsByGroup",
-                        "sortBy": { "groupSortKey": 1 }
+                        "sortBy": {"groupSortKey": 1}
                     }
                 }
             }
@@ -317,7 +320,7 @@ def fetch_raidpool():
                                 {
                                     "items": {
                                         "$cond": [
-                                            { "$eq": ["$$groupItem.group", "Aspects"] },
+                                            {"$eq": ["$$groupItem.group", "Aspects"]},
                                             {
                                                 "$sortArray": {
                                                     "input": "$$groupItem.items",
@@ -382,12 +385,13 @@ def fetch_raidpool():
         },
         # Sort the final results by region
         {
-            "$sort": { "region": 1 }
+            "$sort": {"region": 1}
         }
     ]
 
     cursor = get_collection(Collection.RAID).aggregate(pipeline)
     return list(cursor)
+
 
 def fetch_gambits(
         year: int,
@@ -399,7 +403,8 @@ def fetch_gambits(
 
     filter_q = {"year": year, "month": month, "day": day}
 
-    result = get_collection(Collection.GAMBIT).find_one(filter_q, projection={"_id": 0, "modVersion": 0, "playerName":0})
+    result = get_collection(Collection.GAMBIT).find_one(filter_q,
+                                                        projection={"_id": 0, "modVersion": 0, "playerName": 0})
 
     if result is None:
         return {}

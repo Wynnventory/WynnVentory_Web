@@ -101,4 +101,3 @@ def fetch_item(name: str) -> dict:
         dict: The processed item data as a dictionary
     """
     return _process(wynncraft_api.quick_search_item(name))
-

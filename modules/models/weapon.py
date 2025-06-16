@@ -1,6 +1,7 @@
 from .item import Item
 from .item_types import ItemType, WeaponType
 
+
 class Weapon(Item):
     WEAPON_CLASS_REQUIREMENTS = {
         WeaponType.DAGGER.value: 'Assassin/Ninja',
@@ -10,8 +11,10 @@ class Weapon(Item):
         WeaponType.WAND.value: 'Mage/Dark Wizard'
     }
 
-    def __init__(self, name, rarity, powder_slots, item_subtype, drop_restriction, attack_speed, base, identifications, requirements, drop_meta=None, lore=None):
-        super().__init__(name, rarity, powder_slots, ItemType.WEAPON.value, item_subtype, drop_restriction, base, identifications, requirements, drop_meta, lore)
+    def __init__(self, name, rarity, powder_slots, item_subtype, drop_restriction, attack_speed, base, identifications,
+                 requirements, drop_meta=None, lore=None):
+        super().__init__(name, rarity, powder_slots, ItemType.WEAPON.value, item_subtype, drop_restriction, base,
+                         identifications, requirements, drop_meta, lore)
         self.attack_speed = ' '.join(word.capitalize() for word in attack_speed.replace('_', ' ').split())
         self.class_req = self.WEAPON_CLASS_REQUIREMENTS.get(self.item_subtype, 'Unknown Class')
 

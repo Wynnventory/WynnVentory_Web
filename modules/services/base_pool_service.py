@@ -46,6 +46,7 @@ def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[
     if valid_items:
         enqueue(CollectionRequest(type=collection_type, items=valid_items))
 
+
 def get_current_pools(collection_type: Collection) -> List[Dict[str, Any]]:
     if collection_type == Collection.LOOT:
         return lootpool_repo.fetch_lootpool()
@@ -53,6 +54,7 @@ def get_current_pools(collection_type: Collection) -> List[Dict[str, Any]]:
         return raidpool_repo.fetch_raidpool()
 
     return []
+
 
 def get_pools(
         collection_type: Collection,

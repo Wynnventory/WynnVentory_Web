@@ -14,6 +14,7 @@ from modules.models.sort_options import SortOption
 
 TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
 
+
 def save(items: List[Dict[str, Any]]) -> None:
     """
     Insert multiple market items into the live collection,
@@ -131,7 +132,7 @@ def update_moving_averages(
 def update_moving_averages_complete(force_update: bool = False,
                                     start_date: datetime = None,
                                     end_date: datetime = None,
-) -> None:
+                                    ) -> None:
     """
     Scan MARKET_LISTINGS via an aggregation that returns one document per unique
     (name, tier, shiny‐flag) combination, along with the most recent listing timestamp.
@@ -163,7 +164,7 @@ def update_moving_averages_complete(force_update: bool = False,
                 "_id": 0,
                 "name": 1,
                 "tier": 1,
-                "shiny": { "$cond": [{ "$ne": ["$shiny_stat", None] }, True, False] },
+                "shiny": {"$cond": [{"$ne": ["$shiny_stat", None]}, True, False]},
                 "icon": 1,
                 "item_type": 1,
                 "timestamp": 1
@@ -178,7 +179,7 @@ def update_moving_averages_complete(force_update: bool = False,
                     "icon": "$icon",
                     "item_type": "$item_type"
                 },
-                "last_ts": { "$max": "$timestamp" }
+                "last_ts": {"$max": "$timestamp"}
             }
         }
     ])
@@ -280,11 +281,10 @@ def get_trade_market_item_listings(
         else:
             if tier is not None:
                 query_filter['item_type'] = {'$in': TIERED_TYPES}
-                query_filter['tier']      = tier
+                query_filter['tier'] = tier
 
     if sub_type is not None:
         query_filter['type'] = sub_type
-
 
     coll = get_collection(ColEnum.MARKET_LISTINGS)
     total = coll.count_documents(query_filter)
@@ -560,7 +560,6 @@ def get_historic_average(
 
     # 4) Inclusive end_date via half-open interval
     exclusive_end = end_date + timedelta(days=1)
-
 
     # base query
     query: Dict[str, Any] = {

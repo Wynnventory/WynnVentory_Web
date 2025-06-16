@@ -1,6 +1,5 @@
 import unittest
 from datetime import datetime, timezone
-from unittest.mock import patch
 
 from modules.models.collection_types import Collection
 from modules.utils.time_validation import (

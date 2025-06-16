@@ -87,7 +87,7 @@ def get_historic_item_price(
         shiny: bool = False,
         tier: Optional[int] = None,
         start_date: datetime = None,
-        end_date:   datetime = None
+        end_date: datetime = None
 ) -> dict:
     """
     Retrieve aggregated statistics from the most recent price history documents.
@@ -100,7 +100,7 @@ def get_history(
         shiny: bool = False,
         tier: Optional[int] = None,
         start_date: datetime = None,
-        end_date:   datetime = None
+        end_date: datetime = None
 ) -> List[dict]:
     """
     Retrieve historical price data for an item between start_date and end_date (inclusive).
@@ -149,7 +149,7 @@ def get_item_listings(
 
 def get_ranking(
         start_date: Optional[datetime] = None,
-        end_date:   Optional[datetime] = None
+        end_date: Optional[datetime] = None
 ) -> List[dict]:
     """
     Retrieve a ranking of items based on archived price data.

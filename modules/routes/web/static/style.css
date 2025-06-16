@@ -19,15 +19,14 @@
     --footer-bg: #2b2e33;
     --sidebar-color: #212529;
     --text-color: #e0e0e0;
-    text-shadow:
-            -1px -1px 0 #000,
-            0   -1px 0  #000,
-            1px -1px 0  #000,
-            1px  0   0  #000,
-            1px  1px 0  #000,
-            0    1px 0  #000,
-            -1px  1px 0 #000,
-            -1px  0   0 #000;
+    text-shadow: -1px -1px 0 #000,
+    0 -1px 0 #000,
+    1px -1px 0 #000,
+    1px 0 0 #000,
+    1px 1px 0 #000,
+    0 1px 0 #000,
+    -1px 1px 0 #000,
+    -1px 0 0 #000;
 }
 
 @media (min-width: 576px) {
@@ -114,7 +113,7 @@ a:hover {
     z-index: 999;
 }
 
-#items-container>div>.item-stats-tooltip {
+#items-container > div > .item-stats-tooltip {
     display: block;
     position: relative;
     margin: .5em;
@@ -180,7 +179,7 @@ background-color: var(--bs-body-bg);
     width: auto;
 }
 
-#filter-sidebar.collapsed+#collapse-button {
+#filter-sidebar.collapsed + #collapse-button {
     right: 10px;
 }
 
@@ -569,8 +568,8 @@ li .SET:hover {
     content: '\2764' ' ' !important;
 }
 
-.item-health>span,
-.item-health>span::before {
+.item-health > span,
+.item-health > span::before {
     color: #A80000 !important;
 }
 
@@ -583,8 +582,8 @@ li .SET:hover {
     color: #56FE56;
 }
 
-.defence>.positive,
-.defence>.positive::before {
+.defence > .positive,
+.defence > .positive::before {
     color: #B8B9B8;
 }
 
@@ -592,8 +591,8 @@ li .SET:hover {
     color: #F85252;
 }
 
-.defence>.negative,
-.defence>.negative::before {
+.defence > .negative,
+.defence > .negative::before {
     color: #B8B9B8;
 }
 
@@ -608,7 +607,7 @@ li .SET:hover {
 .item-icon {
     width: 32px;
     height: 32px;
-    object-fit: contain;    /* or `cover`, depending on your preference */
+    object-fit: contain; /* or `cover`, depending on your preference */
     object-position: center;
     flex-shrink: 0;
     margin-right: 10px;
@@ -628,252 +627,301 @@ li .SET:hover {
 
 .bg-unique {
     background-position: -160px -128px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-dagger {
     background-position: -0 -160px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-bow {
     background-position: -30px -160px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-spear {
     background-position: -60px -160px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-wand {
     background-position: -90px -160px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-az,
-.bg-azrune{
+.bg-azrune {
     background-position: -0 -0;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-nii,
-.bg-niirune{
+.bg-niirune {
     background-position: -32px -0;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-tol,
 .bg-tolrune {
     background-position: -0 -32px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-uth,
-.bg-uthrune{
+.bg-uthrune {
     background-position: -32px -32px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-airpowder {
     background-position: -64px -0;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-emerald_block {
     background-position: -64px -32px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-dungeonkey {
     background-position: -0 -64px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 /* only match classes that start with "bg-" and somewhere include "rune" */
 [class*="bg-"][class*="key"] {
     background-position: -0 -64px !important;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-emerald {
     background-position: -32px -64px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-earthpowder {
     background-position: -64px -64px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-firepowder {
     background-position: -96px -0;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-thunderpowder {
     background-position: -96px -32px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-liquid_emerald {
     background-position: -96px -64px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-waterpowder {
     background-position: -0 -96px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-archeraspect {
     background-position: -32px -96px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-armour_tome {
     background-position: -64px -96px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-assassinaspect {
     background-position: -96px -96px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-expertise_tome {
     background-position: -128px -0;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-guild_tome {
     background-position: -128px -32px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-lootrun_tome {
     background-position: -128px -64px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-mageaspect {
     background-position: -128px -96px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-marathon_tome {
     background-position: -0 -128px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-shamanaspect {
     background-position: -32px -128px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-warrioraspect {
     background-position: -64px -128px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-mysticism_tome {
     background-position: -96px -128px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-weapon_tome {
     background-position: -128px -128px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-bracelet {
     background-position: -120px -160px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-necklace {
     background-position: -150px -160px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-ring {
     background-position: -192px -0;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-shiny {
     background-position: -160px -0;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-insulator, .bg-corkianinsulator {
     background-position: -160px -32px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-corkianamplifier {
     background-position: -160px -64px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-simulator, .bg-corkiansimulator {
     background-position: -160px -96px;
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
 }
 
 .bg-chestplate {
     background-position: -192px -30px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-boots {
     background-position: -192px -60px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-leggings {
     background-position: -192px -90px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-helmet {
     background-position: -192px -120px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-fabled {
     background-position: -192px -150px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-legendary {
     background-position: -0 -190px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-rare {
     background-position: -30px -190px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-relik {
     background-position: -60px -190px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-mythic {
     background-position: -90px -190px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-set {
     background-position: -120px -190px;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-emeraldpouch {
     background-image: url('icons/icons/emerald_pouch.webp') !important;
-    width: 30px; height: 30px;
+    width: 30px;
+    height: 30px;
 }
 
 .bg-brownhorse,
@@ -958,13 +1006,22 @@ body.side-menu-open {
 }
 
 /* one line of stats */
-.stat-row{
-    display:grid;                  /* simple 3-column grid  */
-    grid-template-columns:auto 1fr auto;   /* value | name (flexes) | % */
-    align-items:center;
-    column-gap:.25rem;             /* optional breathing room */
+.stat-row {
+    display: grid; /* simple 3-column grid  */
+    grid-template-columns:auto 1fr auto; /* value | name (flexes) | % */
+    align-items: center;
+    column-gap: .25rem; /* optional breathing room */
 }
 
-.stat-value{ text-align:left;  }
-.stat-name { text-align:center;}
-.stat-pct  { text-align:right; white-space:nowrap;}
+.stat-value {
+    text-align: left;
+}
+
+.stat-name {
+    text-align: center;
+}
+
+.stat-pct {
+    text-align: right;
+    white-space: nowrap;
+}

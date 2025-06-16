@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Collection(Enum):
     MARKET_LISTINGS = "trademarket_listings"
     MARKET_AVERAGES = "trademarket_averages"

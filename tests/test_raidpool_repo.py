@@ -30,7 +30,8 @@ class TestRaidpoolRepo(BaseTestCase):
         self.mock_datetime = self.setup_datetime_mock(self.current_time, 'modules.repositories.raidpool_repo')
         self.mock_datetime.strptime.return_value = self.current_time
 
-    def create_test_gambit(self, name="Gambit1", timestamp="2025-05-08 12:00:00", data="test_data1", player_name="Player1", mod_version="1.0.0"):
+    def create_test_gambit(self, name="Gambit1", timestamp="2025-05-08 12:00:00", data="test_data1",
+                           player_name="Player1", mod_version="1.0.0"):
         """Create a test gambit with the given parameters."""
         return {
             "playerName": player_name,
@@ -90,8 +91,8 @@ class TestRaidpoolRepo(BaseTestCase):
     def create_filter(self):
         """Create a filter for database operations."""
         return {
-            "year": self.next_reset.year, 
-            "month": self.next_reset.month, 
+            "year": self.next_reset.year,
+            "month": self.next_reset.month,
             "day": self.next_reset.day
         }
 
@@ -227,7 +228,8 @@ class TestRaidpoolRepo(BaseTestCase):
         """Test that gambits with an invalid timestamp are not saved."""
         # Create test gambits with a timestamp outside the current gambit day
         test_gambits = [
-            self.create_test_gambit("Gambit1", timestamp="2025-05-06 12:00:00", data="test_data1")  # Before the previous reset
+            self.create_test_gambit("Gambit1", timestamp="2025-05-06 12:00:00", data="test_data1")
+            # Before the previous reset
         ]
 
         # Create a patch for the get_collection function

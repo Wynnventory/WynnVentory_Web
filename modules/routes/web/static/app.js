@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 //base.html Javascript code
 
 
-
 //items.html Javascript code
 
 const toggleContent = document.getElementById('toggleContent');
@@ -49,6 +48,7 @@ function removeClass() {
 const toggleContainer = document.querySelector('.toggle-container');
 const arrow = document.querySelector('.arrow');
 const selectedFilters = [];
+
 // Toggle filter button and update selected filters
 function toggleFilter(button, filterTypes) {
     const filters = filterTypes.split(',').map(filter => filter.trim());
@@ -108,7 +108,17 @@ function displayItems(items) {
     container.innerHTML = ''; // Clear previous items
 
     items.forEach(itemStats => {
-        const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req, name } = itemStats;
+        const {
+            base,
+            identifications,
+            requirements,
+            powder_slots,
+            rarity,
+            item_type,
+            attack_speed,
+            class_req,
+            name
+        } = itemStats;
         let requirementsHTML = '';
         if (item_type === 'weapon') {
             requirementsHTML = `<div>Class Req: ${class_req}<br>Combat Lv. Min: ${requirements.Level}<br>`;
@@ -239,53 +249,54 @@ if (toggleContainer) {
 
 //lootrun_lootpool.html Javascript code
 document.addEventListener('DOMContentLoaded', () => {
-  const lootEl = document.getElementById('lootTime')
-  const raidEl = document.getElementById('raidTime')
+    const lootEl = document.getElementById('lootTime')
+    const raidEl = document.getElementById('raidTime')
 
-  // Returns the next Friday at given UTC hour (18 for loot, 17 for raid)
-  function getNextFridayAt(hourUTC) {
-    const now = new Date()
-    const next = new Date()
-    // days until Friday (5)
-    next.setUTCDate(
-      now.getUTCDate() + ((5 - now.getUTCDay() + 7) % 7)
-    )
-    next.setUTCHours(hourUTC, 0, 0, 0)
+    // Returns the next Friday at given UTC hour (18 for loot, 17 for raid)
+    function getNextFridayAt(hourUTC) {
+        const now = new Date()
+        const next = new Date()
+        // days until Friday (5)
+        next.setUTCDate(
+            now.getUTCDate() + ((5 - now.getUTCDay() + 7) % 7)
+        )
+        next.setUTCHours(hourUTC, 0, 0, 0)
 
-    // if it’s already past that hour on Friday, bump a week
-    if (now.getUTCDay() === 5 && now.getUTCHours() >= hourUTC) {
-      next.setUTCDate(next.getUTCDate() + 7)
+        // if it’s already past that hour on Friday, bump a week
+        if (now.getUTCDay() === 5 && now.getUTCHours() >= hourUTC) {
+            next.setUTCDate(next.getUTCDate() + 7)
+        }
+        return next
     }
-    return next
-  }
 
-  // Generic countdown starter: takes a “getNext” fn and an element to update
-  function startCountdown(getNextFn, el) {
-    function tick() {
-      const now = new Date()
-      let target = getNextFn()
-      let diff = target - now
+    // Generic countdown starter: takes a “getNext” fn and an element to update
+    function startCountdown(getNextFn, el) {
+        function tick() {
+            const now = new Date()
+            let target = getNextFn()
+            let diff = target - now
 
-      // if negative, roll over to next week
-      if (diff <= 0) {
-        target.setUTCDate(target.getUTCDate() + 7)
-        diff = target - now
-      }
+            // if negative, roll over to next week
+            if (diff <= 0) {
+                target.setUTCDate(target.getUTCDate() + 7)
+                diff = target - now
+            }
 
-      const days    = Math.floor(diff / (1000*60*60*24))
-      const hours   = Math.floor((diff % (1000*60*60*24)) / (1000*60*60))
-      const minutes = Math.floor((diff % (1000*60*60))    / (1000*60))
-      const seconds = Math.floor((diff % (1000*60))       / 1000)
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000)
 
-      el.innerHTML = `New items in: ${days}d ${hours}h ${minutes}m ${seconds}s`
-      setTimeout(tick, 1000)
+            el.innerHTML = `New items in: ${days}d ${hours}h ${minutes}m ${seconds}s`
+            setTimeout(tick, 1000)
+        }
+
+        tick()
     }
-    tick()
-  }
 
-  // Only start the one if its element is actually on the page
-  if (lootEl) startCountdown(() => getNextFridayAt(18), lootEl)
-  if (raidEl) startCountdown(() => getNextFridayAt(17), raidEl)
+    // Only start the one if its element is actually on the page
+    if (lootEl) startCountdown(() => getNextFridayAt(18), lootEl)
+    if (raidEl) startCountdown(() => getNextFridayAt(17), raidEl)
 })
 
 function displayItem(e, encodedItemName) {
@@ -344,14 +355,14 @@ async function fetchAspectStats(className, aspectName) {
 
 function showTooltipAspect(e, aspectStats, clickX, clickY) {
     const tooltip = document.getElementById('item-stats-tooltip');
-    const { rarity, requiredClass, tiers, name } = aspectStats;
+    const {rarity, requiredClass, tiers, name} = aspectStats;
     tooltip.className = 'item-stats-tooltip ' + rarity;
 
-       // Tier
+    // Tier
     let tierHTML = '';
     tierHTML = `<div>Tier I 
                 <span style="color:darkgray;">>>>>>>>>></span>
-                <span class="${rarity}"> Tier II </span>[0/${tiers[2].threshold-1}]<br></div>`;
+                <span class="${rarity}"> Tier II </span>[0/${tiers[2].threshold - 1}]<br></div>`;
 
     // Description
     let descriptionHTML = '';
@@ -384,7 +395,7 @@ function showTooltipAspect(e, aspectStats, clickX, clickY) {
 
 function showTooltip(e, itemStats, clickX, clickY) {
     const tooltip = document.getElementById('item-stats-tooltip');
-    const { base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req } = itemStats;
+    const {base, identifications, requirements, powder_slots, rarity, item_type, attack_speed, class_req} = itemStats;
 
     // reset & set rarity class
     tooltip.className = 'item-stats-tooltip ' + rarity;
@@ -511,17 +522,17 @@ function hideTooltipOnClickOutside(event) {
 function positionTooltip(tooltip, clickX, clickY) {
     const rect = tooltip.getBoundingClientRect();
     const vw = window.innerWidth, vh = window.innerHeight;
-    let top  = clickY - 100;
+    let top = clickY - 100;
     let left = clickX + 25;
 
     let gap = 10;
     // clamp inside viewport
-    if (top + rect.height  > vh) top  = vh - rect.height - gap;
-    if (left + rect.width   > vw) left = vw - rect.width - gap;
-    if (top < gap)   top = gap;
+    if (top + rect.height > vh) top = vh - rect.height - gap;
+    if (left + rect.width > vw) left = vw - rect.width - gap;
+    if (top < gap) top = gap;
     if (left < gap) left = gap;
 
-    tooltip.style.top  = top  + 'px';
+    tooltip.style.top = top + 'px';
     tooltip.style.left = left + 'px';
 }
 

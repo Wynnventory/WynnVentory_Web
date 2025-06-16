@@ -17,15 +17,18 @@ _public_endpoints = set()
 # Whitelist of view-function names the mod key may call
 _mod_allowed_endpoints = set()
 
+
 def public_endpoint(f):
     """Mark a view as public (skip auth entirely)."""
     _public_endpoints.add(f.__name__)
     return f
 
+
 def mod_allowed(f):
     """Mark this view as allowed for the mod key."""
     _mod_allowed_endpoints.add(f.__name__)
     return f
+
 
 def require_api_key():
     """
@@ -63,8 +66,8 @@ def require_api_key():
 
     # 3) stash
     g.api_key_hash = token_hash
-    g.owner       = key_doc["owner"]
-    g.scopes      = key_doc.get("scopes", [])
+    g.owner = key_doc["owner"]
+    g.scopes = key_doc.get("scopes", [])
 
     # 4) is mod key?
     g.is_mod_key = (token_hash == _MOD_KEY_HASH)
@@ -83,18 +86,23 @@ def require_api_key():
 
     return None
 
+
 def require_scope(scope):
     """
     Pure scope checker.  No mod logic here.
     """
+
     def decorator(f):
         @wraps(f)
         def wrapped(*args, **kwargs):
             if scope not in g.scopes:
                 return jsonify({"error": "Forbidden, missing scope"}), 403
             return f(*args, **kwargs)
+
         return wrapped
+
     return decorator
+
 
 def record_api_usage(response):
     if hasattr(g, "owner"):

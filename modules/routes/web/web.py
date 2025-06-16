@@ -119,7 +119,6 @@ def trademarket_listings(item_name):
     if filter_sub_type == "":
         filter_sub_type = None
 
-
     sort_str = request.args.get("sort", SortOption.TIMESTAMP_DESC.value)
     try:
         sort = SortOption(sort_str)

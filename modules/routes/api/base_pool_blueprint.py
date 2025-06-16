@@ -3,8 +3,8 @@ from flask import Blueprint, request
 from modules.auth import require_scope, mod_allowed
 from modules.models.collection_types import Collection
 from modules.services import base_pool_service
-from modules.utils.time_validation import get_lootpool_week, get_raidpool_week
 from modules.utils.param_utils import api_response, handle_request_error
+from modules.utils.time_validation import get_lootpool_week, get_raidpool_week
 
 
 class BasePoolBlueprint:
@@ -91,7 +91,7 @@ class BasePoolBlueprint:
             GET /api/{name}/all
             Retrieve all pools
             """
-            page      = max(1, request.args.get('page', 1, type=int))
+            page = max(1, request.args.get('page', 1, type=int))
             page_size = min(5, request.args.get('page_size', 5, type=int))  # cap at 5 weeks
 
             skip = (page - 1) * page_size

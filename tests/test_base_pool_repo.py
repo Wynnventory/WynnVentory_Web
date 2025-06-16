@@ -109,7 +109,7 @@ class TestBasePoolRepo(BaseTestCase):
         # Set up the mock collection to return an existing document with fewer items
         existing_items = [{"name": "Item1", "amount": 1}]
         self.mock_collection.find_one.return_value = self.create_existing_doc(
-            items=existing_items, 
+            items=existing_items,
             timestamp_delta=timedelta(minutes=30)
         )
 
@@ -141,7 +141,8 @@ class TestBasePoolRepo(BaseTestCase):
     def test_save_skip_insertion(self):
         """Test skipping insertion when the existing document is newer and has more items."""
         # Set up the mock collection to return a recent existing document with more items
-        existing_items = [{"name": "Item1", "amount": 1}, {"name": "Item2", "amount": 2}, {"name": "Item3", "amount": 3}]
+        existing_items = [{"name": "Item1", "amount": 1}, {"name": "Item2", "amount": 2},
+                          {"name": "Item3", "amount": 3}]
         self.mock_collection.find_one.return_value = self.create_existing_doc(
             items=existing_items,
             timestamp_delta=timedelta(minutes=30)

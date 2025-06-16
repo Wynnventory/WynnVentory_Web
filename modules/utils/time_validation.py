@@ -6,6 +6,7 @@ from modules.models.collection_types import Collection
 def get_lootpool_week():
     return get_lootpool_week_for_timestamp(datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'))
 
+
 def get_lootpool_week_for_timestamp(timestamp, reset_day=4, reset_hour=18):
     """ Get the current Wynn week number and year. Lootpool resets every Friday at 6 PM UTC. """
 
@@ -31,22 +32,25 @@ def get_lootpool_week_for_timestamp(timestamp, reset_day=4, reset_hour=18):
 
     return wynn_year, wynn_week
 
+
 def get_raidpool_week():
     return get_lootpool_week_for_timestamp(datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'), reset_hour=17)
+
 
 def get_current_gambit_day():
     reset_hour = 17  # 17:00 (5 PM) UTC
 
     now = datetime.now()
     reset_today = now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
-    if now.hour >= reset_hour: # Already past reset time today = next reset tomorrow at reset hour
+    if now.hour >= reset_hour:  # Already past reset time today = next reset tomorrow at reset hour
         next_reset = reset_today + timedelta(days=1)
         previous_reset = reset_today
-    else: # still before reset today = reset today at reset hour
+    else:  # still before reset today = reset today at reset hour
         next_reset = reset_today
         previous_reset = reset_today - timedelta(days=1)
 
     return previous_reset, next_reset
+
 
 def get_week_range(reset_day, reset_hour, now=None):
     if now is None:

@@ -13,7 +13,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def parse_date_params(start_str: Optional[str] = None, end_str: Optional[str] = None) -> Tuple[Optional[datetime], Optional[datetime], Optional[Dict[str, str]]]:
+def parse_date_params(start_str: Optional[str] = None, end_str: Optional[str] = None) -> Tuple[
+    Optional[datetime], Optional[datetime], Optional[Dict[str, str]]]:
     """
     Parse start_date and end_date from request parameters.
 
@@ -35,7 +36,7 @@ def parse_date_params(start_str: Optional[str] = None, end_str: Optional[str] = 
         return None, None, {'error': 'Invalid date format. Use YYYY-MM-DD.'}
 
 
-def parse_boolean_param(param_value: Optional[str], default: bool = False) -> Optional[bool]:
+def parse_boolean_param(param_value: Optional[str]) -> Optional[bool]:
     """
     Parse a boolean parameter from a string value.
 
@@ -76,7 +77,8 @@ def api_response(data: Any, status_code: int = 200) -> tuple[Response, int]:
     return jsonify(data), status_code
 
 
-def handle_request_error(e: Exception, error_msg: str = 'Internal server error', status_code: int = 500) -> tuple[Response, int]:
+def handle_request_error(e: Exception, error_msg: str = 'Internal server error', status_code: int = 500) -> tuple[
+    Response, int]:
     """
     Handle request errors in a standardized way.
 

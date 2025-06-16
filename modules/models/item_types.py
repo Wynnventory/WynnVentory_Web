@@ -1,10 +1,12 @@
 from enum import Enum
 
+
 class ItemType(Enum):
     WEAPON = 'weapon'
     ARMOR = 'armor'
     ACCESSORY = 'accessory'
     TOME = 'tome'
+
 
 class WeaponType(Enum):
     DAGGER = 'dagger'
@@ -13,11 +15,13 @@ class WeaponType(Enum):
     BOW = 'bow'
     WAND = 'wand'
 
+
 class ArmorType(Enum):
     HELMET = 'helmet'
     CHESTPLATE = 'chestplate'
     LEGGINGS = 'leggings'
     BOOTS = 'boots'
+
 
 class AccessoryType(Enum):
     RING = 'ring'

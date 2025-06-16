@@ -41,8 +41,8 @@ def get_market_item_info(item_name):
     GET /api/trademarket/item/<item_name>
     Retrieve market item info by name.
     """
-    rarity    = request.args.get('rarity', None, type=str)
-    page      = max(1, request.args.get('page', 1, type=int))
+    rarity = request.args.get('rarity', None, type=str)
+    page = max(1, request.args.get('page', 1, type=int))
     page_size = min(1000, request.args.get('page_size', 50, type=int))
 
     # Parse boolean parameters
@@ -52,9 +52,9 @@ def get_market_item_info(item_name):
     # Parse tier parameter
     tier = parse_tier_param(request.args.get('tier'))
 
-    type_param      = request.args.get('itemType')
-    subtype_param   = request.args.get('subType', type=str)
-    sort_option     = request.args.get('sort')
+    type_param = request.args.get('itemType')
+    subtype_param = request.args.get('subType', type=str)
+    sort_option = request.args.get('sort')
 
     try:
         result = get_item_listings(
@@ -140,7 +140,7 @@ def get_market_history(item_name):
 
 
 @market_bp.get('/trademarket/history/<item_name>/price')
-@market_bp.get('/trademarket/history/<item_name>/latest') # required for mod versions before v1.1
+@market_bp.get('/trademarket/history/<item_name>/latest')  # required for mod versions before v1.1
 @require_scope('read:market_archive')
 @mod_allowed
 def get_latest_market_history(item_name):
@@ -168,10 +168,10 @@ def get_latest_market_history(item_name):
 
     try:
         result = get_historic_item_price(
-            item_name=item_name, 
-            shiny=shiny, 
-            tier=tier, 
-            start_date=start_date, 
+            item_name=item_name,
+            shiny=shiny,
+            tier=tier,
+            start_date=start_date,
             end_date=end_date
         )
         return api_response(result)

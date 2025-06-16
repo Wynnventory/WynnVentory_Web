@@ -5,6 +5,7 @@ from modules.utils.param_utils import api_response, handle_request_error
 
 aspect_bp = Blueprint('aspect', __name__, url_prefix='/api')
 
+
 @aspect_bp.get('/aspect/<class_name>/<aspect_name>')
 def get_item(class_name, aspect_name):
     try:

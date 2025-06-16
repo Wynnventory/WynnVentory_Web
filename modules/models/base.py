@@ -1,6 +1,7 @@
 class Base:
-    def __init__(self, health=None, air_defence=None, air_damage=None, thunder_defence=None, thunder_damage=None, 
-                 fire_defence=None, fire_damage=None, water_defence=None, water_damage=None, earth_defence=None, earth_damage=None, 
+    def __init__(self, health=None, air_defence=None, air_damage=None, thunder_defence=None, thunder_damage=None,
+                 fire_defence=None, fire_damage=None, water_defence=None, water_damage=None, earth_defence=None,
+                 earth_damage=None,
                  base_damage=None, average_dps=None):
         self.health = health
         self.fire_damage = fire_damage
@@ -13,8 +14,8 @@ class Base:
         self.thunder_damage = thunder_damage
         self.earth_defence = earth_defence
         self.earth_damage = earth_damage
-        self.base_damage = base_damage 
-        self.average_dps = average_dps 
+        self.base_damage = base_damage
+        self.average_dps = average_dps
 
     @staticmethod
     def from_dict(data, average_dps=None):

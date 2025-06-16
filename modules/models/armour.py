@@ -1,6 +1,7 @@
 from .item import Item
 from .item_types import ItemType
 
+
 class Armour(Item):
     CLASS_REQUIREMENT_MAPPING = {
         'archer': 'Archer/Hunter',
@@ -10,8 +11,10 @@ class Armour(Item):
         'shaman': 'Shaman/Skyseer'
     }
 
-    def __init__(self, name, rarity, powder_slots, item_subtype, drop_restriction, base, identifications, requirements, armor_material, drop_meta=None, lore=None):
-        super().__init__(name, rarity, powder_slots, ItemType.ARMOR.value, item_subtype, drop_restriction, base, identifications, requirements, drop_meta, lore)
+    def __init__(self, name, rarity, powder_slots, item_subtype, drop_restriction, base, identifications, requirements,
+                 armor_material, drop_meta=None, lore=None):
+        super().__init__(name, rarity, powder_slots, ItemType.ARMOR.value, item_subtype, drop_restriction, base,
+                         identifications, requirements, drop_meta, lore)
         self.armor_material = armor_material
         if 'Classrequirement' in self.requirements:
             class_req_key = self.requirements.pop('Classrequirement')

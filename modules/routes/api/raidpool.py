@@ -43,6 +43,7 @@ def save_gambit_items():
     except Exception as e:
         return handle_request_error(e, error_msg="Error processing gambits")
 
+
 @raidpool_bp.get('/raidpool/gambits/current')
 @require_scope('read:raidpool')
 def get_current_gambits():

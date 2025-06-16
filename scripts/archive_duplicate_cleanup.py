@@ -22,6 +22,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
 )
 
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Core logic
 # ──────────────────────────────────────────────────────────────────────────────
@@ -76,5 +77,5 @@ def cleanup_duplicates(target_date: datetime) -> None:
 
 
 if __name__ == "__main__":
-    target_date = datetime(2025, 6, 2, tzinfo=timezone.utc)
+    target_date = datetime(2025, 5, 25, tzinfo=timezone.utc)
     cleanup_duplicates(target_date)
