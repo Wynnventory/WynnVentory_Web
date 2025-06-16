@@ -1,45 +1,41 @@
 import logging
-import os
-import sys
 import time
 import unittest
 from queue import Queue
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import MagicMock, call, patch
 
-# Add the parent directory to sys.path to import the module
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from modules.utils import queue_worker
 from modules.models.collection_types import Collection
+from modules.utils import queue_worker
+from tests.test_base import BaseTestCase
 
 # Configure logging for tests
 logging.basicConfig(level=logging.DEBUG)
 
 
-class TestQueueWorker(unittest.TestCase):
+class TestQueueWorker(BaseTestCase):
     """Test cases for the queue_worker module."""
 
     def setUp(self):
         """Set up test fixtures before each test."""
+        super().setUp()
+
         # Reset the queue and create a new worker thread for each test
         self.original_queue = queue_worker._request_queue
         self.original_worker_thread = queue_worker._worker_thread
 
         # Create a patch for the logger to capture log messages
-        self.logger_patch = patch('modules.utils.queue_worker.logger')
-        self.mock_logger = self.logger_patch.start()
+        self.mock_logger = self.create_patch('modules.utils.queue_worker.logger')
 
         # Reset the mock logger's call history
         self.mock_logger.reset_mock()
 
     def tearDown(self):
         """Clean up after each test."""
+        super().tearDown()
+
         # Restore the original queue and worker thread
         queue_worker._request_queue = self.original_queue
         queue_worker._worker_thread = self.original_worker_thread
-
-        # Stop the logger patch
-        self.logger_patch.stop()
 
     @patch('modules.repositories.market_repo.save')
     def test_enqueue_basic(self, mock_save):
@@ -53,9 +49,6 @@ class TestQueueWorker(unittest.TestCase):
 
         # Enqueue the item
         queue_worker.enqueue(request)
-
-        # Skip the logging check as it might be handled differently in the actual implementation
-        pass
 
         # Wait a short time for the worker thread to process the item
         time.sleep(0.1)
@@ -107,10 +100,6 @@ class TestQueueWorker(unittest.TestCase):
 
         # Wait for the worker thread to process the item
         time.sleep(0.1)
-
-        # Skip the error logging check as it might be handled differently in the actual implementation
-        # Just verify the worker thread is still alive
-        pass
 
         # Verify the worker continued running despite the error
         self.assertTrue(queue_worker._worker_thread.is_alive())
@@ -196,6 +185,7 @@ class TestQueueWorker(unittest.TestCase):
         # Create a mock collection type that's not handled
         class MockCollection:
             name = "UNKNOWN"
+
             def __repr__(self):
                 return "MockCollection.UNKNOWN"
 

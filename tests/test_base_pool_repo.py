@@ -1,71 +1,52 @@
-import os
-import sys
 import unittest
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import call
 
-# Add the parent directory to sys.path to import the module
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from modules.repositories.base_pool_repo import BasePoolRepo
 from modules.models.collection_types import Collection
+from modules.repositories.base_pool_repo import BasePoolRepo
+from tests.test_base import BaseTestCase
 
 
-class TestBasePoolRepo(unittest.TestCase):
+class TestBasePoolRepo(BaseTestCase):
     """Test cases for the BasePoolRepo class."""
 
     def setUp(self):
         """Set up test fixtures before each test."""
+        super().setUp()
+
         # Create a BasePoolRepo instance for testing
         self.repo = BasePoolRepo(Collection.LOOT)
-        
-        # Create a patch for the get_collection function
-        self.get_collection_patch = patch('modules.repositories.base_pool_repo.get_collection')
-        self.mock_get_collection = self.get_collection_patch.start()
-        
-        # Create a mock collection
-        self.mock_collection = MagicMock()
-        self.mock_get_collection.return_value = self.mock_collection
-        
-        # Create a patch for the get_lootpool_week_for_timestamp function
-        self.get_week_patch = patch('modules.repositories.base_pool_repo.get_lootpool_week_for_timestamp')
-        self.mock_get_week = self.get_week_patch.start()
-        self.mock_get_week.return_value = (2025, 18)  # Example year and week
-        
+
         # Set up a fixed current time for testing
         self.current_time = datetime(2025, 5, 5, 12, 0, 0, tzinfo=timezone.utc)
-        self.datetime_patch = patch('modules.repositories.base_pool_repo.datetime')
-        self.mock_datetime = self.datetime_patch.start()
-        self.mock_datetime.now.return_value = self.current_time
-        self.mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
 
-    def tearDown(self):
-        """Clean up after each test."""
-        # Stop all patches
-        self.get_collection_patch.stop()
-        self.get_week_patch.stop()
-        self.datetime_patch.stop()
+        # Create mocks
+        self.mock_collection = self.setup_collection_mock('modules.repositories.base_pool_repo')
+        self.mock_get_week = self.create_patch('modules.repositories.base_pool_repo.get_lootpool_week_for_timestamp')
+        self.mock_get_week.return_value = (2025, 18)  # Example year and week
+
+        self.mock_datetime = self.setup_datetime_mock(self.current_time, 'modules.repositories.base_pool_repo')
 
     def test_save_new_pool(self):
         """Test saving a new pool (no existing document)."""
         # Set up the mock collection to return None (no existing document)
         self.mock_collection.find_one.return_value = None
-        
+
         # Create a test pool
         test_pool = {
             "region": "US",
             "items": [{"name": "Item1", "amount": 1}, {"name": "Item2", "amount": 2}],
             "timestamp": "2025-05-05 12:00:00"
         }
-        
+
         # Call the save method
         self.repo.save([test_pool])
-        
+
         # Verify the collection.find_one was called with the correct filter
         self.mock_collection.find_one.assert_called_once_with(
             {'region': 'US', 'week': 18, 'year': 2025}
         )
-        
+
         # Verify the collection.insert_one was called with the correct document
         expected_doc = {
             "region": "US",
@@ -75,7 +56,7 @@ class TestBasePoolRepo(unittest.TestCase):
             "year": 2025
         }
         self.mock_collection.insert_one.assert_called_once_with(expected_doc)
-        
+
         # Verify the collection.delete_one was not called
         self.mock_collection.delete_one.assert_not_called()
 
@@ -90,27 +71,27 @@ class TestBasePoolRepo(unittest.TestCase):
             "year": 2025
         }
         self.mock_collection.find_one.return_value = existing_doc
-        
+
         # Create a test pool with more items
         test_pool = {
             "region": "US",
             "items": [{"name": "Item1", "amount": 1}, {"name": "Item2", "amount": 2}],
             "timestamp": "2025-05-05 12:00:00"
         }
-        
+
         # Call the save method
         self.repo.save([test_pool])
-        
+
         # Verify the collection.find_one was called with the correct filter
         self.mock_collection.find_one.assert_called_once_with(
             {'region': 'US', 'week': 18, 'year': 2025}
         )
-        
+
         # Verify the collection.delete_one was called with the correct filter
         self.mock_collection.delete_one.assert_called_once_with(
             {'region': 'US', 'week': 18, 'year': 2025}
         )
-        
+
         # Verify the collection.insert_one was called with the correct document
         expected_doc = {
             "region": "US",
@@ -132,27 +113,27 @@ class TestBasePoolRepo(unittest.TestCase):
             "year": 2025
         }
         self.mock_collection.find_one.return_value = existing_doc
-        
+
         # Create a test pool with the same number of items
         test_pool = {
             "region": "US",
             "items": [{"name": "Item1", "amount": 1}, {"name": "Item2", "amount": 2}],
             "timestamp": "2025-05-05 12:00:00"
         }
-        
+
         # Call the save method
         self.repo.save([test_pool])
-        
+
         # Verify the collection.find_one was called with the correct filter
         self.mock_collection.find_one.assert_called_once_with(
             {'region': 'US', 'week': 18, 'year': 2025}
         )
-        
+
         # Verify the collection.delete_one was called with the correct filter
         self.mock_collection.delete_one.assert_called_once_with(
             {'region': 'US', 'week': 18, 'year': 2025}
         )
-        
+
         # Verify the collection.insert_one was called with the correct document
         expected_doc = {
             "region": "US",
@@ -162,7 +143,6 @@ class TestBasePoolRepo(unittest.TestCase):
             "year": 2025
         }
         self.mock_collection.insert_one.assert_called_once_with(expected_doc)
-
 
     def test_save_skip_insertion(self):
         """Test skipping insertion when the existing document is newer and has more items."""
@@ -175,22 +155,22 @@ class TestBasePoolRepo(unittest.TestCase):
             "year": 2025
         }
         self.mock_collection.find_one.return_value = existing_doc
-        
+
         # Create a test pool with fewer items
         test_pool = {
             "region": "US",
             "items": [{"name": "Item1", "amount": 1}, {"name": "Item2", "amount": 2}],
             "timestamp": "2025-05-05 12:00:00"
         }
-        
+
         # Call the save method
         self.repo.save([test_pool])
-        
+
         # Verify the collection.find_one was called with the correct filter
         self.mock_collection.find_one.assert_called_once_with(
             {'region': 'US', 'week': 18, 'year': 2025}
         )
-        
+
         # Verify the collection.delete_one and insert_one were not called
         self.mock_collection.delete_one.assert_not_called()
         self.mock_collection.insert_one.assert_not_called()
@@ -199,7 +179,7 @@ class TestBasePoolRepo(unittest.TestCase):
         """Test saving multiple pools."""
         # Set up the mock collection to return None for all find_one calls
         self.mock_collection.find_one.return_value = None
-        
+
         # Create test pools
         test_pools = [
             {
@@ -213,16 +193,16 @@ class TestBasePoolRepo(unittest.TestCase):
                 "timestamp": "2025-05-05 12:00:00"
             }
         ]
-        
+
         # Call the save method
         self.repo.save(test_pools)
-        
+
         # Verify the collection.find_one was called twice with the correct filters
         self.mock_collection.find_one.assert_has_calls([
             call({'region': 'US', 'week': 18, 'year': 2025}),
             call({'region': 'EU', 'week': 18, 'year': 2025})
         ])
-        
+
         # Verify the collection.insert_one was called twice with the correct documents
         expected_docs = [
             {

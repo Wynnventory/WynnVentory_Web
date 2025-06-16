@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from modules.utils.version import compare_versions, VersionPart
 
+
 class TestVersionComparison(unittest.TestCase):
     """Test cases for the compare_versions function."""
 
@@ -86,6 +87,7 @@ class TestVersionComparison(unittest.TestCase):
         self.assertTrue(compare_versions("999.999.999", "999.999.998"))
         self.assertFalse(compare_versions("999.999.998", "999.999.999"))
 
+
 class TestVersionPart(unittest.TestCase):
     """Test cases for the VersionPart class."""
 
@@ -128,6 +130,7 @@ class TestVersionPart(unittest.TestCase):
         # Empty suffix vs non-dev suffix
         self.assertGreater(VersionPart("123"), VersionPart("123beta"))
         self.assertLess(VersionPart("123alpha"), VersionPart("123"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,55 +1,34 @@
-import os
-import sys
 import unittest
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch, MagicMock
-
-# Add the parent directory to sys.path to import the module
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from unittest.mock import MagicMock, patch
 
 from modules.repositories.raidpool_repo import save, save_gambits
+from tests.test_base import BaseTestCase
 
 
-class TestRaidpoolRepo(unittest.TestCase):
+class TestRaidpoolRepo(BaseTestCase):
     """Test cases for the raidpool_repo module."""
 
     def setUp(self):
         """Set up test fixtures before each test."""
-        # Create a patch for the get_collection function
-        self.get_collection_patch = patch('modules.repositories.raidpool_repo.get_collection')
-        self.mock_get_collection = self.get_collection_patch.start()
-
-        # Create a mock collection
-        self.mock_collection = MagicMock()
-        self.mock_get_collection.return_value = self.mock_collection
-
-        # Create a patch for the _repo.save method
-        self.repo_save_patch = patch('modules.repositories.raidpool_repo._repo.save')
-        self.mock_repo_save = self.repo_save_patch.start()
-
-        # Create a patch for the get_current_gambit_day function
-        self.get_gambit_day_patch = patch('modules.repositories.raidpool_repo.get_current_gambit_day')
-        self.mock_get_gambit_day = self.get_gambit_day_patch.start()
+        super().setUp()
 
         # Set up fixed reset times for testing with timezone awareness
         self.previous_reset = datetime(2025, 5, 7, 17, 0, 0, tzinfo=timezone.utc)
         self.next_reset = datetime(2025, 5, 8, 17, 0, 0, tzinfo=timezone.utc)
-        self.mock_get_gambit_day.return_value = (self.previous_reset, self.next_reset)
 
         # Set up a fixed current time for testing
         self.current_time = datetime(2025, 5, 8, 12, 0, 0, tzinfo=timezone.utc)
-        self.datetime_patch = patch('modules.repositories.raidpool_repo.datetime')
-        self.mock_datetime = self.datetime_patch.start()
-        self.mock_datetime.now.return_value = self.current_time
-        self.mock_datetime.strptime.return_value = self.current_time
 
-    def tearDown(self):
-        """Clean up after each test."""
-        # Stop all patches
-        self.get_collection_patch.stop()
-        self.repo_save_patch.stop()
-        self.get_gambit_day_patch.stop()
-        self.datetime_patch.stop()
+        # Create mocks
+        self.mock_collection = self.setup_collection_mock('modules.repositories.raidpool_repo')
+        self.mock_repo_save = self.create_patch('modules.repositories.raidpool_repo._repo.save')
+
+        self.mock_get_gambit_day = self.create_patch('modules.repositories.raidpool_repo.get_current_gambit_day')
+        self.mock_get_gambit_day.return_value = (self.previous_reset, self.next_reset)
+
+        self.mock_datetime = self.setup_datetime_mock(self.current_time, 'modules.repositories.raidpool_repo')
+        self.mock_datetime.strptime.return_value = self.current_time
 
     def test_save(self):
         """Test the save function."""

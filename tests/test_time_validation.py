@@ -1,12 +1,8 @@
-import os
-import sys
 import unittest
 from datetime import datetime, timezone
 from unittest.mock import patch
 
-# Add the parent directory to sys.path to import the module
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
+from modules.models.collection_types import Collection
 from modules.utils.time_validation import (
     get_lootpool_week,
     get_lootpool_week_for_timestamp,
@@ -15,19 +11,21 @@ from modules.utils.time_validation import (
     get_week_range,
     is_time_valid
 )
-from modules.models.collection_types import Collection
+from tests.test_base import BaseTestCase
 
 
-class TestTimeValidation(unittest.TestCase):
+class TestTimeValidation(BaseTestCase):
     """Test cases for the time_validation module."""
 
-    @patch('modules.utils.time_validation.datetime')
-    def test_get_lootpool_week_for_timestamp(self, mock_datetime):
+    def test_get_lootpool_week_for_timestamp(self):
         """Test get_lootpool_week_for_timestamp with various scenarios."""
         # Create mock datetime objects for our test cases
         friday_before_reset = datetime(2025, 5, 2, 17, 59, 59)  # Friday at 5:59:59 PM
         friday_after_reset = datetime(2025, 5, 2, 18, 0, 1)  # Friday at 6:00:01 PM
         middle_of_week = datetime(2025, 5, 5, 12, 0, 0)  # Monday at noon
+
+        # Create a mock for datetime
+        mock_datetime = self.create_patch('modules.utils.time_validation.datetime')
 
         # Mock the strptime method to return our test datetimes
         mock_datetime.strptime.side_effect = lambda ts, fmt: {
@@ -75,43 +73,41 @@ class TestTimeValidation(unittest.TestCase):
         self.assertEqual(week2, week3)  # Both should be the same week
         self.assertNotEqual(week1, week2)  # These should be different weeks
 
-    @patch('modules.utils.time_validation.datetime')
-    def test_get_lootpool_week(self, mock_datetime):
+    def test_get_lootpool_week(self):
         """Test get_lootpool_week function."""
-        # Mock the datetime.now() to return a fixed date
+        # Set up a fixed date and mocks
         mock_now = datetime(2025, 5, 8, 12, 0, 0, tzinfo=timezone.utc)
-        mock_datetime.now.return_value = mock_now
-        mock_datetime.strptime.return_value = mock_now
+        mocks = self.setup_time_validation_mocks(
+            current_time=mock_now,
+            week_tuple=(2025, 19)  # Example week number
+        )
 
         # Call the function
-        with patch('modules.utils.time_validation.get_lootpool_week_for_timestamp') as mock_get_week:
-            mock_get_week.return_value = (2025, 19)  # Example week number
-            year, week = get_lootpool_week()
+        year, week = get_lootpool_week()
 
-            # Verify the function was called with the correct timestamp
-            mock_get_week.assert_called_once_with(mock_now.strftime('%Y-%m-%d %H:%M:%S'))
+        # Verify the function was called with the correct timestamp
+        mocks['get_week'].assert_called_once_with(mock_now.strftime('%Y-%m-%d %H:%M:%S'))
 
-            # Verify the result
-            self.assertEqual((year, week), (2025, 19))
+        # Verify the result
+        self.assertEqual((year, week), (2025, 19))
 
-    @patch('modules.utils.time_validation.datetime')
-    def test_get_raidpool_week(self, mock_datetime):
+    def test_get_raidpool_week(self):
         """Test get_raidpool_week function."""
-        # Mock the datetime.now() to return a fixed date
+        # Set up a fixed date and mocks
         mock_now = datetime(2025, 5, 8, 12, 0, 0, tzinfo=timezone.utc)
-        mock_datetime.now.return_value = mock_now
-        mock_datetime.strptime.return_value = mock_now
+        mocks = self.setup_time_validation_mocks(
+            current_time=mock_now,
+            week_tuple=(2025, 19)  # Example week number
+        )
 
         # Call the function
-        with patch('modules.utils.time_validation.get_lootpool_week_for_timestamp') as mock_get_week:
-            mock_get_week.return_value = (2025, 19)  # Example week number
-            year, week = get_raidpool_week()
+        year, week = get_raidpool_week()
 
-            # Verify the function was called with the correct timestamp and reset hour
-            mock_get_week.assert_called_once_with(mock_now.strftime('%Y-%m-%d %H:%M:%S'), reset_hour=17)
+        # Verify the function was called with the correct timestamp and reset hour
+        mocks['get_week'].assert_called_once_with(mock_now.strftime('%Y-%m-%d %H:%M:%S'), reset_hour=17)
 
-            # Verify the result
-            self.assertEqual((year, week), (2025, 19))
+        # Verify the result
+        self.assertEqual((year, week), (2025, 19))
 
     @patch('modules.utils.time_validation.datetime')
     def test_get_current_gambit_day(self, mock_datetime):
