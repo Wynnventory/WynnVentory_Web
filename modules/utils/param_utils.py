@@ -36,7 +36,7 @@ def parse_date_params(start_str: Optional[str] = None, end_str: Optional[str] = 
         return None, None, {'error': 'Invalid date format. Use YYYY-MM-DD.'}
 
 
-def parse_boolean_param(param_value: Optional[str]) -> Optional[bool]:
+def parse_boolean_param(param_value: Optional[str], default: Optional[bool] = False) -> Optional[bool]:
     """
     Parse a boolean parameter from a string value.
 
@@ -47,7 +47,7 @@ def parse_boolean_param(param_value: Optional[str]) -> Optional[bool]:
     Returns:
         Parsed boolean value or None if param_value is None
     """
-    return param_value.lower() == 'true' if param_value is not None else None
+    return param_value.lower() == 'true' if param_value is not None else default
 
 
 def parse_tier_param(tier_param: Optional[str]) -> Optional[int]:

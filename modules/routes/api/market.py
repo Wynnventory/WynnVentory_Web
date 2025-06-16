@@ -46,8 +46,8 @@ def get_market_item_info(item_name):
     page_size = min(1000, request.args.get('page_size', 50, type=int))
 
     # Parse boolean parameters
-    shiny = parse_boolean_param(request.args.get('shiny'))
-    unidentified = parse_boolean_param(request.args.get('unidentified'))
+    shiny = parse_boolean_param(request.args.get('shiny'), None)
+    unidentified = parse_boolean_param(request.args.get('unidentified'), None)
 
     # Parse tier parameter
     tier = parse_tier_param(request.args.get('tier'))
