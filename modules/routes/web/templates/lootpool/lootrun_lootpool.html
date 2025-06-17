@@ -1,13 +1,19 @@
 {% extends '/components/_base.html' %}
 {% block title %}Lootpool{% endblock %}
 {% block content %}
-    <h1 class="pt-2 px-4">Wynncraft Lootpool</h1>
-    <div class="row px-4">
-        <h4 id="lootTime"></h4>
+    <div class="col">
+        <div class="row">
+            <h1>Wynncraft Lootpool</h1>
+        </div>
+        <div class="row">
+            <h4 id="lootTime"></h4>
+        </div>
     </div>
 
     <!-- Side Menu Container -->
-    <div id="filter-sidebar" class="collapsed">
+    <div id="filter-sidebar"
+         class="px-4 collapsed"
+         style="margin-top: -1rem !important">
         <!-- Filters Content -->
         <div class="side-menu-content">
             <div class="mb-3">

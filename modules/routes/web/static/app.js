@@ -1,6 +1,7 @@
 //base.html Javascript code
 
 document.addEventListener('DOMContentLoaded', (event) => {
+    // Dark mode toggle functionality
     const htmlElement = document.documentElement;
     const switchElement = document.getElementById('darkModeSwitch');
 
@@ -18,35 +19,91 @@ document.addEventListener('DOMContentLoaded', (event) => {
             localStorage.setItem('bsTheme', 'light');
         }
     });
+
+    // Navbar dropdown functionality for mobile
+    const dropdownToggles = document.querySelectorAll('.nav-group .nav-link.dropdown-toggle');
+
+    // For mobile: handle dropdown toggle clicks
+    dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function (e) {
+            // Only handle this for mobile view
+            if (window.innerWidth <= 992) {
+                e.preventDefault();
+
+                // Toggle aria-expanded attribute
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', !isExpanded);
+
+                // Find the dropdown menu
+                const dropdown = this.nextElementSibling;
+
+                // Close all other dropdowns
+                dropdownToggles.forEach(otherToggle => {
+                    if (otherToggle !== toggle) {
+                        otherToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                // Toggle dropdown visibility
+                if (isExpanded) {
+                    dropdown.style.opacity = '0';
+                    dropdown.style.pointerEvents = 'none';
+                    // Set display none after transition completes
+                    setTimeout(() => {
+                        dropdown.style.display = 'none';
+                    }, 200);
+                } else {
+                    dropdown.style.display = 'block';
+                    // Small delay to ensure display: block takes effect before changing opacity
+                    setTimeout(() => {
+                        dropdown.style.opacity = '1';
+                        dropdown.style.pointerEvents = 'auto';
+                    }, 10);
+                }
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function (e) {
+        if (window.innerWidth <= 992) {
+            // Check if click is outside any nav-group
+            if (!e.target.closest('.nav-group')) {
+                dropdownToggles.forEach(toggle => {
+                    toggle.setAttribute('aria-expanded', 'false');
+                    const dropdown = toggle.nextElementSibling;
+                    if (dropdown) {
+                        dropdown.style.opacity = '0';
+                        dropdown.style.pointerEvents = 'none';
+                        // Set display none after transition completes
+                        setTimeout(() => {
+                            dropdown.style.display = 'none';
+                        }, 200);
+                    }
+                });
+            }
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 992) {
+            // Reset all dropdowns for desktop view
+            dropdownToggles.forEach(toggle => {
+                toggle.setAttribute('aria-expanded', 'false');
+                const dropdown = toggle.nextElementSibling;
+                if (dropdown) {
+                    // Reset all inline styles to let CSS handle the display in desktop mode
+                    dropdown.style.removeProperty('display');
+                    dropdown.style.removeProperty('opacity');
+                    dropdown.style.removeProperty('pointer-events');
+                }
+            });
+        }
+    });
 });
 
-//base.html Javascript code
-
-
-//items.html Javascript code
-
-const toggleContent = document.getElementById('toggleContent');
-const itemsContainer = document.getElementById('items-container');
-
-// Add event listeners for Bootstrap collapse events
-if (toggleContent) {
-    toggleContent.addEventListener('show.bs.collapse', function () {
-        itemsContainer.classList.add('dtog');
-    });
-
-    toggleContent.addEventListener('hide.bs.collapse', function () {
-        itemsContainer.classList.remove('dtog');
-    });
-}
-
-function removeClass() {
-    const itemsContainer = document.getElementById('items-container');
-    itemsContainer.classList.remove('dtog');
-
-}
-
-const toggleContainer = document.querySelector('.toggle-container');
-const arrow = document.querySelector('.arrow');
+// Initialize selected filters array
 const selectedFilters = [];
 
 // Toggle filter button and update selected filters
@@ -69,7 +126,9 @@ function toggleFilter(button, filterTypes) {
 }
 
 // Submit search query to the server
-function submitSearch() {
+function submitSearch(e) {
+    if (e) e.preventDefault();  // Prevent form reload
+
     const query = document.getElementById('search-query').value;
     const payload = {
         query: query,
@@ -96,6 +155,7 @@ async function fetchItems(payload) {
     });
     if (response.ok) {
         const data = await response.json();
+        console.log(data);
         displayItems(data.items);
     } else {
         console.error('Failed to fetch items');
@@ -104,7 +164,7 @@ async function fetchItems(payload) {
 
 // Display items inside the items-container
 function displayItems(items) {
-    const container = document.getElementById('items-container').querySelector('.row');
+    const container = document.querySelector('#items-container .row-cols-1');
     container.innerHTML = ''; // Clear previous items
 
     items.forEach(itemStats => {
@@ -218,7 +278,7 @@ function displayItems(items) {
                 </div>
             </div>
         `;
-
+        console.log(itemCardHTML);
         container.insertAdjacentHTML('beforeend', itemCardHTML);
     });
 }
@@ -227,12 +287,13 @@ if (document.getElementById('collapse-button')) {
     document.getElementById('collapse-button').addEventListener('click', function () {
         const filterContainer = document.getElementById('filter-sidebar');
         filterContainer.classList.toggle('collapsed');
-        if (filterContainer.classList.contains('collapsed')) {
-            this.innerHTML = '<';
-        } else {
-            this.innerHTML = '>';
+        const isCollapsed = filterContainer.classList.contains('collapsed');
+        this.innerHTML = isCollapsed ? '<' : '>';
+
+        const itemsContainer = document.getElementById('items-container');
+        if (itemsContainer) {
+            itemsContainer.classList.toggle('expanded', isCollapsed);
         }
-        document.getElementById('items-container').classList.toggle('expanded');
     });
 }
 

@@ -1,7 +1,7 @@
 {% extends '/components/_base.html' %}
 {% block title %}Raidpool{% endblock %}
 {% block content %}
-    <h1 class="pt-2 px-4">Wynncraft Raidpool</h1>
+    <h1>Wynncraft Raidpool</h1>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4">
         {% for gambit in gambit_data %}
@@ -43,14 +43,16 @@
         {% endfor %}
     </div>
 
-    <div class="row px-4 g-3">
+    <div class="row mt-4">
         <h4 id="raidTime"></h4>
     </div>
     <link rel="stylesheet"
           href="https://unpkg.com/minecraft-text/style.css"/>
 
     <!-- Side Menu Container -->
-    <div id="filter-sidebar" class="collapsed">
+    <div id="filter-sidebar"
+         class="px-4 collapsed"
+         style="margin-top: -1rem !important">
         <!-- Filters Content -->
         <div class="side-menu-content">
             <!-- Search Input Field -->
