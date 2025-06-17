@@ -50,7 +50,7 @@
           href="https://unpkg.com/minecraft-text/style.css"/>
 
     <!-- Side Menu Container -->
-    <div id="filter-sidebar" class="px-4 collapsed" style="margin-top: 4rem">
+    <div id="filter-sidebar" class="collapsed">
         <!-- Filters Content -->
         <div class="side-menu-content">
             <!-- Search Input Field -->
@@ -74,7 +74,7 @@
             </div>
         </div>
     </div>
-    <button onclick="removeClass()" style="margin-top: 4rem" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
+    <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4 g-3">
         {% for region_data in loot_data %}
