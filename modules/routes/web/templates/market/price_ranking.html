@@ -7,7 +7,42 @@
             font-size: 0.75rem;
             padding: 0.25rem 0.5rem;
         }
+
+        /* DataTables responsive styles */
+        .dataTables_wrapper {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        /* Make sure table is responsive */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Style for DataTables filter and pagination */
+        .dataTables_filter, .dataTables_paginate {
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Ensure table fits on mobile */
+        @media (max-width: 767px) {
+            .dataTables_wrapper .dataTables_filter {
+                text-align: left;
+                margin-top: 0.5rem;
+            }
+
+            .dataTables_wrapper .dataTables_length,
+            .dataTables_wrapper .dataTables_filter {
+                float: none;
+                width: 100%;
+            }
+        }
     </style>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
 
     <div class="container mt-5">
         <h2>Item Rankings</h2>
@@ -52,27 +87,34 @@
             </div>
         </div>
 
-        <table class="table table-striped" id="rankingTable">
-            <thead class="sticky-top">
-            <tr>
-                <th>Rank</th>
-                <th>Item Name</th>
-                <th>Avg Price</th>
-                <th>Lowest</th>
-                <th>Highest</th>
-                <th>Mid 80% Avg</th>
-                <th>Unid Mid 80% Avg</th>
-                <th>Total Items</th>
-                <th>Total Unid Items</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-striped" id="rankingTable">
+                <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Item Name</th>
+                    <th>Avg Price</th>
+                    <th>Lowest</th>
+                    <th>Highest</th>
+                    <th>Mid 80% Avg</th>
+                    <th>Unid Mid 80% Avg</th>
+                    <th>Total Items</th>
+                    <th>Total Unid Items</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- Chart.js and date adapter -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
     <script>
         // Utilities
         function capitalizeWords(str) {
@@ -157,10 +199,20 @@
             displayRanking(data || []);
         }
 
+        // DataTable instance variable
+        let dataTable = null;
+
         // Populate table
         function displayRanking(items) {
             const tbody = document.querySelector('#rankingTable tbody');
             const dateModeVisible = document.getElementById('dateRangeContainer').style.display !== 'none';
+
+            // Destroy existing DataTable if it exists
+            if (dataTable) {
+                dataTable.destroy();
+                dataTable = null;
+            }
+
             tbody.innerHTML = '';
 
             items.forEach(it => {
@@ -183,18 +235,65 @@
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-          <td>${it.rank}</td>
+          <td data-order="${it.rank}">${it.rank}</td>
           <td><a href="${href}">
             ${capitalizeWords(it.name)}</a></td>
-          <td>${convertEmeraldsToGameFormat(it.average_price)}</td>
-          <td>${convertEmeraldsToGameFormat(it.lowest_price)}</td>
-          <td>${convertEmeraldsToGameFormat(it.highest_price)}</td>
-          <td>${convertEmeraldsToGameFormat(it.average_mid_80_percent_price)}</td>
-          <td>${convertEmeraldsToGameFormat(it.unidentified_average_mid_80_percent_price)}</td>
-          <td>${it.total_count}</td>
-          <td>${it.unidentified_count}</td>
+          <td data-order="${it.average_price || 0}">${convertEmeraldsToGameFormat(it.average_price)}</td>
+          <td data-order="${it.lowest_price || 0}">${convertEmeraldsToGameFormat(it.lowest_price)}</td>
+          <td data-order="${it.highest_price || 0}">${convertEmeraldsToGameFormat(it.highest_price)}</td>
+          <td data-order="${it.average_mid_80_percent_price || 0}">${convertEmeraldsToGameFormat(it.average_mid_80_percent_price)}</td>
+          <td data-order="${it.unidentified_average_mid_80_percent_price || 0}">${convertEmeraldsToGameFormat(it.unidentified_average_mid_80_percent_price)}</td>
+          <td data-order="${it.total_count || 0}">${it.total_count}</td>
+          <td data-order="${it.unidentified_count || 0}">${it.unidentified_count}</td>
         `;
                 tbody.appendChild(tr);
+            });
+
+            // Initialize DataTable with responsive features
+            dataTable = $('#rankingTable').DataTable({
+                responsive: {
+                    details: {
+                        display: $.fn.dataTable.Responsive.display.childRowImmediate,
+                        type: 'column',
+                        renderer: function(api, rowIdx, columns) {
+                            const data = $.map(columns, function(col, i) {
+                                return col.hidden ?
+                                    '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">' +
+                                    '<td class="fw-bold">'+col.title+':</td> ' +
+                                    '<td>'+col.data+'</td>' +
+                                    '</tr>' :
+                                    '';
+                            }).join('');
+
+                            return data ? 
+                                $('<table class="table table-sm table-bordered"></table>').append(data) : 
+                                false;
+                        }
+                    }
+                },
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                autoWidth: false,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                language: {
+                    search: "Filter:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)"
+                },
+                columnDefs: [
+                    { responsivePriority: 1, targets: [0, 1] }, // Rank and Item Name are highest priority
+                    { responsivePriority: 2, targets: [2, 7] }, // Avg Price and Total Items are next priority
+                    { responsivePriority: 3, targets: [3, 4, 5, 6, 8] } // Other columns are lower priority
+                ],
+                drawCallback: function() {
+                    // Ensure responsive behavior is applied after each draw
+                    $(window).trigger('resize');
+                }
             });
         }
 

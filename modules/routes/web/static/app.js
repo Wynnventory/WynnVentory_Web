@@ -145,7 +145,6 @@ function submitSearch(event) {
 
 // Fetch items from the server
 async function fetchItems(payload) {
-    console.log(payload);
     const response = await fetch('/api/items', {
         method: 'POST',
         headers: {
@@ -155,7 +154,6 @@ async function fetchItems(payload) {
     });
     if (response.ok) {
         const data = await response.json();
-        console.log(data);
         displayItems(data.items);
     } else {
         console.error('Failed to fetch items');
@@ -278,7 +276,6 @@ function displayItems(items) {
                 </div>
             </div>
         `;
-        console.log(itemCardHTML);
         container.insertAdjacentHTML('beforeend', itemCardHTML);
     });
 }

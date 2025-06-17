@@ -134,7 +134,6 @@
         import {render} from "https://esm.sh/minecraft-text";
 
         document.querySelectorAll(".gambit-desc").forEach(el => {
-            console.log(el)
             el.innerHTML = render(el.textContent, "§").replace(/\n/g, "<br/>");
         });
     </script>
