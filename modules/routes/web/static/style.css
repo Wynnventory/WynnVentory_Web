@@ -164,8 +164,7 @@ background-color: var(--bs-body-bg);
 #items-container {
     width: 80%;
     margin-right: 310px;
-    transition: width 0.3s;
-    transition: margin-right 0.3s;
+    transition: width 0.3s, margin-right 0.3s;
 }
 
 #items-container.expanded {

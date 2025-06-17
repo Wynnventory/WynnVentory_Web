@@ -103,16 +103,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 });
 
-//base.html Javascript code
-
-
-//items.html Javascript code
-
 const toggleContent = document.getElementById('toggleContent');
 const itemsContainer = document.getElementById('items-container');
 
-// Add event listeners for Bootstrap collapse events
-if (toggleContent) {
+if (toggleContent && itemsContainer) {
     toggleContent.addEventListener('show.bs.collapse', function () {
         itemsContainer.classList.add('dtog');
     });
@@ -124,8 +118,9 @@ if (toggleContent) {
 
 function removeClass() {
     const itemsContainer = document.getElementById('items-container');
-    itemsContainer.classList.remove('dtog');
-
+    if (itemsContainer) {
+        itemsContainer.classList.remove('dtog');
+    }
 }
 
 const toggleContainer = document.querySelector('.toggle-container');
@@ -310,12 +305,13 @@ if (document.getElementById('collapse-button')) {
     document.getElementById('collapse-button').addEventListener('click', function () {
         const filterContainer = document.getElementById('filter-sidebar');
         filterContainer.classList.toggle('collapsed');
-        if (filterContainer.classList.contains('collapsed')) {
-            this.innerHTML = '<';
-        } else {
-            this.innerHTML = '>';
+        const isCollapsed = filterContainer.classList.contains('collapsed');
+        this.innerHTML = isCollapsed ? '<' : '>';
+
+        const itemsContainer = document.getElementById('items-container');
+        if (itemsContainer) {
+            itemsContainer.classList.toggle('expanded', isCollapsed);
         }
-        document.getElementById('items-container').classList.toggle('expanded');
     });
 }
 
