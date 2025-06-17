@@ -1099,6 +1099,14 @@ body {
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
+    /* Add background color to navbar collapse in mobile view */
+    .navbar-collapse {
+        background-color: var(--sidebar-color);
+        padding: 1rem;
+        margin: 0 -1rem; /* Extend to full width of navbar */
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
     .card-dropdown {
         position: static;
         min-width: 100%;
