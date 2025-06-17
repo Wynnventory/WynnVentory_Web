@@ -1,44 +1,88 @@
 {% extends '/components/_base.html' %}
 {% block title %}Emerald Calculator{% endblock %}
 {% block content %}
-    <h1 class="pt-2 px-4">Emerald Calculator</h1>
-    <div class="container mt-4">
-        <div class="row g-3 align-items-center">
-            <div class="col-auto">
-                <label for="fromSelect" class="col-form-label">From:</label>
-            </div>
-            <div class="col-auto">
-                <select class="form-select" id="fromSelect">
-                    <option value="int">Raw Emeralds</option>
-                    <option value="formatted">Formatted</option>
-                </select>
-            </div>
-            <div class="col-auto">
-                <button class="btn btn-outline-secondary" id="swapBtn">
-                    <i class="bi bi-arrow-left-right"></i>
-                </button>
-            </div>
-            <div class="col-auto">
-                <label for="toSelect" class="col-form-label">To:</label>
-            </div>
-            <div class="col-auto">
-                <select class="form-select" id="toSelect">
-                    <option value="formatted">Formatted</option>
-                    <option value="int">Raw Emeralds</option>
-                </select>
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="pt-2 mb-3 d-flex align-items-center">
+                    Emerald Calculator
+                </h1>
+                <p class="text-muted">Convert between raw emerald values and formatted Wynncraft currency notation (stx, le, eb, e).</p>
             </div>
         </div>
 
-        <!-- Dynamic input section will render here -->
-        <div class="mt-4" id="inputSection"></div>
+        <div class="row">
+            <div class="col-lg-8 col-md-10 col-12">
+                <div class="card bg-dark shadow-sm mb-4">
+                    <div class="card-header bg-dark">
+                        <h5 class="mb-0">Currency Converter</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Conversion Type Selection -->
+                        <div class="row g-3 align-items-center mb-4">
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <span class="input-group-text">From</span>
+                                    <select class="form-select" id="fromSelect">
+                                        <option value="int">Raw Emeralds</option>
+                                        <option value="formatted">Formatted (stx/le/eb/e)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <button class="btn btn-outline-light w-100" id="swapBtn" data-bs-toggle="tooltip" title="Swap conversion direction">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </button>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="input-group">
+                                    <span class="input-group-text">To</span>
+                                    <select class="form-select" id="toSelect">
+                                        <option value="formatted">Formatted (stx/le/eb/e)</option>
+                                        <option value="int">Raw Emeralds</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-        <div class="mt-4">
-            <button class="btn btn-success" onclick="convertEmeralds()">Convert</button>
-        </div>
+                        <!-- Dynamic input section will render here -->
+                        <div class="mb-4" id="inputSection"></div>
 
-        <div class="mt-4">
-            <h4>Result:</h4>
-            <h3 id="resultArea" class="bg-dark p-3 rounded text-light">—</h3>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
+                            <button class="btn btn-success px-4" onclick="convertEmeralds()">
+                                <i class="bi bi-calculator me-2"></i>Convert
+                            </button>
+                        </div>
+
+                        <div class="result-container">
+                            <h5 class="text-muted mb-2">Result:</h5>
+                            <div id="resultArea" class="p-3 rounded bg-dark border border-success">
+                                <h3 class="mb-0 text-center">—</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Information Card -->
+                <div class="card bg-dark shadow-sm mb-4">
+                    <div class="card-header bg-dark">
+                        <h5 class="mb-0">About Wynncraft Currency</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Wynncraft uses a base-64 currency system:</p>
+                        <ul>
+                            <li><strong>1 stx (Stack of Liquid Emeralds)</strong> = 64 le = 4,096 eb = 262,144 e</li>
+                            <li><strong>1 le (Liquid Emerald)</strong> = 64 eb = 4,096 e</li>
+                            <li><strong>1 eb (Emerald Block)</strong> = 64 e</li>
+                            <li><strong>1 e (Emerald)</strong> = base unit</li>
+                        </ul>
+                        <div class="alert alert-secondary">
+                            <i class="bi bi-info-circle me-2"></i>
+                            This calculator helps convert between the raw emerald count and the formatted Wynncraft notation.
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -46,6 +90,12 @@
         document.addEventListener("DOMContentLoaded", () => {
             const fromSelect = document.getElementById("fromSelect");
             const toSelect = document.getElementById("toSelect");
+
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
 
             function getOpposite(value) {
                 return value === "int" ? "formatted" : "int";
@@ -88,36 +138,60 @@
 
             function updateInputs() {
                 const inputSection = document.getElementById("inputSection");
-                const resultArea = document.getElementById("resultArea");
+                const resultArea = document.querySelector("#resultArea h3");
                 resultArea.textContent = "—";
                 inputSection.innerHTML = "";
 
                 if (fromSelect.value === "formatted") {
                     inputSection.innerHTML = `
-                <div class="row g-3">
-                    <div class="col">
-                        <label for="stxInput" class="form-label">Stx</label>
-                        <input type="number" min="0" id="stxInput" class="form-control" value="0">
-                    </div>
-                    <div class="col">
-                        <label for="leInput" class="form-label">LE</label>
-                        <input type="number" min="0" id="leInput" class="form-control" value="0">
-                    </div>
-                    <div class="col">
-                        <label for="ebInput" class="form-label">EB</label>
-                        <input type="number" min="0" id="ebInput" class="form-control" value="0">
-                    </div>
-                    <div class="col">
-                        <label for="eInput" class="form-label">E</label>
-                        <input type="number" min="0" id="eInput" class="form-control" value="0">
-                    </div>
-                </div>
-            `;
+                        <div class="card bg-dark border-secondary mb-3">
+                            <div class="card-header bg-dark">
+                                <h6 class="mb-0">Enter Formatted Currency Values</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-3 col-6">
+                                        <div class="form-floating">
+                                            <input type="number" min="0" id="stxInput" class="form-control bg-dark text-light" value="0">
+                                            <label for="stxInput">Stacks (stx)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6">
+                                        <div class="form-floating">
+                                            <input type="number" min="0" id="leInput" class="form-control bg-dark text-light" value="0">
+                                            <label for="leInput">Liquid (le)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6">
+                                        <div class="form-floating">
+                                            <input type="number" min="0" id="ebInput" class="form-control bg-dark text-light" value="0">
+                                            <label for="ebInput">Blocks (eb)</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6">
+                                        <div class="form-floating">
+                                            <input type="number" min="0" id="eInput" class="form-control bg-dark text-light" value="0">
+                                            <label for="eInput">Emeralds (e)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 } else {
                     inputSection.innerHTML = `
-                <label for="intInput" class="form-label">Emeralds (integer)</label>
-                <input type="number" min="0" id="intInput" class="form-control" value="0">
-            `;
+                        <div class="card bg-dark border-secondary mb-3">
+                            <div class="card-header bg-dark">
+                                <h6 class="mb-0">Enter Raw Emerald Value</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-floating">
+                                    <input type="number" min="0" id="intInput" class="form-control bg-dark text-light" value="0">
+                                    <label for="intInput">Total Emeralds</label>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 attachEnterListenerToInputs();
@@ -139,7 +213,7 @@
                 const eb = parseInt(document.getElementById("ebInput")?.value || 0);
                 const e = parseInt(document.getElementById("eInput")?.value || 0);
                 const total = stx * 64 ** 3 + le * 64 ** 2 + eb * 64 + e;
-                result = `${total} emeralds`;
+                result = `${total.toLocaleString()} emeralds`;
             } else if (from === "int") {
                 let rem = Math.floor(parseInt(document.getElementById("intInput")?.value || 0));
                 const stx = Math.floor(rem / 64 ** 3);
@@ -163,7 +237,48 @@
                 }
             }
 
-            document.getElementById("resultArea").textContent = result;
+            document.querySelector("#resultArea h3").textContent = result;
+
+            // Add animation effect to result
+            const resultContainer = document.getElementById("resultArea");
+            resultContainer.classList.add("border-pulse");
+            setTimeout(() => {
+                resultContainer.classList.remove("border-pulse");
+            }, 1000);
         }
     </script>
+
+    <style>
+        /* Custom styles for emerald calculator */
+        .border-pulse {
+            animation: border-pulse 1s ease;
+        }
+
+        @keyframes border-pulse {
+            0% { border-color: var(--bs-success); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5); }
+            50% { border-color: var(--bs-success); box-shadow: 0 0 0 5px rgba(25, 135, 84, 0.5); }
+            100% { border-color: var(--bs-success); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5); }
+        }
+
+        .form-floating > .form-control {
+            height: calc(3.5rem + 2px);
+            line-height: 1.25;
+        }
+
+        .form-floating > label {
+            padding: 1rem 0.75rem;
+        }
+
+        .result-container {
+            transition: all 0.3s ease;
+        }
+
+        #resultArea {
+            transition: all 0.3s ease;
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+    </style>
 {% endblock %}
