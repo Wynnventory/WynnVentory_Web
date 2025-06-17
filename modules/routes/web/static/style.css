@@ -85,6 +85,7 @@ a:hover {
     /* IE and Edge */
     scrollbar-width: none;
     /* Firefox */
+    padding: 1.5rem;
 }
 
 .content::-webkit-scrollbar {

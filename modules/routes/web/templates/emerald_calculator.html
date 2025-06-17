@@ -1,85 +1,86 @@
 {% extends '/components/_base.html' %}
 {% block title %}Emerald Calculator{% endblock %}
 {% block content %}
-    <div class="container-fluid">
+    <div class="container">
         <div class="row mb-4">
             <div class="col-12">
                 <h1 class="pt-2 mb-3 d-flex align-items-center">
                     Emerald Calculator
                 </h1>
-                <p class="text-muted">Convert between raw emerald values and formatted Wynncraft currency notation (stx, le, eb, e).</p>
+                <p class="text-muted">Convert between raw emerald values and formatted Wynncraft currency notation (stx,
+                    le, eb, e).</p>
             </div>
         </div>
 
         <div class="row">
-            <div class="col-lg-8 col-md-10 col-12">
-                <div class="card bg-dark shadow-sm mb-4">
-                    <div class="card-header bg-dark">
-                        <h5 class="mb-0">Currency Converter</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Conversion Type Selection -->
-                        <div class="row g-3 align-items-center mb-4">
-                            <div class="col-md-5">
-                                <div class="input-group">
-                                    <span class="input-group-text">From</span>
-                                    <select class="form-select" id="fromSelect">
-                                        <option value="int">Raw Emeralds</option>
-                                        <option value="formatted">Formatted (stx/le/eb/e)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-2 text-center">
-                                <button class="btn btn-outline-light w-100" id="swapBtn" data-bs-toggle="tooltip" title="Swap conversion direction">
-                                    <i class="bi bi-arrow-left-right"></i>
-                                </button>
-                            </div>
-                            <div class="col-md-5">
-                                <div class="input-group">
-                                    <span class="input-group-text">To</span>
-                                    <select class="form-select" id="toSelect">
-                                        <option value="formatted">Formatted (stx/le/eb/e)</option>
-                                        <option value="int">Raw Emeralds</option>
-                                    </select>
-                                </div>
+            <div class="card bg-dark shadow-sm mb-4">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0">Currency Converter</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Conversion Type Selection -->
+                    <div class="row g-3 align-items-center mb-4">
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text">From</span>
+                                <select class="form-select" id="fromSelect">
+                                    <option value="int">Raw Emeralds</option>
+                                    <option value="formatted">Formatted (stx/le/eb/e)</option>
+                                </select>
                             </div>
                         </div>
-
-                        <!-- Dynamic input section will render here -->
-                        <div class="mb-4" id="inputSection"></div>
-
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
-                            <button class="btn btn-success px-4" onclick="convertEmeralds()">
-                                <i class="bi bi-calculator me-2"></i>Convert
+                        <div class="col-md-2 text-center">
+                            <button class="btn btn-outline-light w-100" id="swapBtn" data-bs-toggle="tooltip"
+                                    title="Swap conversion direction">
+                                <i class="bi bi-arrow-left-right"></i>
                             </button>
                         </div>
-
-                        <div class="result-container">
-                            <h5 class="text-muted mb-2">Result:</h5>
-                            <div id="resultArea" class="p-3 rounded bg-dark border border-success">
-                                <h3 class="mb-0 text-center">—</h3>
+                        <div class="col-md-5">
+                            <div class="input-group">
+                                <span class="input-group-text">To</span>
+                                <select class="form-select" id="toSelect">
+                                    <option value="formatted">Formatted (stx/le/eb/e)</option>
+                                    <option value="int">Raw Emeralds</option>
+                                </select>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic input section will render here -->
+                    <div class="mb-4" id="inputSection"></div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
+                        <button class="btn btn-success px-4" onclick="convertEmeralds()">
+                            <i class="bi bi-calculator me-2"></i>Convert
+                        </button>
+                    </div>
+
+                    <div class="result-container">
+                        <h5 class="text-muted mb-2">Result:</h5>
+                        <div id="resultArea" class="p-3 rounded bg-dark border border-success">
+                            <h3 class="mb-0 text-center">—</h3>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Information Card -->
-                <div class="card bg-dark shadow-sm mb-4">
-                    <div class="card-header bg-dark">
-                        <h5 class="mb-0">About Wynncraft Currency</h5>
-                    </div>
-                    <div class="card-body">
-                        <p>Wynncraft uses a base-64 currency system:</p>
-                        <ul>
-                            <li><strong>1 stx (Stack of Liquid Emeralds)</strong> = 64 le = 4,096 eb = 262,144 e</li>
-                            <li><strong>1 le (Liquid Emerald)</strong> = 64 eb = 4,096 e</li>
-                            <li><strong>1 eb (Emerald Block)</strong> = 64 e</li>
-                            <li><strong>1 e (Emerald)</strong> = base unit</li>
-                        </ul>
-                        <div class="alert alert-secondary">
-                            <i class="bi bi-info-circle me-2"></i>
-                            This calculator helps convert between the raw emerald count and the formatted Wynncraft notation.
-                        </div>
+            <!-- Information Card -->
+            <div class="card bg-dark shadow-sm mb-4">
+                <div class="card-header bg-dark">
+                    <h5 class="mb-0">About Wynncraft Currency</h5>
+                </div>
+                <div class="card-body">
+                    <p>Wynncraft uses a base-64 currency system:</p>
+                    <ul>
+                        <li><strong>1 stx (Stack of Liquid Emeralds)</strong> = 64 le = 4,096 eb = 262,144 e</li>
+                        <li><strong>1 le (Liquid Emerald)</strong> = 64 eb = 4,096 e</li>
+                        <li><strong>1 eb (Emerald Block)</strong> = 64 e</li>
+                        <li><strong>1 e (Emerald)</strong> = base unit</li>
+                    </ul>
+                    <div class="alert alert-secondary">
+                        <i class="bi bi-info-circle me-2"></i>
+                        This calculator helps convert between the raw emerald count and the formatted Wynncraft
+                        notation.
                     </div>
                 </div>
             </div>
@@ -255,9 +256,18 @@
         }
 
         @keyframes border-pulse {
-            0% { border-color: var(--bs-success); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5); }
-            50% { border-color: var(--bs-success); box-shadow: 0 0 0 5px rgba(25, 135, 84, 0.5); }
-            100% { border-color: var(--bs-success); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5); }
+            0% {
+                border-color: var(--bs-success);
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5);
+            }
+            50% {
+                border-color: var(--bs-success);
+                box-shadow: 0 0 0 5px rgba(25, 135, 84, 0.5);
+            }
+            100% {
+                border-color: var(--bs-success);
+                box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5);
+            }
         }
 
         .form-floating > .form-control {
