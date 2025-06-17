@@ -126,8 +126,8 @@ function toggleFilter(button, filterTypes) {
 }
 
 // Submit search query to the server
-function submitSearch(e) {
-    if (e) e.preventDefault();  // Prevent form reload
+function submitSearch(event) {
+    if (event) event.preventDefault();  // Prevent form reload
 
     const query = document.getElementById('search-query').value;
     const payload = {
@@ -296,17 +296,6 @@ if (document.getElementById('collapse-button')) {
         }
     });
 }
-
-if (toggleContainer) {
-    toggleContainer.addEventListener('click', () => {
-        arrow.classList.toggle('collapsed');
-        arrow.innerHTML = arrow.classList.contains('collapsed') ? '▲' : '▼';
-    });
-}
-
-
-//items.html Javascript code
-
 
 //lootrun_lootpool.html Javascript code
 document.addEventListener('DOMContentLoaded', () => {
