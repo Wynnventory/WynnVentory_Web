@@ -2,55 +2,45 @@
 {% block title %}Items{% endblock %}
 {% block content %}
 
-    <div class="container-fluid h-100">
-        <div class="row h-100">
-            <!-- Filter Sidebar -->
-            <div id="filter-sidebar"
-                 class="px-4 collapsed"
-                 style="margin-top: -1rem !important">
-                <div class="d-flex flex-column flex-grow-1 align-items-center align-items-sm-start px-3 pt-4">
-                    <div class="w-100 mb-3">
-                        <div class="">
-                            <label for="search-query" class="form-label">Search Query</label>
-                            <input type="text" id="search-query" class="form-control" placeholder="Enter item name">
+    <div class="container-fluid">
+        <!-- Centered Search Section -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-12 col-md-8 col-lg-6 text-center">
+                <h1 class="mb-4">Wynncraft Items</h1>
+
+                <!-- Search Input -->
+                <div class="mb-4">
+                    <form id="search-form" onsubmit="submitSearch(e)">
+                        <div class="input-group">
+                            <input type="text" id="search-query" class="form-control form-control-lg" placeholder="Search for items...">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Search
+                            </button>
                         </div>
-                        <div>
-                            <button class="btn btn-primary w-100 mt-3" onclick="submitSearch()">Search</button>
-                        </div>
-                    </div>
-                    <!--Search Filters-->
-                    <div class="w-100">
-                        <div class="toggle-container form-label" data-bs-toggle="collapse"
-                             data-bs-target="#toggleContent"
-                             aria-expanded="false" aria-controls="toggleContent">
-                            <span>Type</span>
-                            <span class="arrow">▼</span>
-                        </div>
-                        <div class="collapse" id="toggleContent">
-                            <div class="mt-2">
-                                <button class="btn btn-outline-secondary my-1"
-                                        onclick="toggleFilter(this, 'weapon')">Weapons
-                                </button>
-                                <button class="btn btn-outline-secondary my-1"
-                                        onclick="toggleFilter(this, 'helmet, chestplate, leggings, boots')">Armor
-                                </button>
-                                <button class="btn btn-outline-secondary my-1"
-                                        onclick="toggleFilter(this, 'necklace, bracelet, ring')">Accessories
-                                </button>
-                            </div>
-                        </div>
+                    </form>
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="filter-buttons mb-4">
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <button class="btn btn-outline-primary" onclick="toggleFilter(this, 'weapon')">
+                            <i class="icon-minecraft icon-minecraft-iron-sword"></i> Weapons
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="toggleFilter(this, 'helmet, chestplate, leggings, boots')">
+                            <i class="icon-minecraft icon-minecraft-diamond-chestplate"></i> Armor
+                        </button>
+                        <button class="btn btn-outline-primary" onclick="toggleFilter(this, 'necklace, bracelet, ring')">
+                            <i class="icon-minecraft icon-minecraft-gold-ingot"></i> Accessories
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3">></button>
-
-            <!-- Display items area -->
-            <div id="items-container" class="col order-2 order-lg-1 expanded">
-                <h1 class="py-2">Wynncraft Items</h1>
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4">
-                    <!-- Items will be inserted here -->
-                </div>
+        <!-- Items Display Area -->
+        <div id="items-container" class="col order-2 order-lg-1 expanded">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 justify-content-center">
+                <!-- Items will be inserted here -->
             </div>
         </div>
     </div>

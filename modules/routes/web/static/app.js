@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     // For mobile: handle dropdown toggle clicks
     dropdownToggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
+        toggle.addEventListener('click', function (e) {
             // Only handle this for mobile view
             if (window.innerWidth <= 992) {
                 e.preventDefault();
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 
     // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (window.innerWidth <= 992) {
             // Check if click is outside any nav-group
             if (!e.target.closest('.nav-group')) {
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 
     // Handle window resize
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', function () {
         if (window.innerWidth > 992) {
             // Reset all dropdowns for desktop view
             dropdownToggles.forEach(toggle => {
@@ -103,28 +103,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 });
 
-const toggleContent = document.getElementById('toggleContent');
-const itemsContainer = document.getElementById('items-container');
-
-if (toggleContent && itemsContainer) {
-    toggleContent.addEventListener('show.bs.collapse', function () {
-        itemsContainer.classList.add('dtog');
-    });
-
-    toggleContent.addEventListener('hide.bs.collapse', function () {
-        itemsContainer.classList.remove('dtog');
-    });
-}
-
-function removeClass() {
-    const itemsContainer = document.getElementById('items-container');
-    if (itemsContainer) {
-        itemsContainer.classList.remove('dtog');
-    }
-}
-
-const toggleContainer = document.querySelector('.toggle-container');
-const arrow = document.querySelector('.arrow');
+// Initialize selected filters array
 const selectedFilters = [];
 
 // Toggle filter button and update selected filters
@@ -147,7 +126,9 @@ function toggleFilter(button, filterTypes) {
 }
 
 // Submit search query to the server
-function submitSearch() {
+function submitSearch(e) {
+    if (e) e.preventDefault();  // Prevent form reload
+
     const query = document.getElementById('search-query').value;
     const payload = {
         query: query,
@@ -174,6 +155,7 @@ async function fetchItems(payload) {
     });
     if (response.ok) {
         const data = await response.json();
+        console.log(data);
         displayItems(data.items);
     } else {
         console.error('Failed to fetch items');
@@ -182,7 +164,7 @@ async function fetchItems(payload) {
 
 // Display items inside the items-container
 function displayItems(items) {
-    const container = document.getElementById('items-container').querySelector('.row');
+    const container = document.querySelector('#items-container .row-cols-1');
     container.innerHTML = ''; // Clear previous items
 
     items.forEach(itemStats => {
@@ -296,7 +278,7 @@ function displayItems(items) {
                 </div>
             </div>
         `;
-
+        console.log(itemCardHTML);
         container.insertAdjacentHTML('beforeend', itemCardHTML);
     });
 }
