@@ -1,6 +1,7 @@
 //base.html Javascript code
 
 document.addEventListener('DOMContentLoaded', (event) => {
+    // Dark mode toggle functionality
     const htmlElement = document.documentElement;
     const switchElement = document.getElementById('darkModeSwitch');
 
@@ -16,6 +17,88 @@ document.addEventListener('DOMContentLoaded', (event) => {
         } else {
             htmlElement.setAttribute('data-bs-theme', 'light');
             localStorage.setItem('bsTheme', 'light');
+        }
+    });
+
+    // Navbar dropdown functionality for mobile
+    const dropdownToggles = document.querySelectorAll('.nav-group .nav-link.dropdown-toggle');
+
+    // For mobile: handle dropdown toggle clicks
+    dropdownToggles.forEach(toggle => {
+        toggle.addEventListener('click', function(e) {
+            // Only handle this for mobile view
+            if (window.innerWidth <= 992) {
+                e.preventDefault();
+
+                // Toggle aria-expanded attribute
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', !isExpanded);
+
+                // Find the dropdown menu
+                const dropdown = this.nextElementSibling;
+
+                // Close all other dropdowns
+                dropdownToggles.forEach(otherToggle => {
+                    if (otherToggle !== toggle) {
+                        otherToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                // Toggle dropdown visibility
+                if (isExpanded) {
+                    dropdown.style.opacity = '0';
+                    dropdown.style.pointerEvents = 'none';
+                    // Set display none after transition completes
+                    setTimeout(() => {
+                        dropdown.style.display = 'none';
+                    }, 200);
+                } else {
+                    dropdown.style.display = 'block';
+                    // Small delay to ensure display: block takes effect before changing opacity
+                    setTimeout(() => {
+                        dropdown.style.opacity = '1';
+                        dropdown.style.pointerEvents = 'auto';
+                    }, 10);
+                }
+            }
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 992) {
+            // Check if click is outside any nav-group
+            if (!e.target.closest('.nav-group')) {
+                dropdownToggles.forEach(toggle => {
+                    toggle.setAttribute('aria-expanded', 'false');
+                    const dropdown = toggle.nextElementSibling;
+                    if (dropdown) {
+                        dropdown.style.opacity = '0';
+                        dropdown.style.pointerEvents = 'none';
+                        // Set display none after transition completes
+                        setTimeout(() => {
+                            dropdown.style.display = 'none';
+                        }, 200);
+                    }
+                });
+            }
+        }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 992) {
+            // Reset all dropdowns for desktop view
+            dropdownToggles.forEach(toggle => {
+                toggle.setAttribute('aria-expanded', 'false');
+                const dropdown = toggle.nextElementSibling;
+                if (dropdown) {
+                    // Reset all inline styles to let CSS handle the display in desktop mode
+                    dropdown.style.removeProperty('display');
+                    dropdown.style.removeProperty('opacity');
+                    dropdown.style.removeProperty('pointer-events');
+                }
+            });
         }
     });
 });

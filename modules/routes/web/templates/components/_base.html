@@ -18,85 +18,119 @@
 </head>
 
 <body>
-<div class="container-fluid overflow-hidden">
-    <div class="row main overflow-hidden">
-        <!-- NAVBAR -->
-        <div class="navbar col-12 col-sm-3 col-xl-2 px-sm-2 px-0 sidebar sticky-top mb-3 mb-sm-0">
-            <div
-                    class="d-flex flex-row flex-sm-column justify-content-between h-100 w-100 align-items-center align-items-sm-start px-3 pt-2 pt-sm-4">
-                <a href="{{ url_for('web.items') }}"
-                   class="d-flex align-items-center pb-sm-3 mb-md-0 me-md-auto text-decoration-none logo-div d-none d-md-block">
-                    <span class="fs-logo"><span class="d-none d-sm-inline">Wynnventory</span></span>
-                </a>
-                <ul class="nav nav-pills flex-sm-column flex-row flex-nowrap flex-shrink-1 flex-sm-grow-0 flex-grow-1 mb-sm-auto mb-0 justify-content-center align-items-center align-items-sm-start nav-div"
-                    id="menu">
-                    <li class="nav-item">
-                        <a href="{{ url_for('web.items') }}" class="nav-link px-sm-0 px-2">
-                            <i class="icon-minecraft icon-minecraft-iron-sword"></i><span
-                                class="ms-1 d-none d-sm-inline">Items</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('web.lootrun_lootpool') }}" class="nav-link px-sm-0 px-2">
-                            <i class="icon-minecraft icon-minecraft-chest"></i><span
-                                class="ms-1 d-none d-sm-inline">Lootpool</span> </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('web.raid_lootpool') }}" class="nav-link px-sm-0 px-2">
-                            <span class="sprite bg-mageaspect" style="vertical-align: middle;"></span>
-                            <span class="ms-1 d-none d-sm-inline">Raidpool</span> </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('web.trademarket_listings') }}" class="nav-link px-sm-0 px-2">
-                            <span class="sprite bg-liquid_emerald" style="vertical-align: middle;"></span>
-                            <span class="ms-1 d-none d-sm-inline">Trademarket</span> </a>
-                    </li>
-                    <li class="w-100 border-top my-2 d-none d-md-block"></li>
-                    <li>
-                        <a href="{{ url_for('web.history') }}" class="nav-link px-sm-0 px-2">
-                            <i class="icon-minecraft icon-minecraft-spyglass"></i><span
-                                class="ms-1 d-none d-sm-inline">Price Insights</span>
-                        </a>
-                    </li>
-                    {# <li>
-                            <a href="{{ url_for('web.players') }}" class="nav-link px-sm-0 px-2">
-                                <i class="icon-minecraft icon-minecraft-player-head"></i></i><span
-                                    class="ms-1 d-none d-sm-inline">Players</span></a>
-                        </li> #}
-                    <li class="d-none d-md-block">
-                        <a href="{{ url_for('web.ranking') }}" class="nav-link px-sm-0 px-2">
-                            <i class="icon-minecraft icon-minecraft-totem-of-undying"></i><span
-                                class="ms-1 d-none d-sm-inline">Price Ranking</span>
-                        </a>
-                    </li>
-                    <li class="w-100 border-top my-2 d-none d-md-block"></li>
-                    <li class="d-none d-md-block">
-                        <a href="{{ url_for('web.emerald_calculator') }}" class="nav-link px-sm-0 px-2">
-                            <i class="icon-minecraft icon-minecraft-emerald"></i><span
-                                class="ms-1 d-none d-sm-inline">Emerald Calculator</span>
-                        </a>
-                    </li>
-                </ul>
-                <div class="py-sm-4 mt-sm-auto ms-auto ms-sm-0 flex-shrink-1 btn-div d-flex flex-column align-items-center align-items-sm-start gap-2">
-                    <div class="d-flex align-items-center">
-                        <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
-                        <label class="form-check-label ps-2 fs-mobile fs-desktop" for="darkModeSwitch">Dark Mode</label>
-                    </div>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg sticky-top top-navbar pt-2 pb-2">
+    <div class="container-fluid">
+        <a href="{{ url_for('web.items') }}" class="navbar-brand">
+            <span class="fs-logo">Wynnventory</span>
+        </a>
 
-                    <div class="d-none d-md-flex flex-column align-items-center align-items-sm-start w-100 pt-3 border-top discord-cta">
-                        <a href="https://discord.gg/b6ATfrePuR" target="_blank"
-                           class="d-flex align-items-center gap-2 w-100 text-decoration-none py-2 px-2 rounded discord-link">
-                            <i class="bi bi-discord" style="color: #5865F2; font-size: 1.3rem;"></i>
-                            <span class="small fw-medium d-none d-xl-inline">Join our Discord</span>
-                        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <!-- Items & Loot Group -->
+                <li class="nav-item dropdown nav-group">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" aria-expanded="false">
+                        <i class="icon-minecraft icon-minecraft-iron-sword"></i>
+                        <span>Items & Loot</span>
+                    </a>
+                    <div class="dropdown-menu card-dropdown">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Items & Loot</h6>
+                                <div class="card-links">
+                                    <a class="dropdown-item" href="{{ url_for('web.items') }}">
+                                        <i class="icon-minecraft icon-minecraft-iron-sword"></i>
+                                        <span>Items</span>
+                                    </a>
+                                    <a class="dropdown-item" href="{{ url_for('web.lootrun_lootpool') }}">
+                                        <i class="icon-minecraft icon-minecraft-chest"></i>
+                                        <span>Lootpool</span>
+                                    </a>
+                                    <a class="dropdown-item" href="{{ url_for('web.raid_lootpool') }}">
+                                        <span class="sprite bg-mageaspect" style="vertical-align: middle;"></span>
+                                        <span>Raidpool</span>
+                                    </a>
+                                    <a class="dropdown-item" href="{{ url_for('web.trademarket_listings') }}">
+                                        <span class="sprite bg-liquid_emerald" style="vertical-align: middle;"></span>
+                                        <span>Trademarket</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </li>
+
+                <!-- Insights Group -->
+                <li class="nav-item dropdown nav-group">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" aria-expanded="false">
+                        <i class="icon-minecraft icon-minecraft-spyglass"></i>
+                        <span>Insights</span>
+                    </a>
+                    <div class="dropdown-menu card-dropdown">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Price Insights</h6>
+                                <div class="card-links">
+                                    <a class="dropdown-item" href="{{ url_for('web.history') }}">
+                                        <i class="icon-minecraft icon-minecraft-spyglass"></i>
+                                        <span>Price History</span>
+                                    </a>
+                                    <a class="dropdown-item" href="{{ url_for('web.ranking') }}">
+                                        <i class="icon-minecraft icon-minecraft-totem-of-undying"></i>
+                                        <span>Price Ranking</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- Tools Group -->
+                <li class="nav-item dropdown nav-group">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" aria-expanded="false">
+                        <i class="icon-minecraft icon-minecraft-emerald"></i>
+                        <span>Tools</span>
+                    </a>
+                    <div class="dropdown-menu card-dropdown">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Useful Tools</h6>
+                                <div class="card-links">
+                                    <a class="dropdown-item" href="{{ url_for('web.emerald_calculator') }}">
+                                        <i class="icon-minecraft icon-minecraft-emerald"></i>
+                                        <span>Emerald Calculator</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="darkModeSwitch" checked>
+                    <label class="form-check-label" for="darkModeSwitch">Dark Mode</label>
                 </div>
+
+                <a href="https://discord.gg/b6ATfrePuR" target="_blank" class="discord-link d-flex align-items-center gap-2 text-decoration-none py-1 px-2 rounded">
+                    <i class="bi bi-discord" style="color: #5865F2; font-size: 1.3rem;"></i>
+                    <span class="small fw-medium d-none d-md-inline">Join our Discord</span>
+                </a>
             </div>
         </div>
+    </div>
+</nav>
 
-        <!-- CONTENT -->
-        <div class="col d-flex flex-column h-sm-100 p-4">
-            <main class="row overflow-auto content px-4">
+<!-- CONTENT -->
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <main class="content">
                 {% block content %}{% endblock %}
             </main>
         </div>

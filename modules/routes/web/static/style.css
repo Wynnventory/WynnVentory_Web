@@ -932,6 +932,202 @@ li .SET:hover {
     background-position: -800px -1120px;
 }
 
+/* Top Navbar Styles */
+.top-navbar {
+    background-color: var(--sidebar-color);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1030;
+    padding: 0 1rem 0.5rem 1rem;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    padding: 0.5rem 0;
+    transition: opacity 0.2s;
+}
+
+.navbar-brand:hover {
+    opacity: 0.9;
+}
+
+/* No top padding needed for the body */
+body {
+    padding-top: 0;
+}
+
+/* Ensure the navbar toggle button has good contrast */
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.2);
+}
+
+.nav-group {
+    position: relative;
+    margin: 0 5px;
+}
+
+.nav-group .nav-link {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-group .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Card Dropdown Styles */
+.card-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    min-width: 250px;
+    padding: 0;
+    margin: 0.125rem 0 0;
+    border: none;
+    background-color: transparent;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+    transform: translateY(-10px);
+}
+
+.nav-group:hover .card-dropdown,
+.card-dropdown:hover {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Create a pseudo-element to bridge the gap between nav link and dropdown */
+.nav-group {
+    position: relative;
+}
+
+.nav-group::after {
+    content: '';
+    position: absolute;
+    height: 20px;
+    width: 100%;
+    bottom: -10px;
+    left: 0;
+    z-index: 999;
+}
+
+.card-dropdown .card {
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: var(--sidebar-color);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-dropdown .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.card-dropdown .card-body {
+    padding: 1.25rem;
+}
+
+.card-dropdown .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-dropdown .card-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.card-dropdown .dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s ease;
+    margin-bottom: 0.25rem;
+    color: var(--text-color);
+}
+
+.card-dropdown .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(3px);
+    color: var(--text-color);
+}
+
+.card-dropdown .dropdown-item:active {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateX(3px) scale(0.98);
+}
+
+.card-dropdown .dropdown-item i,
+.card-dropdown .dropdown-item .sprite {
+    margin-right: 0.75rem;
+    transition: transform 0.2s;
+}
+
+.card-dropdown .dropdown-item:hover i,
+.card-dropdown .dropdown-item:hover .sprite {
+    transform: scale(1.1);
+}
+
+/* Animation for dropdown */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .card-dropdown {
+        position: static;
+        min-width: 100%;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        transform: none;
+    }
+
+    .nav-group:hover .card-dropdown {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .nav-group .dropdown-toggle[aria-expanded="true"] + .card-dropdown {
+        opacity: 1;
+        pointer-events: auto;
+        display: block;
+    }
+
+    .card-dropdown .card {
+        box-shadow: none;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Disable the pseudo-element bridge on mobile */
+    .nav-group::after {
+        display: none;
+    }
+}
+
 /* Side Menu Styles */
 #sideMenu {
     position: fixed;
@@ -975,7 +1171,7 @@ body.side-menu-open {
     overflow: hidden; /* Prevent background scrolling */
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments for side menu */
 @media (max-width: 576px) {
     #sideMenu {
         width: 100%;
