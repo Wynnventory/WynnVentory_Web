@@ -5,6 +5,8 @@
     --sidebar-color: #212529;
     --text-color: #e0e0e0;
     --tooltip-border-color: #000000;
+    --navbar-height: 82px;
+    --navbar-button-offset: 10px;
 }
 
 [data-bs-theme="light"] {
@@ -78,6 +80,8 @@ a:hover {
 
 .sidebar {
     background-color: var(--sidebar-color);
+    margin-top: 0 !important; /* Override any Bootstrap margin */
+    padding-top: 0 !important; /* Override any Bootstrap padding */
 }
 
 .content {
@@ -141,9 +145,10 @@ background-color: var(--bs-body-bg);
 /* Sidebar */
 #filter-sidebar {
     transition: width 0.3s, opacity 0.3s;
-    height: 100vh;
-    position: absolute;
-    top: 0;
+    height: calc(100vh - var(--navbar-height));
+    position: fixed;
+    top: var(--navbar-height); /* Match navbar height */
+    margin-top: 0; /* Ensure no gap with navbar */
     right: 0;
     z-index: 1020;
     width: 300px;
@@ -172,7 +177,7 @@ background-color: var(--bs-body-bg);
 #collapse-button {
     display: inline-block;
     position: fixed;
-    top: 10px;
+    top: calc(var(--navbar-height) + var(--navbar-button-offset)); /* Offset below navbar */
     right: 310px;
     z-index: 1030;
     transition: right 0.3s;
@@ -199,7 +204,7 @@ background-color: var(--bs-body-bg);
 }
 
 .navbar {
-    height: 82px;
+    height: var(--navbar-height);
 }
 
 .logo-div {
@@ -277,9 +282,9 @@ background-color: var(--bs-body-bg);
     #filter-sidebar {
         width: 100%;
         height: auto;
-        top: 80px;
+        top: var(--navbar-height); /* Match navbar height */
+        margin-top: 0; /* Ensure no gap with navbar */
         right: 0;
-
     }
 
     #filter-sidebar.collapsed {
@@ -308,19 +313,20 @@ background-color: var(--bs-body-bg);
 
     #collapse-button {
         right: 10px;
-        top: 60px;
+        top: calc(var(--navbar-height) + var(--navbar-button-offset)); /* Offset below navbar */
     }
 }
 
 @media (min-width: 576px) {
     #filter-sidebar {
         width: 300px;
-        height: 100vh;
-        top: 0;
+        height: calc(100vh - var(--navbar-height));
+        top: var(--navbar-height);
+        margin-top: 0; /* Ensure no gap with navbar */
     }
 
     #collapse-button {
-        top: 10px;
+        top: calc(var(--navbar-height) + var(--navbar-button-offset));
         right: 310px;
     }
 }
@@ -329,13 +335,14 @@ background-color: var(--bs-body-bg);
     #filter-sidebar {
         width: 100%;
         height: auto;
-        top: 50px;
+        top: var(--navbar-height); /* Match navbar height */
+        margin-top: 0; /* Ensure no gap with navbar */
         right: 0;
     }
 
     #collapse-button {
         right: 10px;
-        top: 60px;
+        top: calc(var(--navbar-height) + var(--navbar-button-offset)); /* Offset below navbar */
     }
 }
 
