@@ -457,7 +457,6 @@
                     const today = new Date();
                     const lagged = new Date(today.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
                     const lagISO = lagged.toISOString().split('T')[0];
-                    console.log(lagISO)
                     let matched = false;
                     presets.forEach(d => {
                         if (!matched &&

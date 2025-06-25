@@ -162,7 +162,7 @@
                 </form>
             </div>
 
-            <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3">></button>
+            <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
 
             <!-- Listings -->
             <div id="items-container" class="col order-2 order-lg-1 expanded">
@@ -252,7 +252,10 @@
                                             {{ tt.id_line(roll) }}
                                         {% endfor %}
                                     </div>
+                                    <br/>
+                                    <p class="mb-0 {{ item.rarity or '' }}">{{ item.rarity }} Item [{{ item.reroll_count }}]</p>
                                 {% endif %}
+                                <hr/>
                                 <div class="item-infobox item-text">
                                     Amount<br/>
                                     <strong>{{ item.amount }}</strong>
