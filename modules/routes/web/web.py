@@ -231,7 +231,7 @@ def enrich_listings(listings: list[dict]) -> list[dict]:
             except (ValueError, TypeError):
                 raise TypeError(f"Expected 'tier' to be int‐castable, but got {raw_tier!r}")
 
-        item["price_averages"] = market_service.get_price(item_name=name, shiny=shiny, tier=tier)
+        item["price_averages"] = market_service.get_historic_item_price(item_name=name, shiny=shiny, tier=tier)
 
         fixed_stats = []  # statRange.fixed == True   → always-same value
         rolled_stats = []  # statRange.fixed == False  → can roll
