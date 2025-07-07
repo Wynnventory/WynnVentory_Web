@@ -358,7 +358,6 @@ background-color: var(--bs-body-bg);
     text-align: left;
     flex-wrap: nowrap; /* Keep items on the same line */
     min-width: 0; /* Prevent content from overflowing */
-    font-size: 20px;
 }
 
 .lootpool-card-item .sprite {
