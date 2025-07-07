@@ -247,13 +247,28 @@ def enrich_listings(listings: list[dict]) -> list[dict]:
 
 def enrich_pools(raw_pools: list[dict], items_key: str) -> list[dict]:
     """
-    Adds 'last_updated' and 'icon_url' to every item in each pool.
-    items_key is 'region_items' for lootrun, 'group_items' for raid.
+    Adds 'last_updated', 'icon_url', and optionally 'raid_full_name' to each pool.
     """
     now = datetime.now(timezone.utc)
+
+    # Mapping of shorthand to full names
+    raid_names = {
+        "TCC": "The Canyon Colossus",
+        "NOTG": "Nest of the Grootslangs",
+        "NOL": "Orphion's Nexus of Light",
+        "TNA": "The Nameless Anomaly"
+    }
+
     for pool in raw_pools:
         pool["last_updated"] = format_last_updated(pool["timestamp"], now)
+
+        # If it's a raid pool, enrich with full name
+        if items_key == "group_items":
+            shorthand = pool.get("region")
+            pool["raid_full_name"] = raid_names.get(shorthand, shorthand)
+
         for group in pool.get(items_key, []):
             for item in group.get("loot_items", []):
                 item["icon_url"] = build_icon_url(item.get("icon"))
+
     return raw_pools
