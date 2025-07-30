@@ -1,6 +1,5 @@
 import logging
 import re
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import timedelta
 from datetime import timezone, datetime
@@ -12,13 +11,6 @@ from pymongo.errors import BulkWriteError
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 from modules.models.sort_options import SortOption
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s"
-)
-
-logger = logging.getLogger(__name__)
 
 TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
 
@@ -233,12 +225,6 @@ def get_trade_market_item_listings(
       - tier (for MaterialItem or globally if no name/type)
       - item_type
     """
-    start_time = time.time()
-    logger.info(f"get_trade_market_item_listings - Started with parameters: item_name={item_name}, "
-                f"shiny={shiny}, unidentified={unidentified}, rarity={rarity}, tier={tier}, "
-                f"item_type={item_type}, sub_type={sub_type}, sort_option={sort_option}, "
-                f"page={page}, page_size={page_size}")
-    
     skip = (page - 1) * page_size
     sort_option = sort_option or SortOption.TIMESTAMP_DESC
 
@@ -300,25 +286,12 @@ def get_trade_market_item_listings(
 
     if sub_type is not None:
         query_filter['type'] = sub_type
-    
-    logger.info(f"get_trade_market_item_listings - Query filter: {query_filter}")
 
     coll = get_collection(ColEnum.MARKET_LISTINGS)
-    
-    count_start_time = time.time()
-    logger.info("get_trade_market_item_listings - Counting documents")
-    
     total = coll.count_documents(query_filter)
-    
-    count_duration = time.time() - count_start_time
-    logger.info(f"get_trade_market_item_listings - Count completed in {count_duration:.3f}s, found {total} documents")
 
     sort_field, sort_dir = sort_option.to_mongo_sort()
-    logger.info(f"get_trade_market_item_listings - Sort: field={sort_field}, direction={sort_dir}")
 
-    find_start_time = time.time()
-    logger.info(f"get_trade_market_item_listings - Executing find query with skip={skip}, limit={page_size}")
-    
     cursor = coll.find(
         filter=query_filter,
         projection={
@@ -328,12 +301,6 @@ def get_trade_market_item_listings(
     ).sort(sort_field, sort_dir).skip(skip).limit(page_size)
 
     items = list(cursor)
-    
-    find_duration = time.time() - find_start_time
-    logger.info(f"get_trade_market_item_listings - Find query completed in {find_duration:.3f}s, retrieved {len(items)} items")
-
-    total_duration = time.time() - start_time
-    logger.info(f"get_trade_market_item_listings - Total execution time: {total_duration:.3f}s")
 
     return {
         'page': (skip // page_size) + 1,
@@ -533,10 +500,6 @@ def get_price_history(
     """
     Retrieve the price history of an item over a given date range.
     """
-    start_time = time.time()
-    logger.info(f"get_price_history - Started with parameters: item_name={item_name}, "
-                f"shiny={shiny}, tier={tier}, start_date={start_date}, "
-                f"end_date={end_date}, default_days={default_days}")
     lagged_now = datetime.now(timezone.utc) - timedelta(days=1)
 
     # 2) If end_date wasn’t given, use lagged_now
@@ -562,27 +525,13 @@ def get_price_history(
             '$lt': exclusive_end
         }
     }
-    
-    logger.info(f"get_price_history - Query filter: {query_filter}")
-    
-    query_start_time = time.time()
-    logger.info("get_price_history - Executing find query")
-    
+
     cursor = get_collection(ColEnum.MARKET_ARCHIVE).find(
         filter=query_filter,
         sort=[('timestamp', 1)],
         projection={'_id': 0}
     )
-    
-    result = list(cursor)
-    
-    query_duration = time.time() - query_start_time
-    logger.info(f"get_price_history - Find query completed in {query_duration:.3f}s, retrieved {len(result)} records")
-    
-    total_duration = time.time() - start_time
-    logger.info(f"get_price_history - Total execution time: {total_duration:.3f}s")
-    
-    return result
+    return list(cursor)
 
 
 def get_historic_average(
@@ -599,10 +548,6 @@ def get_historic_average(
     If only one is provided, fills the other to span a `default_days` window
     (or up to now for the end).
     """
-    start_time = time.time()
-    logger.info(f"get_historic_average - Started with parameters: item_name={item_name}, "
-                f"shiny={shiny}, tier={tier}, start_date={start_date}, "
-                f"end_date={end_date}, default_days={default_days}")
     # 1) Shift “now” back by default_days once
     lagged_now = datetime.now(timezone.utc) - timedelta(days=1)
 
@@ -630,8 +575,6 @@ def get_historic_average(
             '$lt': exclusive_end
         }
     }
-    
-    logger.info(f"get_historic_average - Query filter: {query}")
 
     pipeline = [
         {'$match': query},
@@ -668,25 +611,10 @@ def get_historic_average(
         }}
     ]
 
-    logger.info("get_historic_average - Executing aggregation pipeline")
-    query_start_time = time.time()
-    
     result = list(
         get_collection(ColEnum.MARKET_ARCHIVE)
         .aggregate(pipeline, allowDiskUse=False)
     )
-    
-    query_duration = time.time() - query_start_time
-    logger.info(f"get_historic_average - Aggregation completed in {query_duration:.3f}s")
-    
-    total_duration = time.time() - start_time
-    logger.info(f"get_historic_average - Total execution time: {total_duration:.3f}s")
-    
-    if result:
-        logger.info("get_historic_average - Found result")
-    else:
-        logger.info("get_historic_average - No result found")
-        
     return result[0] if result else {}
 
 
@@ -700,9 +628,6 @@ def get_all_items_ranking(
     automatically lagged by `default_days + 1` so the latest
     document is always `default_days` days in the past.
     """
-    start_time = time.time()
-    logger.info(f"get_all_items_ranking - Started with parameters: start_date={start_date}, "
-                f"end_date={end_date}, default_days={default_days}")
 
     # 1) Shift “now” back by default_days once
     lagged_now = datetime.now(timezone.utc) - timedelta(days=1)
@@ -725,11 +650,8 @@ def get_all_items_ranking(
         },
         'shiny': False
     }
-    
-    logger.info(f"get_all_items_ranking - Date filter: {date_filter}")
 
     pipeline: List[Dict[str, Any]] = [{'$match': date_filter}]
-    logger.info("get_all_items_ranking - Building aggregation pipeline")
 
     # 2) Group by item name and compute aggregates
     pipeline.append({
@@ -751,9 +673,6 @@ def get_all_items_ranking(
 
     # 3) Sort descending by average price
     pipeline.append({'$sort': {'average_price': -1}})
-    
-    logger.info("get_all_items_ranking - Executing aggregation pipeline")
-    query_start_time = time.time()
 
     # run the aggregation
     cursor = get_collection(ColEnum.MARKET_ARCHIVE).aggregate(pipeline)
@@ -767,12 +686,5 @@ def get_all_items_ranking(
             **{k: doc[k] for k in doc if k != '_id'}
         }
         ranked.append(item)
-    
-    query_duration = time.time() - query_start_time
-    logger.info(f"get_all_items_ranking - Aggregation and processing completed in {query_duration:.3f}s")
-    logger.info(f"get_all_items_ranking - Retrieved {len(ranked)} ranked items")
-    
-    total_duration = time.time() - start_time
-    logger.info(f"get_all_items_ranking - Total execution time: {total_duration:.3f}s")
 
     return ranked
