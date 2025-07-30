@@ -1,4 +1,5 @@
 import logging
+import time
 
 from flask import request
 
@@ -47,8 +48,26 @@ def save_gambit_items():
 @raidpool_bp.get('/raidpool/gambits/current')
 @require_scope('read:raidpool')
 def get_current_gambits():
+    start_time = time.time()
+    logger.info("GET /raidpool/gambits/current - Request started")
+    
     try:
+        service_start_time = time.time()
+        logger.info("Calling raidpool_service.get_current_gambits")
+        
         data = raidpool_service.get_current_gambits()
+        
+        service_duration = time.time() - service_start_time
+        logger.info(f"raidpool_service.get_current_gambits completed in {service_duration:.3f}s")
+        
+        if data and isinstance(data, list):
+            logger.info(f"Retrieved {len(data)} gambits")
+        
+        total_duration = time.time() - start_time
+        logger.info(f"GET /raidpool/gambits/current completed in {total_duration:.3f}s")
+        
         return api_response(data)
     except Exception as e:
+        error_duration = time.time() - start_time
+        logger.error(f"GET /raidpool/gambits/current failed after {error_duration:.3f}s: {str(e)}", exc_info=True)
         return handle_request_error(e)
