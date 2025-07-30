@@ -1,3 +1,5 @@
+import logging
+import time
 from datetime import timezone, datetime, timedelta
 from typing import List, Dict, Any, Optional, Union
 
@@ -5,6 +7,13 @@ from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.repositories.base_pool_repo import BasePoolRepo, build_pool_pipeline
 from modules.utils.time_validation import get_raidpool_week, get_current_gambit_day
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-8s %(name)s: %(message)s"
+)
+
+logger = logging.getLogger(__name__)
 
 # Initialize the base repository and aggregator with the RAID collection type
 _repo = BasePoolRepo(Collection.RAID)
@@ -83,24 +92,56 @@ def fetch_raidpools(
         'pools': List[Dict]
       }
     """
+    start_time = time.time()
+    logger.info(f"fetch_raidpools - Started with parameters: year={year}, week={week}, "
+                f"page={page}, page_size={page_size}, skip={skip}")
+    
     coll = get_collection(Collection.RAID)
     pipeline = build_pool_pipeline(year, week)
-
+    logger.info(f"fetch_raidpools - Pipeline built for year={year}, week={week}")
+    
     # 1) Single‐object case
     if year is not None and week is not None:
+        logger.info(f"fetch_raidpools - Executing single-object query for year={year}, week={week}")
+        query_start_time = time.time()
+        
         cursor = coll.aggregate(pipeline)
+        
         try:
-            return cursor.next()
+            result = cursor.next()
+            
+            query_duration = time.time() - query_start_time
+            logger.info(f"fetch_raidpools - Single-object query completed in {query_duration:.3f}s")
+            
+            total_duration = time.time() - start_time
+            logger.info(f"fetch_raidpools - Total execution time: {total_duration:.3f}s")
+            
+            return result
         except StopIteration:
+            query_duration = time.time() - query_start_time
+            logger.info(f"fetch_raidpools - Single-object query completed in {query_duration:.3f}s with no result")
+            
+            total_duration = time.time() - start_time
+            logger.info(f"fetch_raidpools - Total execution time: {total_duration:.3f}s")
+            
             return {}
 
     paged_pipeline = pipeline + [
         {"$skip": skip},
         {"$limit": page_size}
     ]
-
+    logger.info(f"fetch_raidpools - Executing paginated query with skip={skip}, limit={page_size}")
+    
+    query_start_time = time.time()
+    
     # 2) Paginated “all” case
     results = list(coll.aggregate(paged_pipeline))
+    
+    query_duration = time.time() - query_start_time
+    logger.info(f"fetch_raidpools - Paginated query completed in {query_duration:.3f}s, retrieved {len(results)} pools")
+    
+    total_duration = time.time() - start_time
+    logger.info(f"fetch_raidpools - Total execution time: {total_duration:.3f}s")
 
     return {
         "page": page,
@@ -112,7 +153,11 @@ def fetch_raidpools(
 
 # OLD GROUPED FORMAT
 def fetch_raidpool():
+    start_time = time.time()
+    logger.info("fetch_raidpool - Started")
+    
     year, week = get_raidpool_week()
+    logger.info(f"fetch_raidpool - Determined raidpool week: year={year}, week={week}")
     pipeline = [
         # Match documents for the given week and year
         {
@@ -389,8 +434,24 @@ def fetch_raidpool():
         }
     ]
 
+    logger.info("fetch_raidpool - Executing complex aggregation pipeline")
+    query_start_time = time.time()
+    
     cursor = get_collection(Collection.RAID).aggregate(pipeline)
-    return list(cursor)
+    result = list(cursor)
+    
+    query_duration = time.time() - query_start_time
+    logger.info(f"fetch_raidpool - Aggregation completed in {query_duration:.3f}s")
+    
+    if result:
+        logger.info(f"fetch_raidpool - Retrieved {len(result)} raidpool documents")
+    else:
+        logger.info("fetch_raidpool - No results found")
+    
+    total_duration = time.time() - start_time
+    logger.info(f"fetch_raidpool - Total execution time: {total_duration:.3f}s")
+    
+    return result
 
 
 def fetch_gambits(
@@ -398,15 +459,35 @@ def fetch_gambits(
         month: int,
         day: int,
 ) -> dict:
+    start_time = time.time()
+    logger.info(f"fetch_gambits - Started with parameters: year={year}, month={month}, day={day}")
+    
     if not year or not month or not day:
+        logger.info("fetch_gambits - Missing required parameters, returning empty result")
         return {}
 
     filter_q = {"year": year, "month": month, "day": day}
-
+    logger.info(f"fetch_gambits - Query filter: {filter_q}")
+    
+    query_start_time = time.time()
+    logger.info("fetch_gambits - Executing find_one query")
+    
     result = get_collection(Collection.GAMBIT).find_one(filter_q,
                                                         projection={"_id": 0, "modVersion": 0, "playerName": 0})
+    
+    query_duration = time.time() - query_start_time
+    logger.info(f"fetch_gambits - Query completed in {query_duration:.3f}s")
 
     if result is None:
+        logger.info("fetch_gambits - No result found")
+        total_duration = time.time() - start_time
+        logger.info(f"fetch_gambits - Total execution time: {total_duration:.3f}s")
         return {}
-
+    
+    if "gambits" in result:
+        logger.info(f"fetch_gambits - Retrieved {len(result['gambits'])} gambits")
+    
+    total_duration = time.time() - start_time
+    logger.info(f"fetch_gambits - Total execution time: {total_duration:.3f}s")
+    
     return result
