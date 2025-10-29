@@ -86,7 +86,7 @@ def search_items(req: ItemSearchRequest) -> Dict:
     processed = [_process(i) for i in raw_items.values()]
     return {
         "items": processed,
-        "next_page": api_resp["controller"]["links"].get("next")
+        "next_page": api_resp["controller"].get("next")
     }
 
 

@@ -22,17 +22,17 @@ def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[
 
     valid_items = []
 
-    for idx, item in enumerate(items):
-        mod_version = item.get('modVersion')
+    for idx, region in enumerate(items):
+        mod_version = region.get('modVersion')
         if not mod_version or not compare_versions(mod_version, Config.MIN_SUPPORTED_VERSION):
             raise ValueError(f"Item at index {idx} has unsupported mod version: {mod_version}")
 
-        collection_time = item.get('timestamp')
+        collection_time = region.get('timestamp')
         if not collection_time or not is_time_valid(collection_type, collection_time):
             logging.warning(f"Item at index {idx} has invalid timestamp: {collection_time}; skipping")
             continue
 
-        loot_items = item.get('items', [])
+        loot_items = region.get('items', [])
         shiny_count = sum(1 for entry in loot_items if entry.get('shiny'))
         if shiny_count > 1:
             logging.warning(
@@ -40,7 +40,7 @@ def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[
             )
             continue
 
-        valid_items.append(item)
+        valid_items.append(region)
 
     # Enqueue all valid items at once
     if valid_items:
