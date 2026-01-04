@@ -1,3 +1,5 @@
+from datetime import timezone
+
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -26,7 +28,9 @@ def get_client(db: str = "current") -> MongoClient:
                 server_api=ServerApi("1"),
                 tls=True,
                 tlsAllowInvalidCertificates=True,
-                maxPoolSize=50  # Adjust based on expected concurrent connections
+                maxPoolSize=50,  # Adjust based on expected concurrent connections
+                tz_aware=True,
+                tzinfo=timezone.utc,
             )
         return _admin_client
     else:
@@ -36,7 +40,9 @@ def get_client(db: str = "current") -> MongoClient:
                 server_api=ServerApi("1"),
                 tls=True,
                 tlsAllowInvalidCertificates=True,
-                maxPoolSize=50  # Adjust based on expected concurrent connections
+                maxPoolSize=50,  # Adjust based on expected concurrent connections
+                tz_aware=True,
+                tzinfo=timezone.utc,
             )
         return _current_client
 

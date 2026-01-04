@@ -32,7 +32,7 @@ class TestBasePoolRepo(BaseTestCase):
         if items is None:
             items = [{"name": "Item1", "amount": 1}, {"name": "Item2", "amount": 2}]
         if timestamp is None:
-            timestamp = "2025-05-05 12:00:00"
+            timestamp = "2025-05-05T12:00:00Z"
 
         return {
             "region": region,

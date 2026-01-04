@@ -16,35 +16,42 @@ def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[
     validates each, and enqueues for persistence.
     Raises ValueError on fatal errors.
     """
-    items = raw_data if isinstance(raw_data, list) else [raw_data]
-    if not items:
-        raise ValueError("No items provided")
+    regions = raw_data if isinstance(raw_data, list) else [raw_data]
+    if not regions:
+        raise ValueError("No regions provided")
 
-    valid_items = []
+    valid_regions = []
 
-    for idx, item in enumerate(items):
-        mod_version = item.get('modVersion')
+    for idx, region in enumerate(regions):
+        mod_version = region.get('modVersion')
         if not mod_version or not compare_versions(mod_version, Config.MIN_SUPPORTED_VERSION):
-            raise ValueError(f"Item at index {idx} has unsupported mod version: {mod_version}")
+            raise ValueError(f"Region at index {idx} has unsupported mod version: {mod_version}")
 
-        collection_time = item.get('timestamp')
-        if not collection_time or not is_time_valid(collection_type, collection_time):
-            logging.warning(f"Item at index {idx} has invalid timestamp: {collection_time}; skipping")
+        loot_items = region.get('items', [])
+        valid_loot_items = []
+
+        for idx, item in enumerate(loot_items):
+            collection_time = item.get('timestamp')
+            if not collection_time or not is_time_valid(collection_type, collection_time):
+                logging.warning(f"Item at index {idx} has invalid timestamp: {collection_time}; skipping")
+                continue
+
+            item.pop("playerName", None)
+            item.pop("modVersion", None)
+            item.pop("timestamp", None)
+
+            valid_loot_items.append(item)
+
+        if not valid_loot_items:
+            logging.warning(f"No valid items found in region {region.get('name', 'no_name')}; skipping")
             continue
 
-        loot_items = item.get('items', [])
-        shiny_count = sum(1 for entry in loot_items if entry.get('shiny'))
-        if shiny_count > 1:
-            logging.warning(
-                f"Lootpool contains too many shinies ({shiny_count}) at index {idx}; skipping"
-            )
-            continue
-
-        valid_items.append(item)
+        region['items'] = valid_loot_items
+        valid_regions.append(region)
 
     # Enqueue all valid items at once
-    if valid_items:
-        enqueue(CollectionRequest(type=collection_type, items=valid_items))
+    if valid_regions:
+        enqueue(CollectionRequest(type=collection_type, items=valid_regions))
 
 
 def get_current_pools(collection_type: Collection) -> List[Dict[str, Any]]:

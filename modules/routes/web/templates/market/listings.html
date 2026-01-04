@@ -253,41 +253,44 @@
                                         {% endfor %}
                                     </div>
                                     <br/>
-                                    <p class="mb-0 {{ item.rarity or '' }}">{{ item.rarity }} Item [{{ item.reroll_count }}]</p>
                                 {% endif %}
-                                <hr/>
-                                <div class="item-infobox item-text">
-                                    Amount<br/>
-                                    <strong>{{ item.amount }}</strong>
-                                </div>
-                                <div class="item-infobox item-text">
-                                    Price<br/>
-                                    <strong>{{ item.listing_price|emerald_format }}</strong>
-                                    {# 1) Compute “ratio” based on whether it’s unidentified or not #}
-                                    {% if item.unidentified and item.price_averages.unidentified_average_mid_80_percent_price %}
-                                        {% set ratio = item.listing_price / item.price_averages.unidentified_average_mid_80_percent_price %}
-                                    {% elif item.price_averages.average_mid_80_percent_price %}
-                                        {% set ratio = item.listing_price / item.price_averages.average_mid_80_percent_price %}
-                                    {% endif %}
 
-                                    {% if ratio %}
-                                        {# 2) Compute the percentage and choose color #}
-                                        {% set pct = (ratio * 100) | round(1) %}
-                                        <small>
-                                            (<span
-                                                style="color: {% if ratio > 1 %}#F85252{% elif ratio < 1 %}#56FE56{% endif %}">{{ pct }}%</span>
-                                            of avg)
-                                        </small>
+                                <div class="mt-auto">
+                                    {% if item.rolled_identifications %}
+                                        <p class="mb-0 {{ item.rarity or '' }}">{{ item.rarity }} Item [{{ item.reroll_count }}]</p>
                                     {% endif %}
-                                </div>
-                                {% if item.timestamp %}
-                                    <div class="mt-auto">
-                                    <footer class="item-footer mt-2 w-100 text-center">
-                                        <small class="text-muted">
-                                            Recorded {{ ("%s"|format(item.timestamp))|last_updated }} ago
-                                        </small>
-                                    </footer>
-                                {% endif %}
+                                    <hr/>
+                                    <div class="item-infobox item-text">
+                                        Amount<br/>
+                                        <strong>{{ item.amount }}</strong>
+                                    </div>
+                                    <div class="item-infobox item-text">
+                                        Price<br/>
+                                        <strong>{{ item.listing_price|emerald_format }}</strong>
+                                        {# 1) Compute “ratio” based on whether it’s unidentified or not #}
+                                        {% if item.unidentified and item.price_averages.unidentified_average_mid_80_percent_price %}
+                                            {% set ratio = item.listing_price / item.price_averages.unidentified_average_mid_80_percent_price %}
+                                        {% elif item.price_averages.average_mid_80_percent_price %}
+                                            {% set ratio = item.listing_price / item.price_averages.average_mid_80_percent_price %}
+                                        {% endif %}
+
+                                        {% if ratio %}
+                                            {# 2) Compute the percentage and choose color #}
+                                            {% set pct = (ratio * 100) | round(1) %}
+                                            <small>
+                                                (<span
+                                                    style="color: {% if ratio > 1 %}#F85252{% elif ratio < 1 %}#56FE56{% endif %}">{{ pct }}%</span>
+                                                of avg)
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    {% if item.timestamp %}
+                                        <footer class="item-footer mt-2 w-100 text-center">
+                                            <small class="text-muted">
+                                                Recorded {{ ("%s"|format(item.timestamp))|last_updated }} ago
+                                            </small>
+                                        </footer>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
