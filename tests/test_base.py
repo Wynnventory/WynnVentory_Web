@@ -64,7 +64,15 @@ class BaseTestCase(unittest.TestCase):
         target = f'{module_path}.datetime' if module_path else 'datetime.datetime'
         mock_datetime = self.create_patch(target)
         mock_datetime.now.return_value = current_time
-        mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
+        
+        # side_effect returns the real datetime class for constructor calls
+        def datetime_side_effect(*args, **kwargs):
+            return datetime(*args, **kwargs)
+            
+        mock_datetime.side_effect = datetime_side_effect
+        # Ensure isinstance(obj, mock_datetime) works if possible, 
+        # but the common issue is isinstance(obj, datetime) failing when datetime is mocked.
+        # By using hasattr(obj, 'tzinfo') in production code we avoid this.
 
         return mock_datetime
 

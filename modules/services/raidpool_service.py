@@ -33,7 +33,7 @@ def save_gambits(gambits: List[Dict]):
         collection_time = gambit.get("timestamp")
         if not collection_time or not is_time_valid(Collection.GAMBIT, collection_time):
             logging.warning(f"Item at index {idx} has invalid timestamp: {collection_time}; skipping")
-            return
+            continue
 
         valid_items.append(gambit)
 

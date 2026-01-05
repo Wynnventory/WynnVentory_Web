@@ -30,7 +30,7 @@ class TestRaidpoolRepo(BaseTestCase):
         self.mock_datetime = self.setup_datetime_mock(self.current_time, 'modules.repositories.raidpool_repo')
         self.mock_datetime.strptime.return_value = self.current_time
 
-    def create_test_gambit(self, name="Gambit1", timestamp="2025-05-08 12:00:00", data="test_data1",
+    def create_test_gambit(self, name="Gambit1", timestamp="2025-05-08T12:00:00Z", data="test_data1",
                            player_name="Player1", mod_version="1.0.0"):
         """Create a test gambit with the given parameters."""
         return {
@@ -41,7 +41,7 @@ class TestRaidpoolRepo(BaseTestCase):
             "data": data
         }
 
-    def create_gambit_entry(self, name="Gambit1", timestamp="2025-05-08 12:00:00", data="test_data1"):
+    def create_gambit_entry(self, name="Gambit1", timestamp="2025-05-08T12:00:00Z", data="test_data1"):
         """Create a gambit entry for the gambits array."""
         return {
             "name": name,
@@ -53,7 +53,7 @@ class TestRaidpoolRepo(BaseTestCase):
         """Create an existing document with the given parameters."""
         if gambits is None:
             gambits = [
-                self.create_gambit_entry("Gambit1", "2025-05-08 11:30:00", "test_data1")
+                self.create_gambit_entry("Gambit1", "2025-05-08T11:30:00Z", "test_data1")
             ]
 
         timestamp = self.current_time
@@ -74,8 +74,8 @@ class TestRaidpoolRepo(BaseTestCase):
         """Create an expected document with the given parameters."""
         if gambits is None:
             gambits = [
-                self.create_gambit_entry("Gambit1", "2025-05-08 12:00:00", "test_data1"),
-                self.create_gambit_entry("Gambit2", "2025-05-08 12:00:00", "test_data2")
+                self.create_gambit_entry("Gambit1", "2025-05-08T12:00:00Z", "test_data1"),
+                self.create_gambit_entry("Gambit2", "2025-05-08T12:00:00Z", "test_data2")
             ]
 
         return {
@@ -114,7 +114,7 @@ class TestRaidpoolRepo(BaseTestCase):
         test_pool = {
             "region": "US",
             "items": [{"name": "Item1", "amount": 1}],
-            "timestamp": "2025-05-08 12:00:00"
+            "timestamp": "2025-05-08T12:00:00Z"
         }
 
         # Call the save function
@@ -228,7 +228,7 @@ class TestRaidpoolRepo(BaseTestCase):
         """Test that gambits with an invalid timestamp are not saved."""
         # Create test gambits with a timestamp outside the current gambit day
         test_gambits = [
-            self.create_test_gambit("Gambit1", timestamp="2025-05-06 12:00:00", data="test_data1")
+            self.create_test_gambit("Gambit1", timestamp="2025-05-06T12:00:00Z", data="test_data1")
             # Before the previous reset
         ]
 
@@ -255,12 +255,42 @@ class TestRaidpoolRepo(BaseTestCase):
                     # Call the save_gambits function
                     save_gambits(test_gambits)
 
-                    # Verify the collection.find_one was called with the correct filter
-                    filter_dict = {"year": next_reset.year, "month": next_reset.month, "day": next_reset.day}
-                    mock_collection.find_one.assert_called_once_with(filter_dict)
+                    # Verify that find_one was NOT called because the timestamp was invalid
+                    # and the function returned early.
+                    mock_collection.find_one.assert_not_called()
 
                     # Verify the collection.insert_one was not called
                     mock_collection.insert_one.assert_not_called()
+
+    def test_save_gambits_mixed_timestamps(self):
+        """Test saving gambits where some have invalid timestamps."""
+        # Set up the mock collection to return None (no existing document)
+        self.mock_collection.find_one.return_value = None
+
+        # Create test gambits: 3 valid, 1 old (from last raid week)
+        valid_ts = "2025-05-08T12:00:00Z"
+        old_ts = "2025-05-01T12:00:00Z"  # Last raid week (before May 2nd reset)
+
+        test_gambits = [
+            self.create_test_gambit("Gambit1", timestamp=valid_ts),
+            self.create_test_gambit("Gambit2", timestamp=valid_ts),
+            self.create_test_gambit("Gambit3", timestamp=old_ts),
+            self.create_test_gambit("Gambit4", timestamp=valid_ts)
+        ]
+
+        # Call the save_gambits function
+        save_gambits(test_gambits)
+
+        # Verify database operations
+        self.verify_find_one()
+
+        # The expected document should only contain the 3 valid gambits
+        expected_gambits = [
+            self.create_gambit_entry("Gambit1", valid_ts),
+            self.create_gambit_entry("Gambit2", valid_ts),
+            self.create_gambit_entry("Gambit4", valid_ts)
+        ]
+        self.verify_insert_one(self.create_expected_doc(gambits=expected_gambits))
 
 
 if __name__ == "__main__":
