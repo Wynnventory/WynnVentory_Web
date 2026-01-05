@@ -9,7 +9,7 @@ from modules.utils import queue_worker
 from tests.test_base import BaseTestCase
 
 # Configure logging for tests
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class TestQueueWorker(BaseTestCase):
