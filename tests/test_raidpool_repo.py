@@ -14,8 +14,8 @@ class TestRaidpoolRepo(BaseTestCase):
         super().setUp()
 
         # Set up fixed reset times for testing with timezone awareness
-        self.previous_reset = datetime(2025, 5, 7, 17, 0, 0, tzinfo=timezone.utc)
-        self.next_reset = datetime(2025, 5, 8, 17, 0, 0, tzinfo=timezone.utc)
+        self.previous_reset = datetime(2025, 5, 7, 18, 0, 0, tzinfo=timezone.utc)
+        self.next_reset = datetime(2025, 5, 8, 18, 0, 0, tzinfo=timezone.utc)
 
         # Set up a fixed current time for testing
         self.current_time = datetime(2025, 5, 8, 12, 0, 0, tzinfo=timezone.utc)
