@@ -105,7 +105,7 @@ def get_raidpool_week() -> tuple[int, int]:
 
 
 def get_current_gambit_day(now: Optional[datetime] = None) -> tuple[datetime, datetime]:
-    reset_hour = 17  # 17:00 (5 PM) UTC
+    reset_hour = 18  # 17:00 (5 PM) UTC
     now = parse_utc_timestamp(now or datetime.now(UTC))
 
     reset_today = now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)

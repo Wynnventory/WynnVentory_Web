@@ -14,8 +14,8 @@ class TestRaidpoolRepo(BaseTestCase):
         super().setUp()
 
         # Set up fixed reset times for testing with timezone awareness
-        self.previous_reset = datetime(2025, 5, 7, 17, 0, 0, tzinfo=timezone.utc)
-        self.next_reset = datetime(2025, 5, 8, 17, 0, 0, tzinfo=timezone.utc)
+        self.previous_reset = datetime(2025, 5, 7, 18, 0, 0, tzinfo=timezone.utc)
+        self.next_reset = datetime(2025, 5, 8, 18, 0, 0, tzinfo=timezone.utc)
 
         # Set up a fixed current time for testing
         self.current_time = datetime(2025, 5, 8, 12, 0, 0, tzinfo=timezone.utc)
@@ -70,7 +70,7 @@ class TestRaidpoolRepo(BaseTestCase):
             "gambits": gambits
         }
 
-    def create_expected_doc(self, gambits=None, player_name="Player1", mod_version="1.0.0"):
+    def create_expected_doc(self, gambits=None, timestamp=None, player_name="Player1", mod_version="1.0.0"):
         """Create an expected document with the given parameters."""
         if gambits is None:
             gambits = [
@@ -78,10 +78,13 @@ class TestRaidpoolRepo(BaseTestCase):
                 self.create_gambit_entry("Gambit2", "2025-05-08T12:00:00Z", "test_data2")
             ]
 
+        if timestamp is None:
+            timestamp = self.current_time
+
         return {
             "playerName": player_name,
             "modVersion": mod_version,
-            "timestamp": self.current_time,
+            "timestamp": timestamp,
             "year": self.next_reset.year,
             "month": self.next_reset.month,
             "day": self.next_reset.day,
@@ -268,8 +271,8 @@ class TestRaidpoolRepo(BaseTestCase):
         self.mock_collection.find_one.return_value = None
 
         # Create test gambits: 3 valid, 1 old (from last raid week)
-        valid_ts = "2025-05-08T12:00:00Z"
-        old_ts = "2025-05-01T12:00:00Z"  # Last raid week (before May 2nd reset)
+        valid_ts = "2025-05-07T18:00:43Z"
+        old_ts = "2025-05-07T17:57:52Z"  # Last raid week (before May 2nd reset)
 
         test_gambits = [
             self.create_test_gambit("Gambit1", timestamp=valid_ts),
@@ -290,7 +293,8 @@ class TestRaidpoolRepo(BaseTestCase):
             self.create_gambit_entry("Gambit2", valid_ts),
             self.create_gambit_entry("Gambit4", valid_ts)
         ]
-        self.verify_insert_one(self.create_expected_doc(gambits=expected_gambits))
+        expected_ts = datetime(2025, 5, 7, 18, 0, 43, tzinfo=timezone.utc)
+        self.verify_insert_one(self.create_expected_doc(gambits=expected_gambits, timestamp=expected_ts))
 
 
 if __name__ == "__main__":

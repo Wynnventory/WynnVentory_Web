@@ -125,9 +125,9 @@ class TestTimeValidation(BaseTestCase):
         previous_reset, next_reset = get_current_gambit_day()
 
         # Previous reset should be yesterday at 5 PM
-        expected_previous = datetime(2025, 5, 7, 17, 0, 0, 0, tzinfo=timezone.utc)
+        expected_previous = datetime(2025, 5, 7, 18, 0, 0, 0, tzinfo=timezone.utc)
         # Next reset should be today at 5 PM
-        expected_next = datetime(2025, 5, 8, 17, 0, 0, 0, tzinfo=timezone.utc)
+        expected_next = datetime(2025, 5, 8, 18, 0, 0, 0, tzinfo=timezone.utc)
 
         # Compare datetime objects
         self.assert_datetime_equal(previous_reset, expected_previous)
@@ -140,9 +140,9 @@ class TestTimeValidation(BaseTestCase):
         previous_reset, next_reset = get_current_gambit_day()
 
         # Previous reset should be today at 5 PM
-        expected_previous = datetime(2025, 5, 8, 17, 0, 0, 0, tzinfo=timezone.utc)
+        expected_previous = datetime(2025, 5, 8, 18, 0, 0, 0, tzinfo=timezone.utc)
         # Next reset should be tomorrow at 5 PM
-        expected_next = datetime(2025, 5, 9, 17, 0, 0, 0, tzinfo=timezone.utc)
+        expected_next = datetime(2025, 5, 9, 18, 0, 0, 0, tzinfo=timezone.utc)
 
         # Compare datetime objects
         self.assert_datetime_equal(previous_reset, expected_previous)
