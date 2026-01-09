@@ -28,6 +28,17 @@ def save(collection_type: Collection, raw_data: Union[Dict[str, Any], List[Dict[
             raise ValueError(f"Region at index {idx} has unsupported mod version: {mod_version}")
 
         loot_items = region.get('items', [])
+        shiny_count = sum(1 for entry in loot_items if entry.get('shiny'))
+        if shiny_count > 1:
+            logging.warning(f"Lootpool contains too many shinies ({shiny_count}) at index {idx}; skipping")
+            continue
+
+        # New AspectItem Mythic check
+        mythic_aspect_count = sum(1 for entry in loot_items if entry.get('itemType') == 'AspectItem' and entry.get('rarity') == 'Mythic')
+        if mythic_aspect_count > 3:
+            logging.warning(f"Lootpool contains too many Mythic AspectItems ({mythic_aspect_count}) at index {idx}; skipping")
+            continue
+
         valid_loot_items = []
 
         for idx, item in enumerate(loot_items):

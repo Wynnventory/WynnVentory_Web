@@ -22,6 +22,10 @@ def save_gambits(gambits: List[Dict]):
     if not gambits:
         raise ValueError("No gambits provided")
 
+    if len(gambits) > 4:
+        logging.warning(f"Too many gambits: expected at most 4, got {len(gambits)}; skipping")
+        return
+
     valid_items = []
 
     for idx, gambit in enumerate(gambits):
