@@ -219,7 +219,12 @@ def fetch_lootpool() -> List[dict]:
                 "itemsList": {
                     "$sortArray": {
                         "input": "$itemsList",
-                        "sortBy": {"name": 1}
+                        "sortBy": {
+                            "itemType": 1,
+                            "name": 1,
+                            "tier": 1,
+                            "amount": 1
+                        }
                     }
                 }
             }
