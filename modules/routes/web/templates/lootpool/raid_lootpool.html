@@ -110,6 +110,9 @@
                                             {% if item.rarity == 'Common' and not item.type == "Tome" or item.type == 'CorkianAmplifier' %}
                                                 <span class="{{ item.rarity }}" style="pointer-events: none;">
                                                     <span class="amount">{{ item.amount }}</span> {{ item.name }}
+                                                    {% if item.tier %}
+                                                        <span class="tier"> {{ item.tier|to_roman }}</span>
+                                                    {% endif %}
                                                 </span>
                                             {% else %}
                                                 {% if item.itemType == 'AspectItem' %}

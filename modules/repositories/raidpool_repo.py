@@ -414,6 +414,7 @@ def fetch_raidpool():
                                         "amount": "$$item.amount",
                                         "shiny": "$$item.shiny",
                                         "icon": "$$item.icon",
+                                        "tier": "$$item.tier"
                                     }
                                 }
                             }

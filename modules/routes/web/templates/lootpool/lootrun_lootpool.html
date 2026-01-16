@@ -77,6 +77,9 @@
                                             {% if rarity_group.group in ['Misc', "Common"] %}
                                                 <span class="{{ item.rarity }}" style="pointer-events: none;">
                                                     <span class="amount">{{ item.amount }}</span> {{ item.name }}
+                                                    {% if item.tier %}
+                                                        <span class="tier"> {{ item.tier|to_roman }}</span>
+                                                    {% endif %}
                                                 </span>
                                             {% else %}
                                                 <div>

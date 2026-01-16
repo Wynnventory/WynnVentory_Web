@@ -205,7 +205,8 @@ def fetch_lootpool() -> List[dict]:
                         "rarity": "$items.rarity",
                         "shiny": "$items.shiny",
                         "shinyStat": "$items.shinyStat",
-                        "icon": "$items.icon"
+                        "icon": "$items.icon",
+                        "tier": "$items.tier"
                     }
                 },
                 "timestamp": {"$first": "$timestamp"}
@@ -340,6 +341,7 @@ def fetch_lootpool() -> List[dict]:
                                         "shiny": "$$loot_item.shiny",
                                         "shinyStat": "$$loot_item.shinyStat",
                                         "icon": "$$loot_item.icon",
+                                        "tier": "$$loot_item.tier"
                                     }
                                 }
                             }
