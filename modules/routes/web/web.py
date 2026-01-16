@@ -6,6 +6,7 @@ from modules.models.collection_types import Collection
 from modules.models.sort_options import SortOption
 from modules.repositories.market_repo import TIERED_TYPES
 from modules.services import base_pool_service, market_service, raidpool_service
+from modules.utils.time_validation import get_week_range
 
 SUBTYPE_OPTIONS = {
     "GearItem": [
@@ -61,7 +62,9 @@ def lootrun_lootpool():
     data = jsonify(base_pool_service.get_current_pools(Collection.LOOT)).get_json()
     pools = data if isinstance(data, list) else []
     pools = enrich_pools(pools, items_key="region_items")
-    return render_template("lootpool/lootrun_lootpool.html", loot_data=pools)
+    next_reset = get_week_range(4, 19)
+
+    return render_template("lootpool/lootrun_lootpool.html", loot_data=pools, next_reset=next_reset)
 
 
 @web_bp.route("/raid")
@@ -69,11 +72,11 @@ def raid_lootpool():
     raid_data = jsonify(base_pool_service.get_current_pools(Collection.RAID)).get_json()
     pools = raid_data if isinstance(raid_data, list) else []
     pools = enrich_pools(pools, items_key="group_items")
-
     gambit_data = raidpool_service.get_current_gambits()
     gambits = gambit_data.get("gambits") or []
+    next_reset = get_week_range(4, 18)
 
-    return render_template("lootpool/raid_lootpool.html", loot_data=pools, gambit_data=gambits)
+    return render_template("lootpool/raid_lootpool.html", loot_data=pools, gambit_data=gambits, next_reset=next_reset)
 
 
 @web_bp.route("/history/", defaults={'item_name': None})

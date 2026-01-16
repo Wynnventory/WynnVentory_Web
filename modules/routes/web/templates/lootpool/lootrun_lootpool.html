@@ -5,9 +5,9 @@
         <div class="row">
             <h1>Wynncraft Lootpool</h1>
         </div>
-        <div class="row">
-            <h4 id="lootTime"></h4>
-        </div>
+        <h4 id="next-reset" data-ts="{{ next_reset[1].isoformat() }}">
+            {{ next_reset[1].strftime('%Y-%m-%d %H:%M UTC') }}
+        </h4>
     </div>
 
     <!-- Side Menu Container -->

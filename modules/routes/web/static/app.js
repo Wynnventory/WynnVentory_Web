@@ -296,26 +296,6 @@ if (document.getElementById('collapse-button')) {
 
 //lootrun_lootpool.html Javascript code
 document.addEventListener('DOMContentLoaded', () => {
-    const lootEl = document.getElementById('lootTime')
-    const raidEl = document.getElementById('raidTime')
-
-    // Returns the next Friday at given UTC hour (18 for loot, 17 for raid)
-    function getNextFridayAt(hourUTC) {
-        const now = new Date()
-        const next = new Date()
-        // days until Friday (5)
-        next.setUTCDate(
-            now.getUTCDate() + ((5 - now.getUTCDay() + 7) % 7)
-        )
-        next.setUTCHours(hourUTC, 0, 0, 0)
-
-        // if it’s already past that hour on Friday, bump a week
-        if (now.getUTCDay() === 5 && now.getUTCHours() >= hourUTC) {
-            next.setUTCDate(next.getUTCDate() + 7)
-        }
-        return next
-    }
-
     // Generic countdown starter: takes a “getNext” fn and an element to update
     function startCountdown(getNextFn, el) {
         function tick() {
@@ -342,8 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Only start the one if its element is actually on the page
-    if (lootEl) startCountdown(() => getNextFridayAt(19), lootEl)
-    if (raidEl) startCountdown(() => getNextFridayAt(18), raidEl)
+    const el = document.getElementById("next-reset")
+    startCountdown(() => new Date(el.dataset.ts), el)
 })
 
 function displayItem(e, encodedItemName) {

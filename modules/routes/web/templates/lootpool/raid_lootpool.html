@@ -43,9 +43,9 @@
         {% endfor %}
     </div>
 
-    <div class="row mt-4">
-        <h4 id="raidTime"></h4>
-    </div>
+    <h4 id="next-reset" data-ts="{{ next_reset[1].isoformat() }}">
+        {{ next_reset[1].strftime('%Y-%m-%d %H:%M UTC') }}
+    </h4>
     <link rel="stylesheet"
           href="https://unpkg.com/minecraft-text/style.css"/>
 
