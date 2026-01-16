@@ -342,8 +342,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Only start the one if its element is actually on the page
-    if (lootEl) startCountdown(() => getNextFridayAt(18), lootEl)
-    if (raidEl) startCountdown(() => getNextFridayAt(17), raidEl)
+    if (lootEl) startCountdown(() => getNextFridayAt(19), lootEl)
+    if (raidEl) startCountdown(() => getNextFridayAt(18), raidEl)
 })
 
 function displayItem(e, encodedItemName) {
