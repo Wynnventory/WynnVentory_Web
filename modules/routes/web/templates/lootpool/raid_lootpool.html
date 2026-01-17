@@ -43,9 +43,10 @@
         {% endfor %}
     </div>
 
-    <div class="row mt-4">
-        <h4 id="raidTime"></h4>
-    </div>
+    <p id="next-reset" data-ts="{{ next_reset[1].isoformat() }}" style="display: none;">
+        {{ next_reset[1].strftime('%Y-%m-%d %H:%M UTC') }}
+    </p>
+    <h4 id="countdown"></h4>
     <link rel="stylesheet"
           href="https://unpkg.com/minecraft-text/style.css"/>
 
@@ -74,6 +75,24 @@
                 <input type="checkbox" class="btn-check" id="Misc" autocomplete="off" checked>
                 <label class="btn btn-outline-primary me-2 mb-2" for="Misc">Misc</label>
             </div>
+
+            <!-- Toggle Checkbox Buttons for Classes -->
+            <div class="d-flex flex-wrap mb-3" role="group" aria-label="Class checkbox toggle button group">
+                <input type="checkbox" class="btn-check class-filter" id="Warrior" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Warrior">Warrior</label>
+
+                <input type="checkbox" class="btn-check class-filter" id="Mage" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Mage">Mage</label>
+
+                <input type="checkbox" class="btn-check class-filter" id="Shaman" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Shaman">Shaman</label>
+
+                <input type="checkbox" class="btn-check class-filter" id="Assassin" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Assassin">Assassin</label>
+
+                <input type="checkbox" class="btn-check class-filter" id="Archer" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Archer">Archer</label>
+            </div>
         </div>
     </div>
     <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
@@ -98,7 +117,7 @@
                                 <h3 class="h6 rarity-header">{{ item_group.group }}</h3>
                                 <ul class="list-unstyled">
                                     {% for item in item_group.loot_items %}
-                                        <li class="lootpool-card-item">
+                                        <li class="lootpool-card-item" data-type="{{ item.type }}">
                                             {% if item.icon_url %}
                                                 <img src="{{ item.icon_url }}"
                                                      alt="{{ item.name }} icon"
@@ -109,6 +128,9 @@
                                             {% if item.rarity == 'Common' and not item.type == "Tome" or item.type == 'CorkianAmplifier' %}
                                                 <span class="{{ item.rarity }}" style="pointer-events: none;">
                                                     <span class="amount">{{ item.amount }}</span> {{ item.name }}
+                                                    {% if item.tier %}
+                                                        <span class="tier"> {{ item.tier|to_roman }}</span>
+                                                    {% endif %}
                                                 </span>
                                             {% else %}
                                                 {% if item.itemType == 'AspectItem' %}
@@ -169,6 +191,7 @@
         // Function to toggle groups based on checkbox state
         function toggleGroup(checkbox) {
             const groupName = checkbox.id;
+            if (checkbox.classList.contains('class-filter')) return; // Classes are handled by filterItems
             const groupElements = document.querySelectorAll(`.item-group[data-group="${groupName}"]`);
             groupElements.forEach(group => {
                 if (checkbox.checked) {
@@ -189,19 +212,43 @@
 
             // Add event listener to toggle visibility and save state
             checkbox.addEventListener('change', function () {
-                toggleGroup(this);
+                if (this.classList.contains('class-filter')) {
+                    filterItems();
+                } else {
+                    toggleGroup(this);
+                }
                 saveCheckboxState(this);
             });
         });
 
-        // Function to filter items based on search input
+        // Function to filter items based on search input and class filters
         function filterItems() {
             const searchValue = document.getElementById('searchInput').value.toLowerCase();
             const lootItems = document.querySelectorAll('.lootpool-card-item');
 
+            const classFilters = ['Warrior', 'Mage', 'Shaman', 'Assassin', 'Archer'];
+            const activeClasses = classFilters.filter(cls => {
+                const cb = document.getElementById(cls);
+                return cb && cb.checked;
+            });
+
             lootItems.forEach(item => {
                 const itemName = item.textContent.toLowerCase();
-                if (itemName.includes(searchValue)) {
+                const itemType = item.getAttribute('data-type') || "";
+
+                const matchesSearch = itemName.includes(searchValue);
+
+                let matchesClass = true;
+                if (activeClasses.length < classFilters.length) {
+                    matchesClass = activeClasses.some(cls => itemType.startsWith(cls));
+
+                    const isClassItem = classFilters.some(cls => itemType.startsWith(cls));
+                    if (!isClassItem) {
+                        matchesClass = true;
+                    }
+                }
+
+                if (matchesSearch && matchesClass) {
                     item.style.display = '';
                 } else {
                     item.style.display = 'none';

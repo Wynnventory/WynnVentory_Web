@@ -61,14 +61,16 @@ def fetch_lootpools(
     }
 
 
-# OLD GROUPED FORMAT
 def fetch_lootpool() -> List[dict]:
     """
     Retrieve the processed lootpool items for the current week/year,
     grouped and sorted by region, group, and shiny status.
-    """
 
+    Change: items that don't have a shinyStat are NOT treated as shiny for grouping.
+            (effectiveShiny = shiny == True AND shinyStat exists/not-null)
+    """
     year, week = get_lootpool_week()
+
     pipeline = [
         # Match documents for the given week and year
         {
@@ -77,7 +79,9 @@ def fetch_lootpool() -> List[dict]:
                 "year": year
             }
         },
-        # Map over items to assign 'group' and 'newType' fields
+
+        # Map over items to assign 'group' and 'type' fields
+        # + compute effectiveShiny and override items.shiny with it for downstream grouping
         {
             "$addFields": {
                 "items": {
@@ -129,6 +133,7 @@ def fetch_lootpool() -> List[dict]:
                                             }
                                         }
                                     },
+
                                     # Determine the new type for specific itemTypes
                                     "newType": {
                                         "$cond": {
@@ -148,6 +153,14 @@ def fetch_lootpool() -> List[dict]:
                                             },
                                             "else": "$$item.type"
                                         }
+                                    },
+
+                                    # NEW: treat as shiny only if shiny==true AND shinyStat exists/not-null
+                                    "effectiveShiny": {
+                                        "$and": [
+                                            {"$eq": ["$$item.shiny", True]},
+                                            {"$ne": [{"$ifNull": ["$$item.shinyStat", None]}, None]}
+                                        ]
                                     }
                                 },
                                 "in": {
@@ -156,7 +169,10 @@ def fetch_lootpool() -> List[dict]:
                                         "$$item",
                                         {
                                             "group": "$$group",
-                                            "type": "$$newType"
+                                            "type": "$$newType",
+
+                                            # IMPORTANT: override shiny used downstream (grouping + "Shiny" label)
+                                            "shiny": "$$effectiveShiny"
                                         }
                                     ]
                                 }
@@ -166,10 +182,12 @@ def fetch_lootpool() -> List[dict]:
                 }
             }
         },
+
         # Unwind the items array to process each item individually
         {
             "$unwind": "$items"
         },
+
         # Group items by region, group, and shiny status
         {
             "$group": {
@@ -187,23 +205,31 @@ def fetch_lootpool() -> List[dict]:
                         "rarity": "$items.rarity",
                         "shiny": "$items.shiny",
                         "shinyStat": "$items.shinyStat",
-                        "icon": "$items.icon"
+                        "icon": "$items.icon",
+                        "tier": "$items.tier"
                     }
                 },
                 "timestamp": {"$first": "$timestamp"}
             }
         },
+
         # Sort itemsList by name within each group
         {
             "$addFields": {
                 "itemsList": {
                     "$sortArray": {
                         "input": "$itemsList",
-                        "sortBy": {"name": 1}
+                        "sortBy": {
+                            "itemType": 1,
+                            "name": 1,
+                            "tier": 1,
+                            "amount": 1
+                        }
                     }
                 }
             }
         },
+
         # Group by region to assemble the final structure with itemsByGroup
         {
             "$group": {
@@ -245,6 +271,7 @@ def fetch_lootpool() -> List[dict]:
                 }
             }
         },
+
         # Assign sortKey based on group for ordering
         {
             "$addFields": {
@@ -279,6 +306,7 @@ def fetch_lootpool() -> List[dict]:
                 }
             }
         },
+
         # Sort the itemsByGroup array based on sortKey
         {
             "$addFields": {
@@ -290,6 +318,7 @@ def fetch_lootpool() -> List[dict]:
                 }
             }
         },
+
         # Project the final output, including the original rarity of items
         {
             "$project": {
@@ -317,6 +346,7 @@ def fetch_lootpool() -> List[dict]:
                                         "shiny": "$$loot_item.shiny",
                                         "shinyStat": "$$loot_item.shinyStat",
                                         "icon": "$$loot_item.icon",
+                                        "tier": "$$loot_item.tier"
                                     }
                                 }
                             }
@@ -325,6 +355,7 @@ def fetch_lootpool() -> List[dict]:
                 }
             }
         },
+
         # Sort the final results by region
         {
             "$sort": {"region": 1}

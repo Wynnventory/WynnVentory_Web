@@ -105,7 +105,7 @@ def get_raidpool_week() -> tuple[int, int]:
 
 
 def get_current_gambit_day(now: Optional[datetime] = None) -> tuple[datetime, datetime]:
-    reset_hour = 18  # 17:00 (5 PM) UTC
+    reset_hour = 18  # 18:00 (6 PM) UTC
     now = parse_utc_timestamp(now or datetime.now(UTC))
 
     reset_today = now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
@@ -150,13 +150,13 @@ def is_time_valid(pool_type: Collection, time_value: Union[str, int, float, date
 
     if pool_type == Collection.RAID:
         reset_day = 4  # Friday
-        reset_hour = 17  # 17:00 (5 PM) UTC
+        reset_hour = 18  # 18:00 (6 PM) UTC
         week_start, week_end = get_week_range(reset_day, reset_hour)
         return week_start <= time_dt < week_end
 
     if pool_type == Collection.LOOT:
         reset_day = 4  # Friday
-        reset_hour = 18  # 18:00 (6 PM) UTC
+        reset_hour = 19  # 19:00 (8 PM) UTC
         week_start, week_end = get_week_range(reset_day, reset_hour)
         return week_start <= time_dt < week_end
 

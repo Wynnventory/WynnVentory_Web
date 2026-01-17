@@ -375,7 +375,10 @@ def fetch_raidpool():
                                                     "input": "$$groupItem.items",
                                                     "sortBy": {
                                                         "raritySortKey": 1,
-                                                        "name": 1
+                                                        "itemType": 1,
+                                                        "name": 1,
+                                                        "tier": 1,
+                                                        "amount": 1
                                                     }
                                                 }
                                             }
@@ -414,6 +417,7 @@ def fetch_raidpool():
                                         "amount": "$$item.amount",
                                         "shiny": "$$item.shiny",
                                         "icon": "$$item.icon",
+                                        "tier": "$$item.tier"
                                     }
                                 }
                             }

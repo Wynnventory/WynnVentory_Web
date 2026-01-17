@@ -43,7 +43,8 @@ def build_pool_pipeline(
                 "shinyStat": "$items.shinyStat",
                 "icon": "$items.icon",
                 "itemType": "$items.itemType",
-                "subtype": "$items.subtype"
+                "subtype": "$items.subtype",
+                "tier": "$items.tier"
             }},
             "type": {"$first": "$type"}
         }
