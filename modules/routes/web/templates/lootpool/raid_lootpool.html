@@ -11,7 +11,6 @@
                     {# ─── Header: clicking toggles the collapse ──────────────── #}
                     <div class="card-header text-center"
                          style="color: {{ gambit.color }};"
-                         onclick="console.log('clicked')"
                          role="button"
                          data-bs-toggle="collapse"
                          data-bs-target="#collapse-gambit-{{ loop.index }}"
@@ -243,13 +242,9 @@
                 if (activeClasses.length < classFilters.length) {
                     matchesClass = activeClasses.some(cls => itemType.startsWith(cls));
 
-                    // If it doesn't start with any known class, we might want to show it anyway if it's not a class item
-                    // But the requirement says "when the items type starts with the class name it should be displayed"
-                    // Usually, this implies that if it's NOT a class item, it might be exempt from this filter or always shown.
-                    // Let's check if the item type starts with ANY of the known classes.
                     const isClassItem = classFilters.some(cls => itemType.startsWith(cls));
                     if (!isClassItem) {
-                        matchesClass = true; // Non-class items are always shown (subject to other filters)
+                        matchesClass = true;
                     }
                 }
 
