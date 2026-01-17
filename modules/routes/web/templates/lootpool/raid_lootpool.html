@@ -11,6 +11,7 @@
                     {# ─── Header: clicking toggles the collapse ──────────────── #}
                     <div class="card-header text-center"
                          style="color: {{ gambit.color }};"
+                         onclick="console.log('clicked')"
                          role="button"
                          data-bs-toggle="collapse"
                          data-bs-target="#collapse-gambit-{{ loop.index }}"
@@ -75,6 +76,24 @@
                 <input type="checkbox" class="btn-check" id="Misc" autocomplete="off" checked>
                 <label class="btn btn-outline-primary me-2 mb-2" for="Misc">Misc</label>
             </div>
+
+            <!-- Toggle Checkbox Buttons for Classes -->
+            <div class="d-flex flex-wrap mb-3" role="group" aria-label="Class checkbox toggle button group">
+                <input type="checkbox" class="btn-check class-filter" id="Warrior" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Warrior">Warrior</label>
+
+                <input type="checkbox" class="btn-check class-filter" id="Mage" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Mage">Mage</label>
+
+                <input type="checkbox" class="btn-check class-filter" id="Shaman" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Shaman">Shaman</label>
+
+                <input type="checkbox" class="btn-check class-filter" id="Assassin" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Assassin">Assassin</label>
+
+                <input type="checkbox" class="btn-check class-filter" id="Archer" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary me-2 mb-2" for="Archer">Archer</label>
+            </div>
         </div>
     </div>
     <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
@@ -99,7 +118,7 @@
                                 <h3 class="h6 rarity-header">{{ item_group.group }}</h3>
                                 <ul class="list-unstyled">
                                     {% for item in item_group.loot_items %}
-                                        <li class="lootpool-card-item">
+                                        <li class="lootpool-card-item" data-type="{{ item.type }}">
                                             {% if item.icon_url %}
                                                 <img src="{{ item.icon_url }}"
                                                      alt="{{ item.name }} icon"
@@ -173,6 +192,7 @@
         // Function to toggle groups based on checkbox state
         function toggleGroup(checkbox) {
             const groupName = checkbox.id;
+            if (checkbox.classList.contains('class-filter')) return; // Classes are handled by filterItems
             const groupElements = document.querySelectorAll(`.item-group[data-group="${groupName}"]`);
             groupElements.forEach(group => {
                 if (checkbox.checked) {
@@ -193,19 +213,47 @@
 
             // Add event listener to toggle visibility and save state
             checkbox.addEventListener('change', function () {
-                toggleGroup(this);
+                if (this.classList.contains('class-filter')) {
+                    filterItems();
+                } else {
+                    toggleGroup(this);
+                }
                 saveCheckboxState(this);
             });
         });
 
-        // Function to filter items based on search input
+        // Function to filter items based on search input and class filters
         function filterItems() {
             const searchValue = document.getElementById('searchInput').value.toLowerCase();
             const lootItems = document.querySelectorAll('.lootpool-card-item');
 
+            const classFilters = ['Warrior', 'Mage', 'Shaman', 'Assassin', 'Archer'];
+            const activeClasses = classFilters.filter(cls => {
+                const cb = document.getElementById(cls);
+                return cb && cb.checked;
+            });
+
             lootItems.forEach(item => {
                 const itemName = item.textContent.toLowerCase();
-                if (itemName.includes(searchValue)) {
+                const itemType = item.getAttribute('data-type') || "";
+
+                const matchesSearch = itemName.includes(searchValue);
+
+                let matchesClass = true;
+                if (activeClasses.length < classFilters.length) {
+                    matchesClass = activeClasses.some(cls => itemType.startsWith(cls));
+
+                    // If it doesn't start with any known class, we might want to show it anyway if it's not a class item
+                    // But the requirement says "when the items type starts with the class name it should be displayed"
+                    // Usually, this implies that if it's NOT a class item, it might be exempt from this filter or always shown.
+                    // Let's check if the item type starts with ANY of the known classes.
+                    const isClassItem = classFilters.some(cls => itemType.startsWith(cls));
+                    if (!isClassItem) {
+                        matchesClass = true; // Non-class items are always shown (subject to other filters)
+                    }
+                }
+
+                if (matchesSearch && matchesClass) {
                     item.style.display = '';
                 } else {
                     item.style.display = 'none';
