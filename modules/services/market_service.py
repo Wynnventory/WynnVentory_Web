@@ -28,7 +28,7 @@ def _format_item_for_db(item: dict) -> dict:
     formatted_item = {
         "name": item_data.get('name'),
         "rarity": item_data.get('rarity'),
-        "item_type": item_data.get('item_type'),
+        "item_type": item_data.get('itemType'),
         "type": item_data.get('type'),
         "tier": item_data.get('tier'),
         "unidentified": item_data.get('unidentified'),
