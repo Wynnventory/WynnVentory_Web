@@ -1,4 +1,5 @@
 {% extends '/components/_base.html' %}
+{% from '/components/_carousel.html' import carousel %}
 {% block title %}Raidpool{% endblock %}
 {% block content %}
     <h1>Wynncraft Raidpool</h1>
@@ -97,64 +98,42 @@
     </div>
     <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
 
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4 g-3">
-        {% for region_data in loot_data %}
-            <div class="col">
-                <div class="card">
-                    <div class="card-header text-center"
-                         data-bs-toggle="collapse"
-                         href="#collapse-{{ loop.index }}"
-                         role="button"
-                         aria-expanded="false"
-                         aria-controls="collapse-{{ loop.index }}"
-                         title="{{ region_data.raid_full_name }}">
-                        <h2 class="h5">{{ region_data.region }}</h2>
-                    </div>
-
-                    <div id="collapse-{{ loop.index }}" class="collapse show card-body">
-                        {% for item_group in region_data.group_items %}
-                            <div class="item-group" data-group="{{ item_group.group }}">
-                                <h3 class="h6 rarity-header">{{ item_group.group }}</h3>
-                                <ul class="list-unstyled">
-                                    {% for item in item_group.loot_items %}
-                                        <li class="lootpool-card-item" data-type="{{ item.type }}">
-                                            {% if item.icon_url %}
-                                                <img src="{{ item.icon_url }}"
-                                                     alt="{{ item.name }} icon"
-                                                     class="item-icon">
-                                            {% else %}
-                                                <span class="sprite bg-{{ item.type|lower }}"></span>
-                                            {% endif %}
-                                            {% if item.rarity == 'Common' and not item.type == "Tome" or item.type == 'CorkianAmplifier' %}
-                                                <span class="{{ item.rarity }}" style="pointer-events: none;">
-                                                    <span class="amount">{{ item.amount }}</span> {{ item.name }}
-                                                    {% if item.tier %}
-                                                        <span class="tier"> {{ item.tier|to_roman }}</span>
-                                                    {% endif %}
-                                                </span>
-                                            {% else %}
-                                                {% if item.itemType == 'AspectItem' %}
-                                                    <span class="{{ item.rarity }}"
-                                                          onclick="displayAspect(event, '{{ item.type | urlencode }}', '{{ item.name | urlencode }}')">{{ item.name }}</span>
-                                                {% else %}
-                                                    <span class="{{ item.rarity }}"
-                                                          onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
-                                                {% endif %}
-                                            {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <!-- Display the last updated time -->
-                    <div class="card-footer">
-                        <small>{{ region_data.last_updated }}</small>
-                    </div>
-                </div>
+    {% call(region_data) carousel(loot_data) %}
+        {% for item_group in region_data.group_items %}
+            <div class="item-group" data-group="{{ item_group.group }}">
+                <h3 class="h6 rarity-header">{{ item_group.group }}</h3>
+                <ul class="list-unstyled">
+                    {% for item in item_group.loot_items %}
+                        <li class="lootpool-card-item" data-type="{{ item.type }}">
+                            {% if item.icon_url %}
+                                <img src="{{ item.icon_url }}"
+                                     alt="{{ item.name }} icon"
+                                     class="item-icon">
+                            {% else %}
+                                <span class="sprite bg-{{ item.type|lower }}"></span>
+                            {% endif %}
+                            {% if item.rarity == 'Common' and not item.type == "Tome" or item.type == 'CorkianAmplifier' %}
+                                <span class="{{ item.rarity }}" style="pointer-events: none;">
+                                    <span class="amount">{{ item.amount }}</span> {{ item.name }}
+                                    {% if item.tier %}
+                                        <span class="tier"> {{ item.tier|to_roman }}</span>
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                {% if item.itemType == 'AspectItem' %}
+                                    <span class="{{ item.rarity }}"
+                                          onclick="displayAspect(event, '{{ item.type | urlencode }}', '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                                {% else %}
+                                    <span class="{{ item.rarity }}"
+                                          onclick="displayItem(event, '{{ item.name | urlencode }}')">{{ item.name }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
         {% endfor %}
-    </div>
+    {% endcall %}
     <div id="item-stats-tooltip" class="item-stats-tooltip"></div>
 
     <script type="module">
