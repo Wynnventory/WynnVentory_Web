@@ -3,13 +3,13 @@
 {% block title %}Lootpool{% endblock %}
 {% block content %}
     <div class="col">
-        <div class="row">
-            <h1>Wynncraft Lootpool</h1>
+        <div class="row" style="text-align-last: center;">
+            <h1 style="margin-bottom: .5rem;">Lootpool</h1>
+            <p id="next-reset" data-ts="{{ next_reset[1].isoformat() }}" style="display: none;">
+                {{ next_reset[1].strftime('%Y-%m-%d %H:%M UTC') }}
+            </p>
+            <small id="countdown" class="text-muted"></small>
         </div>
-        <p id="next-reset" data-ts="{{ next_reset[1].isoformat() }}" style="display: none;">
-            {{ next_reset[1].strftime('%Y-%m-%d %H:%M UTC') }}
-        </p>
-        <h4 id="countdown"></h4>
     </div>
 
     <!-- Side Menu Container -->

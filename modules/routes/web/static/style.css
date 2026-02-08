@@ -624,18 +624,128 @@ li .SET:hover {
 }
 
 
-/* SPRITES */
-.sprite {
-    width: 32px;
-    height: 32px;
-    display: inline-block;
-    background-image: url('icons/wynn_sprites.png');
-    background-repeat: no-repeat;
-    background-size: initial; /* Ensure the background size is set */
-    flex-shrink: 0; /* Prevent the sprite from shrinking */
-    transform: scale(1.2);
-    margin-right: 12px;
-    transform-origin: center;
+/* GAMBIT REDESIGN */
+.gambit-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    margin-top: 1rem;
+}
+
+.gambit-bar {
+    background-color: #534b4b;
+    border: 4px solid #373232;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 5px 20px;
+    min-width: 200px;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    box-shadow: 0 3px 0 #262222;
+    image-rendering: pixelated;
+}
+
+.gambit-bar::before, .gambit-bar::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background-color: #373232;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 1px 1px 0 #262222;
+}
+
+.gambit-bar::before {
+    left: 6px;
+}
+
+.gambit-bar::after {
+    right: 6px;
+}
+
+@media (max-width: 768px) {
+    .gambit-bar {
+        padding: 5px 15px;
+        min-width: unset;
+        gap: 10px;
+    }
+    .gambit-diamond-wrapper {
+        width: 24px;
+        height: 24px;
+    }
+    .gambit-diamond-border {
+        width: 20px;
+        height: 20px;
+    }
+    .gambit-diamond {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.gambit-diamond-wrapper {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.gambit-diamond-wrapper:hover {
+    transform: scale(1.15);
+}
+
+.gambit-diamond-border {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #2a2626;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.gambit-diamond {
+    width: 20px;
+    height: 20px;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+    position: relative;
+    z-index: 1;
+}
+
+.gambit-diamond::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: conic-gradient(
+        from 135deg at 50% 50%,
+        rgba(0,0,0,0.3) 90deg,
+        rgba(255,255,255,0.15) 90deg 180deg,
+        rgba(255,255,255,0.35) 180deg 270deg,
+        rgba(0,0,0,0.15) 270deg
+    );
+}
+
+.gambit-diamond-inner {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--gambit-color);
+    z-index: -1;
+}
+
+/* Tooltip styling for gambits */
+.gambit-tooltip .tooltip-inner {
+    max-width: 300px;
+    padding: 10px;
+    text-align: left;
+    background-color: #150a18;
+    border: 2px solid #000;
+    font-family: 'Minecraft', sans-serif;
 }
 
 .bg-unique {
