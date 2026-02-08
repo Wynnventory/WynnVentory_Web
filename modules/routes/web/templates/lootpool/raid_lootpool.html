@@ -13,18 +13,31 @@
     </div>
     <div class="gambit-row">
         <div class="gambit-bar">
-            {% for gambit in gambit_data %}
-                <div class="gambit-diamond-wrapper"
-                     data-bs-toggle="tooltip"
-                     data-bs-html="true"
-                     data-bs-custom-class="gambit-tooltip"
-                     data-gambit-color="{{ gambit.color }}"
-                     data-bs-title="<div class='text-center mb-2'><h5 class='gambit-name-tooltip' style='margin: 0;'>{{ gambit.name }}</h5></div><div class='gambit-desc-tooltip'>{% for line in gambit.description %}{{ line }} {% endfor %}</div>{% if gambit.timestamp %}<hr/><div class='text-muted' style='font-size: 0.8rem;'>Updated {{ gambit.timestamp | last_updated }} ago</div>{% endif %}">
-                    <div class="gambit-diamond-border"></div>
-                    <div class="gambit-diamond">
-                        <div class="gambit-diamond-inner" style="--gambit-color: {{ gambit.color }};"></div>
+            {% for i in range(4) %}
+                {% if i < gambit_data|length %}
+                    {% set gambit = gambit_data[i] %}
+                    <div class="gambit-diamond-wrapper"
+                         data-bs-toggle="tooltip"
+                         data-bs-html="true"
+                         data-bs-custom-class="gambit-tooltip"
+                         data-gambit-color="{{ gambit.color }}"
+                         data-bs-title="<div class='text-center mb-2'><h5 class='gambit-name-tooltip' style='margin: 0;'>{{ gambit.name }}</h5></div><div class='gambit-desc-tooltip'>{% for line in gambit.description %}{{ line }} {% endfor %}</div>{% if gambit.timestamp %}<hr/><div class='text-muted' style='font-size: 0.8rem;'>Updated {{ gambit.timestamp | last_updated }} ago</div>{% endif %}">
+                        <div class="gambit-diamond-border"></div>
+                        <div class="gambit-diamond">
+                            <div class="gambit-diamond-inner" style="--gambit-color: {{ gambit.color }};"></div>
+                        </div>
                     </div>
-                </div>
+                {% else %}
+                    <div class="gambit-diamond-wrapper gambit-diamond-placeholder"
+                         data-bs-toggle="tooltip"
+                         data-bs-custom-class="gambit-tooltip"
+                         data-bs-title="Not collected yet">
+                        <div class="gambit-diamond-border"></div>
+                        <div class="gambit-diamond">
+                            <div class="gambit-diamond-inner"></div>
+                        </div>
+                    </div>
+                {% endif %}
             {% endfor %}
         </div>
     </div>

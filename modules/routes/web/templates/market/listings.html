@@ -187,15 +187,7 @@
                                     {% if item.icon_url %}
                                         <img src="{{ item.icon_url }}" alt="{{ item.name }} icon" class="item-icon">
                                     {% else %}
-                                        <span class="sprite bg-{{ item.type|lower }}" style="
-                                                display: inline-block;
-                                                width: 32px;
-                                                height: 32px;
-                                                object-fit: contain;
-                                                object-position: center;
-                                                flex-shrink: 0;
-                                                margin-right: 10px;
-                                              "></span>
+                                        <span class="sprite bg-{{ item.type|lower }}" style="margin-right: 10px;"></span>
                                     {% endif %}
 
                                     <h5 class="mb-0 {{ item.rarity or '' }}">
@@ -205,9 +197,6 @@
                                         {% if item.shiny_stat %}
                                             <span class="sprite bg-shiny"
                                                   style="
-                                                    display: inline-block;
-                                                    width: 32px;
-                                                    height: 32px;
                                                     transform: scale(0.6);
                                                     transform-origin: 0 0;
                                                     -webkit-transform-origin-y: bottom
