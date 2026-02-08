@@ -357,6 +357,16 @@ background-color: var(--bs-body-bg);
     font-size: 1.1rem;
 }
 
+.sprite {
+    background-image: url('icons/wynn_sprites.png');
+    background-repeat: no-repeat;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    vertical-align: middle;
+}
+
 .lootpool-card-item .sprite {
     margin-right: 12px;
 }
@@ -734,8 +744,12 @@ li .SET:hover {
 .gambit-diamond-inner {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: var(--gambit-color);
+    background-color: var(--gambit-color, #808080);
     z-index: -1;
+}
+
+.gambit-diamond-placeholder .gambit-diamond-inner {
+    background-color: #4a4a4a;
 }
 
 /* Tooltip styling for gambits */
