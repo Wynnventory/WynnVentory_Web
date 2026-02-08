@@ -2,52 +2,33 @@
 {% from '/components/_carousel.html' import carousel %}
 {% block title %}Raidpool{% endblock %}
 {% block content %}
-    <h1>Wynncraft Raidpool</h1>
-
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-4">
-        {% for gambit in gambit_data %}
-            <div class="col">
-                <div class="card">
-
-                    {# ─── Header: clicking toggles the collapse ──────────────── #}
-                    <div class="card-header text-center"
-                         style="color: {{ gambit.color }};"
-                         role="button"
-                         data-bs-toggle="collapse"
-                         data-bs-target="#collapse-gambit-{{ loop.index }}"
-                         aria-expanded="false"
-                         aria-controls="collapse-gambit-{{ loop.index }}">
-                        <h5 class="mb-0">{{ gambit.name }}</h5>
+    <div class="col">
+        <div class="row" style="text-align-last: center;">
+            <h1 style="margin-bottom: .5rem;">Raidpool</h1>
+            <p id="next-reset" data-ts="{{ next_reset[1].isoformat() }}" style="display: none;">
+                {{ next_reset[1].strftime('%Y-%m-%d %H:%M UTC') }}
+            </p>
+            <small id="countdown" class="text-muted"></small>
+        </div>
+    </div>
+    <div class="gambit-row">
+        <div class="gambit-bar">
+            {% for gambit in gambit_data %}
+                <div class="gambit-diamond-wrapper"
+                     data-bs-toggle="tooltip"
+                     data-bs-html="true"
+                     data-bs-custom-class="gambit-tooltip"
+                     data-gambit-color="{{ gambit.color }}"
+                     data-bs-title="<div class='text-center mb-2'><h5 class='gambit-name-tooltip' style='margin: 0;'>{{ gambit.name }}</h5></div><div class='gambit-desc-tooltip'>{% for line in gambit.description %}{{ line }} {% endfor %}</div>{% if gambit.timestamp %}<hr/><div class='text-muted' style='font-size: 0.8rem;'>Updated {{ gambit.timestamp | last_updated }} ago</div>{% endif %}">
+                    <div class="gambit-diamond-border"></div>
+                    <div class="gambit-diamond">
+                        <div class="gambit-diamond-inner" style="--gambit-color: {{ gambit.color }};"></div>
                     </div>
-
-                    {# ─── Collapsible body (initially hidden) ─────────────── #}
-                    <div id="collapse-gambit-{{ loop.index }}" class="collapse">
-                        <div class="card-body">
-                            <div class="gambit-desc">{% for line in gambit.description %}{{ line }} {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-
-                    {# ─── Footer (no extra top‐margin) ──────────────────────── #}
-                    {% if gambit.timestamp %}
-                        <div class="mt-auto">
-                            <div class="card-footer text-center">
-                                <small class="text-muted">
-                                    Updated {{ gambit.timestamp | last_updated }} ago
-                                </small>
-                            </div>
-                        </div>
-                    {% endif %}
-
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 
-    <p id="next-reset" data-ts="{{ next_reset[1].isoformat() }}" style="display: none;">
-        {{ next_reset[1].strftime('%Y-%m-%d %H:%M UTC') }}
-    </p>
-    <h4 id="countdown"></h4>
     <link rel="stylesheet"
           href="https://unpkg.com/minecraft-text/style.css"/>
 
@@ -139,8 +120,27 @@
     <script type="module">
         import {render} from "https://esm.sh/minecraft-text";
 
-        document.querySelectorAll(".gambit-desc").forEach(el => {
-            el.innerHTML = render(el.textContent, "§").replace(/\n/g, "<br/>");
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            const tooltip = new bootstrap.Tooltip(tooltipTriggerEl);
+
+            // Render Minecraft text when tooltip is shown
+            tooltipTriggerEl.addEventListener('shown.bs.tooltip', () => {
+                const tooltipInner = document.querySelector('.tooltip.show .tooltip-inner');
+                if (tooltipInner && !tooltipInner.dataset.rendered) {
+                    const nameEl = tooltipInner.querySelector('.gambit-name-tooltip');
+                    const descEl = tooltipInner.querySelector('.gambit-desc-tooltip');
+                    if (nameEl) {
+                        const color = tooltipTriggerEl.getAttribute('data-gambit-color');
+                        if (color) nameEl.style.color = color;
+                    }
+                    if (descEl) descEl.innerHTML = render(descEl.textContent, "§").replace(/\n/g, "<br/>");
+                    tooltipInner.dataset.rendered = "true";
+                }
+            });
+
+            return tooltip;
         });
     </script>
 

@@ -324,7 +324,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only start the one if its element is actually on the page
     const el = document.getElementById("next-reset")
     const countdownEl = document.getElementById("countdown")
-    startCountdown(() => new Date(el.dataset.ts), countdownEl)
+    if (el && countdownEl) {
+        startCountdown(() => new Date(el.dataset.ts), countdownEl)
+    }
 })
 
 function displayItem(e, encodedItemName) {
