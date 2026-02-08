@@ -1,0 +1,25 @@
+{% macro carousel(loot_data) %}
+<div class="carousel-container">
+    <button class="carousel-control prev-btn">&lt;</button>
+    <div class="carousel-items">
+        {% for region_data in loot_data %}
+            <div class="carousel-item-3d">
+                <div class="card">
+                    <div class="card-header {{ 'text-center' if region_data.raid_full_name else '' }}"
+                         {% if region_data.raid_full_name %}title="{{ region_data.raid_full_name }}"{% endif %}>
+                        <h2 class="h5">{{ region_data.region }}</h2>
+                    </div>
+                    <div class="card-body">
+                        {{ caller(region_data) }}
+                    </div>
+                    <!-- Display the last updated time -->
+                    <div class="card-footer">
+                        <small>{{ region_data.last_updated }}</small>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control next-btn">&gt;</button>
+</div>
+{% endmacro %}

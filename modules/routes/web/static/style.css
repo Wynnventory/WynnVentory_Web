@@ -21,14 +21,6 @@
     --footer-bg: #2b2e33;
     --sidebar-color: #212529;
     --text-color: #e0e0e0;
-    text-shadow: -1px -1px 0 #000,
-    0 -1px 0 #000,
-    1px -1px 0 #000,
-    1px 0 0 #000,
-    1px 1px 0 #000,
-    0 1px 0 #000,
-    -1px 1px 0 #000,
-    -1px 0 0 #000;
 }
 
 @media (min-width: 576px) {
@@ -101,9 +93,11 @@ a:hover {
 }
 
 .rarity-header {
-    border-bottom: 1px solid #424242b3;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     padding-bottom: 8px;
     margin-bottom: 12px;
+    font-weight: 600;
+    color: #fff;
 }
 
 .item-stats-tooltip {
@@ -358,15 +352,18 @@ background-color: var(--bs-body-bg);
     text-align: left;
     flex-wrap: nowrap; /* Keep items on the same line */
     min-width: 0; /* Prevent content from overflowing */
+    padding: 4px 0;
+    line-height: 1.5;
+    font-size: 1.1rem;
 }
 
 .lootpool-card-item .sprite {
-    margin-right: 10px;
+    margin-right: 12px;
 }
 
 .amount {
     display: inline-block;
-    width: 25px; /* Adjust the width as needed */
+    width: 30px; /* Adjust the width as needed */
     text-align: right;
 }
 
@@ -375,8 +372,9 @@ background-color: var(--bs-body-bg);
 .mythic,
 .Mythic,
 .MYTHIC {
-    color: rgb(187, 0, 187);
+    color: #ff55ff;
     --tooltip-border-color: rgb(162, 0, 162);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 li .mythic:hover,
@@ -390,8 +388,9 @@ li .MYTHIC:hover {
 .fabled,
 .Fabled,
 .FABLED {
-    color: rgb(246, 62, 62);
+    color: #ff5555;
     --tooltip-border-color: rgb(246, 62, 62);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 li .fabled:hover,
@@ -410,8 +409,9 @@ li .FABLED:hover {
 .legendary,
 .Legendary,
 .LEGENDARY {
-    color: rgb(80, 253, 255);
+    color: #55ffff;
     --tooltip-border-color: rgb(80, 253, 255);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 li .legendary:hover,
@@ -425,8 +425,9 @@ li .LEGENDARY:hover {
 .rare,
 .Rare,
 .RARE {
-    color: rgb(255, 80, 232);
+    color: #ff55ff;
     --tooltip-border-color: rgb(255, 80, 232);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 li .rare:hover,
@@ -440,8 +441,9 @@ li .RARE:hover {
 .unique,
 .Unique,
 .UNIQUE {
-    color: rgb(252, 252, 84);
+    color: #ffff55;
     --tooltip-border-color: rgb(252, 252, 84);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 li .unique:hover,
@@ -471,8 +473,9 @@ li .COMMON:hover {
 .set,
 .Set,
 .SET {
-    color: rgb(90, 255, 90);
+    color: #55ff55;
     --tooltip-border-color: rgb(90, 255, 90);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
 li .set:hover,
@@ -612,12 +615,12 @@ li .SET:hover {
 }
 
 .item-icon {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
     object-fit: contain; /* or `cover`, depending on your preference */
     object-position: center;
     flex-shrink: 0;
-    margin-right: 10px;
+    margin-right: 12px;
 }
 
 
@@ -630,6 +633,9 @@ li .SET:hover {
     background-repeat: no-repeat;
     background-size: initial; /* Ensure the background size is set */
     flex-shrink: 0; /* Prevent the sprite from shrinking */
+    transform: scale(1.2);
+    margin-right: 12px;
+    transform-origin: center;
 }
 
 .bg-unique {
@@ -1216,23 +1222,158 @@ body.side-menu-open {
     color: #aaa;
 }
 
-/* one line of stats */
-.stat-row {
-    display: grid; /* simple 3-column grid  */
-    grid-template-columns:auto 1fr auto; /* value | name (flexes) | % */
+/* Flat Carousel */
+.carousel-container {
+    position: relative;
+    width: 100%;
+    margin: 1rem auto;
+    height: 90vh;
+    max-height: 1000px;
+    min-height: 600px;
+    overflow: hidden;
+    display: flex;
     align-items: center;
-    column-gap: .25rem; /* optional breathing room */
+    justify-content: center;
 }
 
-.stat-value {
-    text-align: left;
+.carousel-items {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-.stat-name {
-    text-align: center;
+.carousel-item-3d {
+    position: absolute;
+    width: 25%;
+    min-width: 350px;
+    height: 90%;
+    transition: all 0.5s ease;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+    transform: translateX(0) scale(0.5);
 }
 
-.stat-pct {
-    text-align: right;
-    white-space: nowrap;
+.carousel-item-3d.active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 10;
+    transform: translateX(0) scale(1);
+}
+
+.carousel-item-3d.prev {
+    opacity: 0.7;
+    pointer-events: auto;
+    z-index: 5;
+    transform: translateX(-110%) scale(0.9);
+}
+
+.carousel-item-3d.next {
+    opacity: 0.7;
+    pointer-events: auto;
+    z-index: 5;
+    transform: translateX(110%) scale(0.9);
+}
+
+.carousel-item-3d .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: rgba(30, 32, 35, 0.9);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.carousel-item-3d .card-header {
+    background: rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 1.25rem;
+}
+
+.carousel-item-3d .card-header h2 {
+    margin-bottom: 0;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.carousel-item-3d .card-footer {
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.75rem 1.25rem;
+}
+
+.carousel-item-3d .card-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.carousel-item-3d .card-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.carousel-item-3d .card-body::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+
+.carousel-item-3d .card-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.carousel-item-3d .card-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+}
+
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    cursor: pointer;
+    z-index: 20;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.carousel-control:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-control.prev-btn {
+    left: 10px;
+}
+
+.carousel-control.next-btn {
+    right: 10px;
+}
+
+@media (max-width: 768px) {
+    .carousel-item-3d {
+        width: 80%;
+        min-width: 280px;
+    }
+    .carousel-item-3d.prev {
+        transform: translateX(-100%) scale(0.8);
+    }
+    .carousel-item-3d.next {
+        transform: translateX(100%) scale(0.8);
+    }
 }

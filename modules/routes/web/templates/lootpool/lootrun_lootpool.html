@@ -1,4 +1,5 @@
 {% extends '/components/_base.html' %}
+{% from '/components/_carousel.html' import carousel %}
 {% block title %}Lootpool{% endblock %}
 {% block content %}
     <div class="col">
@@ -47,64 +48,48 @@
     </div>
     <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
 
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3">
-        {% for region_data in loot_data %}
-            <div class="col">
-                <div class="card">
-                    <div class="card-header" data-bs-toggle="collapse" href="#collapse-{{ loop.index }}" role="button"
-                         aria-expanded="false" aria-controls="collapse-{{ loop.index }}">
-                        <h2 class="h5">{{ region_data.region }}</h2>
-                    </div>
-                    <div id="collapse-{{ loop.index }}" class="collapse show card-body">
-                        {% for rarity_group in region_data.region_items %}
-                            <div class="rarity-group" data-rarity="{{ rarity_group.group }}">
-                                <h3 class="h6 rarity-header">
-                                    {% if rarity_group.group == 'Shiny' %}
-                                        <span class="sprite bg-shiny"></span>
+    {% call(region_data) carousel(loot_data) %}
+        {% for rarity_group in region_data.region_items %}
+            <div class="rarity-group" data-rarity="{{ rarity_group.group }}">
+                <h3 class="h6 rarity-header">
+                    {% if rarity_group.group == 'Shiny' %}
+                        <span class="sprite bg-shiny"></span>
+                    {% endif %}
+                    {{ rarity_group.group }}
+                </h3>
+                <ul class="list-unstyled">
+                    {% for item in rarity_group.loot_items %}
+                        <li class="lootpool-card-item">
+                            {% if item.icon_url %}
+                                <img src="{{ item.icon_url }}"
+                                     alt="{{ item.name }} icon"
+                                     class="item-icon">
+                            {% else %}
+                                <span class="sprite bg-{{ item.type|lower }}"></span>
+                            {% endif %}
+                            {% if rarity_group.group in ['Misc', "Common"] %}
+                                <span class="{{ item.rarity }}" style="pointer-events: none;">
+                                    <span class="amount">{{ item.amount }}</span> {{ item.name }}
+                                    {% if item.tier %}
+                                        <span class="tier"> {{ item.tier|to_roman }}</span>
                                     {% endif %}
-                                    {{ rarity_group.group }}
-                                </h3>
-                                <ul class="list-unstyled">
-                                    {% for item in rarity_group.loot_items %}
-                                        <li class="lootpool-card-item">
-                                            {% if item.icon_url %}
-                                                <img src="{{ item.icon_url }}"
-                                                     alt="{{ item.name }} icon"
-                                                     class="item-icon">
-                                            {% else %}
-                                                <span class="sprite bg-{{ item.type|lower }}"></span>
-                                            {% endif %}
-                                            {% if rarity_group.group in ['Misc', "Common"] %}
-                                                <span class="{{ item.rarity }}" style="pointer-events: none;">
-                                                    <span class="amount">{{ item.amount }}</span> {{ item.name }}
-                                                    {% if item.tier %}
-                                                        <span class="tier"> {{ item.tier|to_roman }}</span>
-                                                    {% endif %}
-                                                </span>
-                                            {% else %}
-                                                <div>
-                                                    <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">
-                                                        {{ item.name }}
-                                                    </span>
-                                                    {% if item.shinyStat and item.shinyStat.statType %}
-                                                        <span class="badge bg-body-secondary text-body">{{ item.shinyStat.statType.displayName }}</span>
-                                                    {% endif %}
-                                                </div>
-                                            {% endif %}
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <!-- Display the last updated time -->
-                    <div class="card-footer">
-                        <small>{{ region_data.last_updated }}</small>
-                    </div>
-                </div>
+                                </span>
+                            {% else %}
+                                <div>
+                                    <span class="{{ item.rarity }}" onclick="displayItem(event, '{{ item.name | urlencode }}')">
+                                        {{ item.name }}
+                                    </span>
+                                    {% if item.shinyStat and item.shinyStat.statType %}
+                                        <span class="badge bg-body-secondary text-body">{{ item.shinyStat.statType.displayName }}</span>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
         {% endfor %}
-    </div>
+    {% endcall %}
 
     <div id="item-stats-tooltip" class="item-stats-tooltip"></div>
 
@@ -221,5 +206,4 @@
         // Event listener for search input
         document.getElementById('searchInput').addEventListener('input', filterItems);
     </script>
-
 {% endblock %}
