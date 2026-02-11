@@ -1,5 +1,6 @@
 function initCarousel() {
     const items = document.querySelectorAll('.carousel-item-3d');
+    const dots = document.querySelectorAll('.carousel-dots .dot');
     const prevBtn = document.querySelector('.prev-btn');
     const nextBtn = document.querySelector('.next-btn');
     let currentIndex = 0;
@@ -17,6 +18,15 @@ function initCarousel() {
                 item.classList.add('next');
             }
         });
+
+        // Update dots
+        dots.forEach((dot, index) => {
+            if (index === currentIndex) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
     }
 
     prevBtn.addEventListener('click', () => {
@@ -27,6 +37,14 @@ function initCarousel() {
     nextBtn.addEventListener('click', () => {
         currentIndex = (currentIndex + 1) % items.length;
         updateCarousel();
+    });
+
+    // Add click event to dots
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentIndex = index;
+            updateCarousel();
+        });
     });
 
     // Initialize carousel

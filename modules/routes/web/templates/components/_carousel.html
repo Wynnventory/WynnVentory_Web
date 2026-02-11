@@ -21,5 +21,10 @@
         {% endfor %}
     </div>
     <button class="carousel-control next-btn">&gt;</button>
+    <div class="carousel-dots">
+        {% for region_data in loot_data %}
+            <span class="dot" data-index="{{ loop.index0 }}"></span>
+        {% endfor %}
+    </div>
 </div>
 {% endmacro %}

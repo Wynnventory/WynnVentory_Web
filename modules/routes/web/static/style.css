@@ -638,7 +638,6 @@ li .SET:hover {
 .gambit-row {
     display: flex;
     justify-content: center;
-    margin-bottom: 2rem;
     margin-top: 1rem;
 }
 
@@ -1350,11 +1349,11 @@ body.side-menu-open {
 .carousel-container {
     position: relative;
     width: 100%;
-    margin: 1rem auto;
+    margin: 1rem auto 2rem;
     height: 90vh;
     max-height: 1000px;
     min-height: 600px;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1487,6 +1486,36 @@ body.side-menu-open {
 
 .carousel-control.next-btn {
     right: 10px;
+}
+
+.carousel-dots {
+    position: absolute;
+    bottom: -1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.75rem;
+    z-index: 20;
+}
+
+.carousel-dots .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.carousel-dots .dot:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.carousel-dots .dot.active {
+    background: #fff;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 @media (max-width: 768px) {
