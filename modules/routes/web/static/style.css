@@ -14,6 +14,18 @@
     --footer-bg: #ececec;
     --sidebar-color: #ececec;
     --text-color: #212529;
+    --carousel-btn-bg: rgba(0, 0, 0, 0.1);
+    --carousel-btn-color: #212529;
+    --carousel-btn-hover-bg: rgba(0, 0, 0, 0.2);
+    --carousel-dot-bg: rgba(0, 0, 0, 0.2);
+    --carousel-dot-active-bg: #212529;
+    --carousel-card-bg: #ffffff;
+    --carousel-card-border: rgba(0, 0, 0, 0.2);
+    --carousel-card-shadow: rgba(0, 0, 0, 0.15);
+    --carousel-header-bg: rgba(0, 0, 0, 0.05);
+    --carousel-header-border: rgba(0, 0, 0, 0.1);
+    --carousel-scrollbar-thumb: rgba(0, 0, 0, 0.2);
+    --carousel-scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
 }
 
 [data-bs-theme="dark"] {
@@ -21,6 +33,18 @@
     --footer-bg: #2b2e33;
     --sidebar-color: #212529;
     --text-color: #e0e0e0;
+    --carousel-btn-bg: rgba(255, 255, 255, 0.1);
+    --carousel-btn-color: #ffffff;
+    --carousel-btn-hover-bg: rgba(255, 255, 255, 0.2);
+    --carousel-dot-bg: rgba(255, 255, 255, 0.3);
+    --carousel-dot-active-bg: #ffffff;
+    --carousel-card-bg: rgba(30, 32, 35, 0.9);
+    --carousel-card-border: rgba(255, 255, 255, 0.15);
+    --carousel-card-shadow: rgba(0, 0, 0, 0.5);
+    --carousel-header-bg: rgba(255, 255, 255, 0.05);
+    --carousel-header-border: rgba(255, 255, 255, 0.1);
+    --carousel-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+    --carousel-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
 }
 
 @media (min-width: 576px) {
@@ -93,11 +117,11 @@ a:hover {
 }
 
 .rarity-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--carousel-header-border);
     padding-bottom: 8px;
     margin-bottom: 12px;
     font-weight: 600;
-    color: #fff;
+    color: var(--text-color);
 }
 
 .item-stats-tooltip {
@@ -1405,17 +1429,17 @@ body.side-menu-open {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: rgba(30, 32, 35, 0.9);
+    background: var(--carousel-card-bg);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--carousel-card-border);
+    box-shadow: 0 12px 40px 0 var(--carousel-card-shadow);
     border-radius: 15px;
     overflow: hidden;
 }
 
 .carousel-item-3d .card-header {
-    background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--carousel-header-bg);
+    border-bottom: 1px solid var(--carousel-header-border);
     padding: 1rem 1.25rem;
 }
 
@@ -1426,8 +1450,8 @@ body.side-menu-open {
 }
 
 .carousel-item-3d .card-footer {
-    background: rgba(255, 255, 255, 0.05);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--carousel-header-bg);
+    border-top: 1px solid var(--carousel-header-border);
     padding: 0.75rem 1.25rem;
 }
 
@@ -1440,12 +1464,12 @@ body.side-menu-open {
 }
 
 .carousel-item-3d .card-body::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--carousel-scrollbar-thumb);
     border-radius: 10px;
 }
 
 .carousel-item-3d .card-body::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--carousel-scrollbar-thumb-hover);
 }
 
 .carousel-item-3d .card-body {
@@ -1458,10 +1482,10 @@ body.side-menu-open {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--carousel-btn-bg);
     backdrop-filter: blur(5px);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--carousel-btn-color);
+    border: 1px solid var(--carousel-card-border);
     padding: 1rem;
     cursor: pointer;
     z-index: 20;
@@ -1476,7 +1500,7 @@ body.side-menu-open {
 }
 
 .carousel-control:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--carousel-btn-hover-bg);
     transform: translateY(-50%) scale(1.1);
 }
 
@@ -1502,20 +1526,21 @@ body.side-menu-open {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--carousel-dot-bg);
     cursor: pointer;
     transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--carousel-card-border);
 }
 
 .carousel-dots .dot:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: var(--carousel-dot-active-bg);
+    opacity: 0.5;
 }
 
 .carousel-dots .dot.active {
-    background: #fff;
+    background: var(--carousel-dot-active-bg);
     transform: scale(1.2);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 10px var(--carousel-dot-active-bg);
 }
 
 @media (max-width: 768px) {
