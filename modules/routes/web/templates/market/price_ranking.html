@@ -234,7 +234,7 @@
                 }
 
                 const qs = params.toString();
-                const href = `/history/${encodeURIComponent(it.name)}` + (qs ? `?${qs}` : '');
+                const href = `/history/${encodeURIComponent(it.name)}` + (qs ? `?${qs}` : '') + (it.tier ? (qs ? `&tier=${it.tier}` : `?tier=${it.tier}`) : '');
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `

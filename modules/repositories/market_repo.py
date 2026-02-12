@@ -656,7 +656,10 @@ def get_all_items_ranking(
     # 2) Group by item name and compute aggregates
     pipeline.append({
         '$group': {
-            '_id': '$name',
+            '_id': {
+                'name': '$name',
+                'tier': '$tier'
+            },
             'lowest_price': {'$min': '$lowest_price'},
             'highest_price': {'$max': '$highest_price'},
             'average_price': {'$avg': '$average_price'},
@@ -670,7 +673,6 @@ def get_all_items_ranking(
             'unidentified_count': {'$sum': '$unidentified_count'}
         }
     })
-
     # 3) Sort descending by average price
     pipeline.append({'$sort': {'average_price': -1}})
 
@@ -682,9 +684,14 @@ def get_all_items_ranking(
     for idx, doc in enumerate(cursor, start=1):
         item = {
             'rank': idx,
-            'name': doc['_id'],
+            'name': doc['_id']['name'],
+            'tier': doc['_id'].get('tier'),
             **{k: doc[k] for k in doc if k != '_id'}
         }
+        # Backward compatibility: for items with a tier, append it to the name
+        if item['tier']:
+            item['name'] = f"{item['name']} {item['tier']}"
+            
         ranked.append(item)
 
     return ranked
