@@ -234,13 +234,14 @@
                 }
 
                 const qs = params.toString();
-                const href = `/history/${encodeURIComponent(it.name)}` + (qs ? `?${qs}` : '');
+                const fullName = it.name + (it.tier && it.itemType !== "IngredientItem" ? " " + it.tier : "");
+                const href = `/history/${encodeURIComponent(fullName)}` + (qs ? `?${qs}` : '');
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
           <td data-order="${it.rank}">${it.rank}</td>
           <td><a href="${href}">
-            ${capitalizeWords(it.name)}</a></td>
+            ${capitalizeWords(fullName)}</a></td>
           <td data-order="${it.average_price || 0}">${convertEmeraldsToGameFormat(it.average_price)}</td>
           <td data-order="${it.lowest_price || 0}">${convertEmeraldsToGameFormat(it.lowest_price)}</td>
           <td data-order="${it.highest_price || 0}">${convertEmeraldsToGameFormat(it.highest_price)}</td>
