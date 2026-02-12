@@ -660,6 +660,7 @@ def get_all_items_ranking(
                 'name': '$name',
                 'tier': '$tier'
             },
+            'itemType': {'$first': '$item_type'},
             'lowest_price': {'$min': '$lowest_price'},
             'highest_price': {'$max': '$highest_price'},
             'average_price': {'$avg': '$average_price'},
@@ -688,10 +689,7 @@ def get_all_items_ranking(
             'tier': doc['_id'].get('tier'),
             **{k: doc[k] for k in doc if k != '_id'}
         }
-        # Backward compatibility: for items with a tier, append it to the name
-        if item['tier']:
-            item['name'] = f"{item['name']} {item['tier']}"
-            
+
         ranked.append(item)
 
     return ranked
