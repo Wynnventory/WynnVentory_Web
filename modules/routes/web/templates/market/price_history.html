@@ -157,14 +157,17 @@
 
         async function fetchPriceData(itemName) {
             try {
+                const params = new URLSearchParams(window.location.search);
+                const tierParam = params.get('tier');
                 const match = itemName.match(/^(.*?)(\d+)$/);
-                let base = itemName, tier;
-                if (match) {
+                let base = itemName, tier = tierParam;
+
+                if (!tier && match) {
                     base = match[1].trim();
                     tier = match[2].trim();
                 }
+
                 // get inputs / URL params
-                const params = new URLSearchParams(window.location.search);
                 const startVal = document.getElementById('startDate').value || params.get('start_date') || '';
                 const endVal = document.getElementById('endDate').value || params.get('end_date') || '';
                 // apply to inputs
