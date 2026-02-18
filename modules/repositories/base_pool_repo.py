@@ -151,7 +151,7 @@ class BasePoolRepo:
                     collection.insert_one(pool)
                 else:
                     if not has_more:
-                        logger.info(f"Payload has fewer items than existing, skipping update: {pool['region']}")
+                        logger.info(f"Payload has fewer items ({len(old_items) - len(new_items)}) than existing, skipping update: {pool['region']}")
                     elif not has_enough_and_stale:
                         logger.info(f"Payload is older than existing, skipping update: {pool['region']}")
             else:
