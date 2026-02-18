@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime, timedelta, timezone
 from typing import List, Tuple, Dict, Optional
 
@@ -5,6 +7,7 @@ from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.utils.time_validation import get_lootpool_week, get_lootpool_week_for_timestamp, get_raidpool_week
 
+logger = logging.getLogger(__name__)
 
 def build_pool_pipeline(
         year: Optional[int] = None,
@@ -147,8 +150,10 @@ class BasePoolRepo:
                     collection.delete_one(filter_q)
                     collection.insert_one(pool)
                 else:
-                    # Skip insertion
-                    continue
+                    if not has_more:
+                        logger.info(f"Payload has fewer items than existing, skipping update: {pool['region']}")
+                    elif not has_enough_and_stale:
+                        logger.info(f"Payload is older than existing, skipping update: {pool['region']}")
             else:
                 # No duplicate, insert fresh
                 collection.insert_one(pool)
