@@ -69,13 +69,15 @@ def parse_utc_timestamp(value: Union[str, datetime]) -> datetime:
 
 
 def get_lootpool_week() -> tuple[int, int]:
-    return get_lootpool_week_for_timestamp(datetime.now(UTC))
+    return get_lootpool_week_for_timestamp(datetime.now(UTC), reset_hour=19)
 
+def get_raidpool_week() -> tuple[int, int]:
+    return get_lootpool_week_for_timestamp(datetime.now(UTC), reset_hour=18)
 
 def get_lootpool_week_for_timestamp(
         timestamp: Union[str, int, float, datetime],
         reset_day: int = 4,
-        reset_hour: int = 18
+        reset_hour: int = 19
 ) -> tuple[int, int]:
     """Get the current Wynn week number and year. Lootpool resets every Friday at 6 PM UTC."""
     now = parse_utc_timestamp(timestamp)
@@ -98,11 +100,6 @@ def get_lootpool_week_for_timestamp(
         wynn_year = last_reset.year
 
     return wynn_year, wynn_week
-
-
-def get_raidpool_week() -> tuple[int, int]:
-    return get_lootpool_week_for_timestamp(datetime.now(UTC), reset_hour=17)
-
 
 def get_current_gambit_day(now: Optional[datetime] = None) -> tuple[datetime, datetime]:
     reset_hour = 18  # 18:00 (6 PM) UTC
