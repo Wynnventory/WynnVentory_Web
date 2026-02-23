@@ -14,6 +14,13 @@ logging.basicConfig(
 
 UTC = timezone.utc
 
+raid_reset_hour = 18
+loot_reset_hour = 19
+
+reset_minutes = 0
+reset_seconds = 0
+reset_microseconds = 0
+
 
 def parse_utc_timestamp(value: Union[str, datetime]) -> datetime:
     """
@@ -69,15 +76,15 @@ def parse_utc_timestamp(value: Union[str, datetime]) -> datetime:
 
 
 def get_lootpool_week() -> tuple[int, int]:
-    return get_lootpool_week_for_timestamp(datetime.now(UTC), reset_hour=19)
+    return get_lootpool_week_for_timestamp(datetime.now(UTC), reset_hour=loot_reset_hour)
 
 def get_raidpool_week() -> tuple[int, int]:
-    return get_lootpool_week_for_timestamp(datetime.now(UTC), reset_hour=18)
+    return get_lootpool_week_for_timestamp(datetime.now(UTC), reset_hour=raid_reset_hour)
 
 def get_lootpool_week_for_timestamp(
         timestamp: Union[str, int, float, datetime],
         reset_day: int = 4,
-        reset_hour: int = 19
+        reset_hour: int = loot_reset_hour
 ) -> tuple[int, int]:
     """Get the current Wynn week number and year. Lootpool resets every Friday at 6 PM UTC."""
     now = parse_utc_timestamp(timestamp)
@@ -89,7 +96,7 @@ def get_lootpool_week_for_timestamp(
     if last_reset.weekday() == reset_day and now.hour < reset_hour:
         last_reset -= timedelta(days=7)
 
-    last_reset = last_reset.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
+    last_reset = last_reset.replace(hour=reset_hour, minute=reset_minutes, second=reset_seconds, microsecond=reset_microseconds)
     next_reset = last_reset + timedelta(days=7)
 
     if now >= next_reset:
@@ -102,7 +109,7 @@ def get_lootpool_week_for_timestamp(
     return wynn_year, wynn_week
 
 def get_current_gambit_day(now: Optional[datetime] = None) -> tuple[datetime, datetime]:
-    reset_hour = 18  # 18:00 (6 PM) UTC
+    reset_hour = raid_reset_hour  # 18:00 (6 PM) UTC
     now = parse_utc_timestamp(now or datetime.now(UTC))
 
     reset_today = now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
@@ -147,13 +154,13 @@ def is_time_valid(pool_type: Collection, time_value: Union[str, int, float, date
 
     if pool_type == Collection.RAID:
         reset_day = 4  # Friday
-        reset_hour = 18  # 18:00 (6 PM) UTC
+        reset_hour = raid_reset_hour # 18:00 (6 PM) UTC
         week_start, week_end = get_week_range(reset_day, reset_hour)
         return week_start <= time_dt < week_end
 
     if pool_type == Collection.LOOT:
         reset_day = 4  # Friday
-        reset_hour = 19  # 19:00 (8 PM) UTC
+        reset_hour = loot_reset_hour  # 19:00 (8 PM) UTC
         week_start, week_end = get_week_range(reset_day, reset_hour)
         return week_start <= time_dt < week_end
 
