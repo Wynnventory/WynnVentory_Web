@@ -64,14 +64,14 @@ class VersionPart:
         return self.suffix < other.suffix
 
 
-def compare_versions(version_a: str, version_b: str) -> bool:
+def compare_versions(to_test: str, min_version: str) -> bool:
     """
     Returns True if version_a >= version_b else False.
     Handles segments with trailing letters (including '-dev'),
     and differing segment counts.
     """
-    parts_a = version_a.split(".")
-    parts_b = version_b.split(".")
+    parts_a = to_test.split(".")
+    parts_b = min_version.split(".")
     # pad the shorter one with “0” segments, so we compare everything
     length = max(len(parts_a), len(parts_b))
     parts_a += ["0"] * (length - len(parts_a))
