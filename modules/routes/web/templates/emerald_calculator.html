@@ -200,7 +200,7 @@
                 if (stx > 0) {
                     let dec = le + eb / 64 + e / 4096;
                     dec = Math.round(dec * 100) / 100;
-                    let dec_str = dec === 0 ? "" : dec % 1 === 0 ? String(dec | 0) : String(dec).replace(/\.00$/, "").replace(/\.0$/, "");
+                    let dec_str = dec === 0 ? "" : dec % 1 === 0 ? String(Math.trunc(dec)) : String(dec).replace(/\.00$/, "").replace(/\.0$/, "");
                     result = dec_str ? `${stx}stx ${dec_str}le` : `${stx}stx`;
                 } else {
                     const parts = [];
@@ -246,8 +246,7 @@
                 const text = resultDisplay.textContent;
                 navigator.clipboard.writeText(text).then(() => {
                     const originalText = resultDisplay.textContent;
-                    const originalColor = resultDisplay.classList.contains('text-success');
-                    
+
                     resultDisplay.textContent = "Copied!";
                     resultDisplay.classList.remove('text-success');
                     resultDisplay.classList.add('text-info');
