@@ -93,7 +93,7 @@
             const toSelect = document.getElementById("toSelect");
 
             // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipTriggerList = Array.prototype.slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             tooltipTriggerList.map(function (tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
@@ -209,14 +209,14 @@
             if (from === to) {
                 result = "Same format selected — no conversion needed.";
             } else if (from === "formatted") {
-                const stx = parseInt(document.getElementById("stxInput")?.value || 0);
-                const le = parseInt(document.getElementById("leInput")?.value || 0);
-                const eb = parseInt(document.getElementById("ebInput")?.value || 0);
-                const e = parseInt(document.getElementById("eInput")?.value || 0);
+                const stx = Number.parseInt(document.getElementById("stxInput")?.value || 0);
+                const le = Number.parseInt(document.getElementById("leInput")?.value || 0);
+                const eb = Number.parseInt(document.getElementById("ebInput")?.value || 0);
+                const e = Number.parseInt(document.getElementById("eInput")?.value || 0);
                 const total = stx * 64 ** 3 + le * 64 ** 2 + eb * 64 + e;
                 result = `${total.toLocaleString()} emeralds`;
             } else if (from === "int") {
-                let rem = Math.floor(parseInt(document.getElementById("intInput")?.value || 0));
+                let rem = Math.floor(Number.parseInt(document.getElementById("intInput")?.value || 0));
                 const stx = Math.floor(rem / 64 ** 3);
                 rem %= 64 ** 3;
                 const le = Math.floor(rem / 64 ** 2);
@@ -227,7 +227,7 @@
                 if (stx > 0) {
                     let dec = le + eb / 64 + rem / (64 ** 2);
                     dec = Math.round(dec * 100) / 100;
-                    let dec_str = dec === 0 ? "" : dec % 1 === 0 ? String(dec | 0) : String(dec).replace(/\.00$/, "").replace(/\.0$/, "");
+                    let dec_str = dec === 0 ? "" : dec % 1 === 0 ? String(Math.trunc(dec)) : String(dec).replace(/\.00$/, "").replace(/\.0$/, "");
                     result = dec_str ? `${stx}stx ${dec_str}le` : `${stx}stx`;
                 } else {
                     const parts = [];
