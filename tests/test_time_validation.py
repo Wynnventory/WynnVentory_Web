@@ -61,7 +61,7 @@ class TestTimeValidation(BaseTestCase):
         # Test case 2: Friday after reset (6 PM UTC)
         # For a timestamp just after reset (Friday at 6:00:01 PM),
         # the function should return the current week
-        year2, week2 = get_lootpool_week_for_timestamp("2025-05-02T18:00:01Z")
+        year2, week2 = get_lootpool_week_for_timestamp("2025-05-02T19:00:01Z")
 
         # The last reset would be the current Friday (May 2) at 6 PM
         self.assertEqual(2025, year2)
@@ -93,7 +93,7 @@ class TestTimeValidation(BaseTestCase):
         year, week = get_lootpool_week()
 
         # Verify the function was called with the correct timestamp
-        mocks['get_week'].assert_called_once_with(mock_now)
+        mocks['get_week'].assert_called_once_with(mock_now, reset_hour=19)
 
         # Verify the result
         self.assertEqual((year, week), (2025, 19))
@@ -111,7 +111,7 @@ class TestTimeValidation(BaseTestCase):
         year, week = get_raidpool_week()
 
         # Verify the function was called with the correct timestamp and reset hour
-        mocks['get_week'].assert_called_once_with(mock_now, reset_hour=17)
+        mocks['get_week'].assert_called_once_with(mock_now, reset_hour=18)
 
         # Verify the result
         self.assertEqual((year, week), (2025, 19))
