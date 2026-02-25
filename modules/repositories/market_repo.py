@@ -381,7 +381,9 @@ def calculate_listing_averages(
             'identifiedCount': {'$sum': {'$cond': [{'$ne': ['$unidentified', True]}, 1, 0]}},
             'unidentifiedCount': {'$sum': {'$cond': [{'$eq': ['$unidentified', True]}, 1, 0]}},
             'identifiedMin': {'$min': {'$cond': [{'$ne': ['$unidentified', True]}, '$listing_price', None]}},
+            'unidentifiedMin': {'$min': {'$cond': [{'$eq': ['$unidentified', True]}, '$listing_price', None]}},
             'identifiedMax': {'$max': {'$cond': [{'$ne': ['$unidentified', True]}, '$listing_price', None]}},
+            'unidentifiedMax': {'$max': {'$cond': [{'$eq': ['$unidentified', True]}, '$listing_price', None]}},
             'identifiedAvg': {'$avg': {'$cond': [{'$ne': ['$unidentified', True]}, '$listing_price', None]}},
             'unidentifiedAvg': {'$avg': {'$cond': [{'$eq': ['$unidentified', True]}, '$listing_price', None]}}
         }},
@@ -392,7 +394,9 @@ def calculate_listing_averages(
             'name': 1,
 
             'lowest_price': {'$round': ['$identifiedMin', 2]},
+            'unidentified_lowest_price': {'$round': ['$unidentifiedMin', 2]},
             'highest_price': {'$round': ['$identifiedMax', 2]},
+            'unidentified_highest_price': {'$round': ['$unidentifiedMax', 2]},
             'average_price': {'$round': ['$identifiedAvg', 2]},
 
             'total_count': {

@@ -1,3 +1,5 @@
+import logging
+
 from datetime import datetime, timedelta, timezone
 from typing import List, Tuple, Dict, Optional
 
@@ -5,6 +7,7 @@ from modules.db import get_collection
 from modules.models.collection_types import Collection
 from modules.utils.time_validation import get_lootpool_week, get_lootpool_week_for_timestamp, get_raidpool_week
 
+logger = logging.getLogger(__name__)
 
 def build_pool_pipeline(
         year: Optional[int] = None,
@@ -119,7 +122,13 @@ class BasePoolRepo:
 
         for pool in pools:
             # Compute week/year from the payload's timestamp
-            year, week = get_lootpool_week_for_timestamp(pool.get('timestamp'))
+            if self.collection_type == Collection.RAID:
+                year, week = get_lootpool_week_for_timestamp(pool.get('timestamp'), reset_hour=18)
+            elif self.collection_type == Collection.LOOT:
+                year, week = get_lootpool_week_for_timestamp(pool.get('timestamp'), reset_hour=19)
+            else:
+                raise ValueError(f"Unsupported collection type: {self.collection_type}")
+
             pool['week'] = week
             pool['year'] = year
             pool['timestamp'] = datetime.now(timezone.utc)
@@ -146,11 +155,15 @@ class BasePoolRepo:
                     # Replace the old document
                     collection.delete_one(filter_q)
                     collection.insert_one(pool)
+                    logger.info(f"Inserted fresh document for {region}")
                 else:
-                    # Skip insertion
-                    continue
+                    if not has_enough_and_stale:
+                        logger.info(f"Payload is older than existing, skipping update: {pool['region']}")
+                    elif not has_more:
+                        logger.info(f"Payload has fewer items ({len(old_items) - len(new_items)}) than existing, skipping update: {pool['region']}")
             else:
                 # No duplicate, insert fresh
+                logger.info(f"Inserted fresh document for {region}")
                 collection.insert_one(pool)
 
     def fetch_pool_raw(self) -> List[dict]:
