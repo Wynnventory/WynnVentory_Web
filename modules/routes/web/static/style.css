@@ -1377,7 +1377,7 @@ body.side-menu-open {
     height: 90vh;
     max-height: 1000px;
     min-height: 600px;
-    overflow: visible;
+    overflow-x: clip;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1544,14 +1544,47 @@ body.side-menu-open {
 }
 
 @media (max-width: 768px) {
+    .carousel-container {
+        height: 80vh;
+        min-height: 500px;
+    }
     .carousel-item-3d {
-        width: 80%;
-        min-width: 280px;
+        width: 85%;
+        min-width: 250px;
     }
     .carousel-item-3d.prev {
-        transform: translateX(-100%) scale(0.8);
+        transform: translateX(-105%) scale(0.85);
+        opacity: 0.4;
     }
     .carousel-item-3d.next {
-        transform: translateX(100%) scale(0.8);
+        transform: translateX(105%) scale(0.85);
+        opacity: 0.4;
+    }
+    .carousel-control {
+        width: 40px;
+        height: 40px;
+        padding: 0.5rem;
+        font-size: 1.2rem;
+    }
+    .carousel-control.prev-btn {
+        left: 0px;
+    }
+    .carousel-control.next-btn {
+        right: 0px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-item-3d {
+        width: 90%;
+        min-width: unset;
+    }
+    .carousel-item-3d.prev {
+        transform: translateX(-110%) scale(0.8);
+        opacity: 0;
+    }
+    .carousel-item-3d.next {
+        transform: translateX(110%) scale(0.8);
+        opacity: 0;
     }
 }
