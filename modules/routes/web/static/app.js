@@ -104,17 +104,21 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     // Fruma Beta Notification Modal logic
     const frumaModalEl = document.getElementById('frumaBetaModal');
-    const isBetaDomain = window.location.hostname === 'beta.wynnventory.com' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (frumaModalEl) {
+        const isBetaDomain = window.location.hostname.includes('beta') || 
+                             window.location.hostname === 'localhost' || 
+                             window.location.hostname === '127.0.0.1';
 
-    if (frumaModalEl && isBetaDomain && !localStorage.getItem('frumaBetaNoticeAccepted')) {
-        const frumaModal = new bootstrap.Modal(frumaModalEl);
-        frumaModal.show();
+        if (isBetaDomain && !localStorage.getItem('frumaBetaNoticeAccepted')) {
+            const frumaModal = new bootstrap.Modal(frumaModalEl);
+            frumaModal.show();
 
-        const btnUnderstand = document.getElementById('btnUnderstand');
-        if (btnUnderstand) {
-            btnUnderstand.addEventListener('click', () => {
-                localStorage.setItem('frumaBetaNoticeAccepted', 'true');
-            });
+            const btnUnderstand = document.getElementById('btnUnderstand');
+            if (btnUnderstand) {
+                btnUnderstand.addEventListener('click', () => {
+                    localStorage.setItem('frumaBetaNoticeAccepted', 'true');
+                });
+            }
         }
     }
 });
