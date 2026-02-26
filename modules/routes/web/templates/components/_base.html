@@ -161,6 +161,7 @@
         referrerpolicy="no-referrer"></script>
     <script src="{{ url_for('web.static', filename='app.js') }}"></script>
     <!-- Fruma Beta Notification Modal -->
+    {% if 'beta' in request.host or 'localhost' in request.host or '127.0.0.1' in request.host %}
     <div class="modal fade" id="frumaBetaModal" tabindex="-1" aria-labelledby="frumaBetaModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="card modal-content">
@@ -177,6 +178,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 </body>
 
 </html>
