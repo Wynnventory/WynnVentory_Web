@@ -159,7 +159,24 @@
         integrity="sha512-LsnSViqQyaXpD4mBBdRYeP6sRwJiJveh2ZIbW41EBrNmKxgr/LFZIiWT6yr+nycvhvauz8c2nYMhrP80YhG7Cw=="
         crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
-<script src="{{ url_for('web.static', filename='app.js') }}"></script>
+    <script src="{{ url_for('web.static', filename='app.js') }}"></script>
+    <!-- Fruma Beta Notification Modal -->
+    <div class="modal fade" id="frumaBetaModal" tabindex="-1" aria-labelledby="frumaBetaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="card modal-content">
+                <div class="card-header border-0 pb-0">
+                    <h5 class="modal-title" id="frumaBetaModalLabel">Notice</h5>
+                </div>
+                <div class="card-body">
+                    <p>This version contains data from the Fruma beta. Data may be incomplete or inaccurate while the clientside mod is being developed for Fruma.</p>
+                    <p>To view the data from the Wynncraft live servers visit the <a href="https://www.wynnventory.com/" target="_blank">live site</a>.</p>
+                </div>
+                <div class="card-footer border-0 pt-2 d-flex justify-content-end">
+                    <button type="button" class="btn btn-primary" id="btnUnderstand" data-bs-dismiss="modal">Ok I understand</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
