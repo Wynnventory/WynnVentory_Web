@@ -392,7 +392,8 @@ background-color: var(--bs-body-bg);
 }
 
 .lootpool-card-item .sprite {
-    margin-right: 12px;
+    margin-right: 18px;
+    flex-shrink: 0;
 }
 
 .amount {
@@ -655,6 +656,7 @@ li .SET:hover {
     object-position: center;
     flex-shrink: 0;
     margin-right: 12px;
+    margin-top: 2px;
 }
 
 
