@@ -13,7 +13,11 @@ from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 from modules.models.sort_options import SortOption
 
-_EMA_HALF_LIFE_HOURS = 24.0
+# 7-day EMA: α = 2 / (N + 1) where N = 7. Applied once per calendar day using
+# the previous day's MARKET_ARCHIVE snapshot as the prior. Within a single day all
+# worker calls read the same archive prior, so the EMA is stable intraday and only
+# advances when a new archive entry appears after the nightly job.
+_P50_EMA_ALPHA = 2.0 / (7 + 1)
 
 TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
 
@@ -86,22 +90,14 @@ def update_moving_averages(
             'shiny': shiny
         }
 
-        # Always fetch existing doc to preserve EMA state
-        existing = averages_coll.find_one(filter_q, {
-            'timestamp': 1,
-            'average_p50_ema_price': 1,
-            'unidentified_average_p50_ema_price': 1
-        })
+        # Fetch existing doc only to check staleness — EMA is updated separately by the archive job
+        existing = averages_coll.find_one(filter_q, {'timestamp': 1})
         existing_ts = None
-        prev_ema = None
-        prev_unid_ema = None
 
         if existing:
             raw_ts = existing.get('timestamp')
             if raw_ts:
                 existing_ts = raw_ts.replace(tzinfo=timezone.utc)
-            prev_ema = existing.get('average_p50_ema_price')
-            prev_unid_ema = existing.get('unidentified_average_p50_ema_price')
 
         if not force_update and existing_ts is not None and existing_ts >= last_listing_ts:
             # No newer listings; skip recalculation
@@ -121,27 +117,54 @@ def update_moving_averages(
 
         price_data.pop('_id', None)
 
-        # Compute time-decayed alpha for EMA
-        if prev_ema is not None and existing_ts is not None:
-            dt_hours = max(0.0, (ts - existing_ts).total_seconds() / 3600.0)
-            alpha = 1.0 - math.exp(-math.log(2) * dt_hours / _EMA_HALF_LIFE_HOURS)
-            alpha = min(1.0, alpha)
-        else:
-            alpha = 1.0  # no history: bootstrap with current value
+        # Compute calendar-day-anchored P50 EMA (7-day, α = 0.25).
+        # Read the prior from MARKET_ARCHIVE (yesterday's immutable snapshot) rather than
+        # MARKET_AVERAGES (today's mutable doc). Within a single calendar day every worker
+        # call finds the same archive prior, so the EMA value is stable intraday and only
+        # truly advances when a new day's archive entry is written by the nightly job.
+        midnight_today = ts.replace(hour=0, minute=0, second=0, microsecond=0)
+        archive_prior = get_collection(ColEnum.MARKET_ARCHIVE).find_one(
+            {'name': name, 'tier': tier, 'shiny': shiny, 'timestamp': {'$lt': midnight_today}},
+            {
+                'average_p50_ema_price': 1,
+                'p50_price': 1,
+                'average_mid_80_percent_price': 1,          # legacy fallback seed for old docs
+                'unidentified_average_p50_ema_price': 1,
+                'unidentified_p50_price': 1,
+                'unidentified_average_mid_80_percent_price': 1,
+            },
+            sort=[('timestamp', -1)]
+        )
 
         current_p50 = price_data.get('p50_price')
         if current_p50 is not None:
-            if prev_ema is not None:
-                price_data['average_p50_ema_price'] = round(alpha * current_p50 + (1.0 - alpha) * prev_ema, 2)
+            if archive_prior is not None:
+                # Prefer the smoothed EMA, fall back to raw P50, then to mid-80% avg for old docs
+                prev_ema = (archive_prior.get('average_p50_ema_price')
+                            or archive_prior.get('p50_price')
+                            or archive_prior.get('average_mid_80_percent_price'))
+                if prev_ema is not None:
+                    price_data['average_p50_ema_price'] = round(
+                        _P50_EMA_ALPHA * current_p50 + (1.0 - _P50_EMA_ALPHA) * prev_ema, 2
+                    )
+                else:
+                    price_data['average_p50_ema_price'] = round(current_p50, 2)
             else:
+                # No archive history at all — bootstrap from current P50
                 price_data['average_p50_ema_price'] = round(current_p50, 2)
 
         current_unid_p50 = price_data.get('unidentified_p50_price')
         if current_unid_p50 is not None:
-            if prev_unid_ema is not None:
-                price_data['unidentified_average_p50_ema_price'] = round(
-                    alpha * current_unid_p50 + (1.0 - alpha) * prev_unid_ema, 2
-                )
+            if archive_prior is not None:
+                prev_unid_ema = (archive_prior.get('unidentified_average_p50_ema_price')
+                                 or archive_prior.get('unidentified_p50_price')
+                                 or archive_prior.get('unidentified_average_mid_80_percent_price'))
+                if prev_unid_ema is not None:
+                    price_data['unidentified_average_p50_ema_price'] = round(
+                        _P50_EMA_ALPHA * current_unid_p50 + (1.0 - _P50_EMA_ALPHA) * prev_unid_ema, 2
+                    )
+                else:
+                    price_data['unidentified_average_p50_ema_price'] = round(current_unid_p50, 2)
             else:
                 price_data['unidentified_average_p50_ema_price'] = round(current_unid_p50, 2)
 
