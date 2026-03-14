@@ -1,4 +1,5 @@
 import logging
+import math
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import timedelta
@@ -11,6 +12,8 @@ from pymongo.errors import BulkWriteError
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 from modules.models.sort_options import SortOption
+
+_EMA_HALF_LIFE_HOURS = 24.0
 
 TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
 
@@ -83,17 +86,26 @@ def update_moving_averages(
             'shiny': shiny
         }
 
-        if not force_update:
-            # Fetch existing average doc's timestamp
-            existing = averages_coll.find_one(filter_q, {'timestamp': 1})
-            existing_ts = existing.get('timestamp') if existing else None
+        # Always fetch existing doc to preserve EMA state
+        existing = averages_coll.find_one(filter_q, {
+            'timestamp': 1,
+            'average_p50_ema_price': 1,
+            'unidentified_average_p50_ema_price': 1
+        })
+        existing_ts = None
+        prev_ema = None
+        prev_unid_ema = None
 
-            if existing_ts:
-                existing_ts = existing_ts.replace(tzinfo=timezone.utc)
+        if existing:
+            raw_ts = existing.get('timestamp')
+            if raw_ts:
+                existing_ts = raw_ts.replace(tzinfo=timezone.utc)
+            prev_ema = existing.get('average_p50_ema_price')
+            prev_unid_ema = existing.get('unidentified_average_p50_ema_price')
 
-                if existing_ts >= last_listing_ts:
-                    # No newer listings; skip recalculation
-                    return
+        if not force_update and existing_ts is not None and existing_ts >= last_listing_ts:
+            # No newer listings; skip recalculation
+            return
 
         # Recalculate only if listings are newer (or forced)
         price_data = calculate_listing_averages(
@@ -108,6 +120,31 @@ def update_moving_averages(
             return
 
         price_data.pop('_id', None)
+
+        # Compute time-decayed alpha for EMA
+        if prev_ema is not None and existing_ts is not None:
+            dt_hours = max(0.0, (ts - existing_ts).total_seconds() / 3600.0)
+            alpha = 1.0 - math.exp(-math.log(2) * dt_hours / _EMA_HALF_LIFE_HOURS)
+            alpha = min(1.0, alpha)
+        else:
+            alpha = 1.0  # no history: bootstrap with current value
+
+        current_p50 = price_data.get('p50_price')
+        if current_p50 is not None:
+            if prev_ema is not None:
+                price_data['average_p50_ema_price'] = round(alpha * current_p50 + (1.0 - alpha) * prev_ema, 2)
+            else:
+                price_data['average_p50_ema_price'] = round(current_p50, 2)
+
+        current_unid_p50 = price_data.get('unidentified_p50_price')
+        if current_unid_p50 is not None:
+            if prev_unid_ema is not None:
+                price_data['unidentified_average_p50_ema_price'] = round(
+                    alpha * current_unid_p50 + (1.0 - alpha) * prev_unid_ema, 2
+                )
+            else:
+                price_data['unidentified_average_p50_ema_price'] = round(current_unid_p50, 2)
+
         if start_date is not None:
             price_data['timestamp'] = last_listing_ts
         else:
@@ -404,6 +441,60 @@ def calculate_listing_averages(
             },
             'unidentified_count': '$unidentifiedCount',
             'unidentified_average_price': {'$round': ['$unidentifiedAvg', 2]},
+
+            # P50 (median) for identified listings — prices array is pre-sorted ascending
+            'p50_price': {
+                '$cond': [
+                    {'$eq': [{'$size': '$identifiedPrices'}, 0]},
+                    None,
+                    {
+                        '$let': {
+                            'vars': {
+                                'n': {'$size': '$identifiedPrices'},
+                                'prices': '$identifiedPrices'
+                            },
+                            'in': {
+                                '$cond': [
+                                    {'$eq': [{'$mod': ['$$n', 2]}, 0]},
+                                    # even count: average of two middle elements
+                                    {'$avg': [
+                                        {'$arrayElemAt': ['$$prices', {'$floor': {'$subtract': [{'$divide': ['$$n', 2]}, 1]}}]},
+                                        {'$arrayElemAt': ['$$prices', {'$floor': {'$divide': ['$$n', 2]}}]}
+                                    ]},
+                                    # odd count: middle element
+                                    {'$arrayElemAt': ['$$prices', {'$floor': {'$divide': ['$$n', 2]}}]}
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
+
+            # P50 (median) for unidentified listings
+            'unidentified_p50_price': {
+                '$cond': [
+                    {'$eq': [{'$size': '$unidentifiedPrices'}, 0]},
+                    None,
+                    {
+                        '$let': {
+                            'vars': {
+                                'n': {'$size': '$unidentifiedPrices'},
+                                'prices': '$unidentifiedPrices'
+                            },
+                            'in': {
+                                '$cond': [
+                                    {'$eq': [{'$mod': ['$$n', 2]}, 0]},
+                                    {'$avg': [
+                                        {'$arrayElemAt': ['$$prices', {'$floor': {'$subtract': [{'$divide': ['$$n', 2]}, 1]}}]},
+                                        {'$arrayElemAt': ['$$prices', {'$floor': {'$divide': ['$$n', 2]}}]}
+                                    ]},
+                                    {'$arrayElemAt': ['$$prices', {'$floor': {'$divide': ['$$n', 2]}}]}
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
 
             'average_mid_80_percent_price': {
                 '$round': [
