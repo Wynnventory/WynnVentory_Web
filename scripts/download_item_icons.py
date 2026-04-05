@@ -8,8 +8,8 @@ import urllib.request
 import urllib.error
 
 BASE_URL = "https://cdn.wynncraft.com/nextgen/itemguide/3.3"
-TYPES = ["wand", "bow", "dagger", "spear", "relik", "ring", "necklace", "bracelet", "helmet", "leggings", "boots", "chestplate"]
-ELEMENTS = ["earth", "fire", "thunder", "water", "multi", "air", "basicWood", "basicIron", "basicGold", "basicDiamond"]
+TYPES = ["wand", "bow", "dagger", "spear", "relik", "ring", "necklace", "bracelet"]
+ELEMENTS = ["earth", "fire", "thunder", "water", "multi", "air", "basicWood", "basicIron", "basicGold", "basicPearl", "basicGem"]
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "../modules/routes/web/static/icons/item_icons")
 
 
@@ -23,8 +23,8 @@ def download_icons():
 
     for item_type in TYPES:
         for element in ELEMENTS:
-            for i in range(1, 4):
-                filename = f"{item_type}.{element}{i}.webp"
+            for suffix in ["", "1", "2", "3"]:
+                filename = f"{item_type}.{element}{suffix}.webp"
                 url = f"{BASE_URL}/{filename}"
                 dest = os.path.join(OUTPUT_DIR, filename)
 

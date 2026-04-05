@@ -211,7 +211,7 @@ def build_icon_url(icon: dict) -> str | None:
         return None
 
     if fmt in ("armour", "legacy", "attribute"):
-        return f"https://cdn.wynncraft.com/nextgen/itemguide/3.3/{val}.webp"
+        return f"/modules/routes/web/static/icons/item_icons/{val}.webp"
     if fmt == "skin":
         return f"https://mc-heads.net/head/{val}"
     if fmt == "aspect_attribute":
