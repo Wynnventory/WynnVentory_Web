@@ -210,12 +210,10 @@ def build_icon_url(icon: dict) -> str | None:
     if not (fmt and val):
         return None
 
-    if fmt in ("armour", "legacy", "attribute"):
+    if fmt in ("armour", "legacy", "attribute", "aspect_attribute"):
         return f"/modules/routes/web/static/icons/item_icons/{val}.webp"
     if fmt == "skin":
         return f"https://mc-heads.net/head/{val}"
-    if fmt == "aspect_attribute":
-        return f"https://cdn.wynncraft.com/nextgen/abilities/2.1/aspects/{val}.png"
 
     return None
 
