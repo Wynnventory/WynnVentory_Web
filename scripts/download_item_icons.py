@@ -10,7 +10,7 @@ import urllib.error
 BASE_URL = "https://cdn.wynncraft.com/nextgen/itemguide/3.3"
 TYPES = ["wand", "bow", "dagger", "spear", "relik", "ring", "necklace", "bracelet"]
 ELEMENTS = ["earth", "fire", "thunder", "water", "multi", "air", "basicWood", "basicIron", "basicGold", "basicPearl", "basicGem"]
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "../modules/routes/web/static/icons/item_icons")
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "../modules/routes/web/static/icons/wynn_icons")
 
 
 def download_icons():
