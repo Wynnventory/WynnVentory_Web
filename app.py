@@ -7,7 +7,6 @@ app = create_app()
 
 # Enable JSON compact mode (reduces response size)
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
