@@ -1,4 +1,5 @@
 import logging
+import math
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import timedelta
@@ -11,6 +12,12 @@ from pymongo.errors import BulkWriteError
 from modules.db import get_collection
 from modules.models.collection_types import Collection as ColEnum
 from modules.models.sort_options import SortOption
+
+# 7-day EMA: α = 2 / (N + 1) where N = 7. Applied once per calendar day using
+# the previous day's MARKET_ARCHIVE snapshot as the prior. Within a single day all
+# worker calls read the same archive prior, so the EMA is stable intraday and only
+# advances when a new archive entry appears after the nightly job.
+_P50_EMA_ALPHA = 2.0 / (7 + 1)
 
 TIERED_TYPES = ["MaterialItem", "PowderItem", "AmplifierItem", "EmeraldPouchItem"]
 
@@ -83,17 +90,18 @@ def update_moving_averages(
             'shiny': shiny
         }
 
-        if not force_update:
-            # Fetch existing average doc's timestamp
-            existing = averages_coll.find_one(filter_q, {'timestamp': 1})
-            existing_ts = existing.get('timestamp') if existing else None
+        # Fetch existing doc only to check staleness — EMA is updated separately by the archive job
+        existing = averages_coll.find_one(filter_q, {'timestamp': 1})
+        existing_ts = None
 
-            if existing_ts:
-                existing_ts = existing_ts.replace(tzinfo=timezone.utc)
+        if existing:
+            raw_ts = existing.get('timestamp')
+            if raw_ts:
+                existing_ts = raw_ts.replace(tzinfo=timezone.utc)
 
-                if existing_ts >= last_listing_ts:
-                    # No newer listings; skip recalculation
-                    return
+        if not force_update and existing_ts is not None and existing_ts >= last_listing_ts:
+            # No newer listings; skip recalculation
+            return
 
         # Recalculate only if listings are newer (or forced)
         price_data = calculate_listing_averages(
@@ -108,6 +116,58 @@ def update_moving_averages(
             return
 
         price_data.pop('_id', None)
+
+        # Compute calendar-day-anchored P50 EMA (7-day, α = 0.25).
+        # Read the prior from MARKET_ARCHIVE (yesterday's immutable snapshot) rather than
+        # MARKET_AVERAGES (today's mutable doc). Within a single calendar day every worker
+        # call finds the same archive prior, so the EMA value is stable intraday and only
+        # truly advances when a new day's archive entry is written by the nightly job.
+        midnight_today = ts.replace(hour=0, minute=0, second=0, microsecond=0)
+        archive_prior = get_collection(ColEnum.MARKET_ARCHIVE).find_one(
+            {'name': name, 'tier': tier, 'shiny': shiny, 'timestamp': {'$lt': midnight_today}},
+            {
+                'average_p50_ema_price': 1,
+                'p50_price': 1,
+                'average_mid_80_percent_price': 1,          # legacy fallback seed for old docs
+                'unidentified_average_p50_ema_price': 1,
+                'unidentified_p50_price': 1,
+                'unidentified_average_mid_80_percent_price': 1,
+            },
+            sort=[('timestamp', -1)]
+        )
+
+        current_p50 = price_data.get('p50_price')
+        if current_p50 is not None:
+            if archive_prior is not None:
+                # Prefer the smoothed EMA, fall back to raw P50, then to mid-80% avg for old docs
+                prev_ema = (archive_prior.get('average_p50_ema_price')
+                            or archive_prior.get('p50_price')
+                            or archive_prior.get('average_mid_80_percent_price'))
+                if prev_ema is not None:
+                    price_data['average_p50_ema_price'] = round(
+                        _P50_EMA_ALPHA * current_p50 + (1.0 - _P50_EMA_ALPHA) * prev_ema, 2
+                    )
+                else:
+                    price_data['average_p50_ema_price'] = round(current_p50, 2)
+            else:
+                # No archive history at all — bootstrap from current P50
+                price_data['average_p50_ema_price'] = round(current_p50, 2)
+
+        current_unid_p50 = price_data.get('unidentified_p50_price')
+        if current_unid_p50 is not None:
+            if archive_prior is not None:
+                prev_unid_ema = (archive_prior.get('unidentified_average_p50_ema_price')
+                                 or archive_prior.get('unidentified_p50_price')
+                                 or archive_prior.get('unidentified_average_mid_80_percent_price'))
+                if prev_unid_ema is not None:
+                    price_data['unidentified_average_p50_ema_price'] = round(
+                        _P50_EMA_ALPHA * current_unid_p50 + (1.0 - _P50_EMA_ALPHA) * prev_unid_ema, 2
+                    )
+                else:
+                    price_data['unidentified_average_p50_ema_price'] = round(current_unid_p50, 2)
+            else:
+                price_data['unidentified_average_p50_ema_price'] = round(current_unid_p50, 2)
+
         if start_date is not None:
             price_data['timestamp'] = last_listing_ts
         else:
@@ -404,6 +464,60 @@ def calculate_listing_averages(
             },
             'unidentified_count': '$unidentifiedCount',
             'unidentified_average_price': {'$round': ['$unidentifiedAvg', 2]},
+
+            # P50 (median) for identified listings — prices array is pre-sorted ascending
+            'p50_price': {
+                '$cond': [
+                    {'$eq': [{'$size': '$identifiedPrices'}, 0]},
+                    None,
+                    {
+                        '$let': {
+                            'vars': {
+                                'n': {'$size': '$identifiedPrices'},
+                                'prices': '$identifiedPrices'
+                            },
+                            'in': {
+                                '$cond': [
+                                    {'$eq': [{'$mod': ['$$n', 2]}, 0]},
+                                    # even count: average of two middle elements
+                                    {'$avg': [
+                                        {'$arrayElemAt': ['$$prices', {'$floor': {'$subtract': [{'$divide': ['$$n', 2]}, 1]}}]},
+                                        {'$arrayElemAt': ['$$prices', {'$floor': {'$divide': ['$$n', 2]}}]}
+                                    ]},
+                                    # odd count: middle element
+                                    {'$arrayElemAt': ['$$prices', {'$floor': {'$divide': ['$$n', 2]}}]}
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
+
+            # P50 (median) for unidentified listings
+            'unidentified_p50_price': {
+                '$cond': [
+                    {'$eq': [{'$size': '$unidentifiedPrices'}, 0]},
+                    None,
+                    {
+                        '$let': {
+                            'vars': {
+                                'n': {'$size': '$unidentifiedPrices'},
+                                'prices': '$unidentifiedPrices'
+                            },
+                            'in': {
+                                '$cond': [
+                                    {'$eq': [{'$mod': ['$$n', 2]}, 0]},
+                                    {'$avg': [
+                                        {'$arrayElemAt': ['$$prices', {'$floor': {'$subtract': [{'$divide': ['$$n', 2]}, 1]}}]},
+                                        {'$arrayElemAt': ['$$prices', {'$floor': {'$divide': ['$$n', 2]}}]}
+                                    ]},
+                                    {'$arrayElemAt': ['$$prices', {'$floor': {'$divide': ['$$n', 2]}}]}
+                                ]
+                            }
+                        }
+                    }
+                ]
+            },
 
             'average_mid_80_percent_price': {
                 '$round': [

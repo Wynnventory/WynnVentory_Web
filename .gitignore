@@ -1,3 +1,8 @@
+# Claude / swarm tooling
+.claude/
+.claude-flow/
+.swarm/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

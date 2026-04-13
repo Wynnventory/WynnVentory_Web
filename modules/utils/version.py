@@ -46,7 +46,8 @@ class VersionPart:
 
         # helper to test for a “dev” suffix (strip leading dashes, case‑insensitive)
         def is_dev(s: str) -> bool:
-            return s.lstrip("-").lower().startswith("dev")
+            stripped = s.lstrip("-").lower()
+            return stripped.startswith("dev") or stripped.startswith("beta")
 
         # 2a) dev _always_ ranks highest
         if is_dev(self.suffix) and not is_dev(other.suffix):
