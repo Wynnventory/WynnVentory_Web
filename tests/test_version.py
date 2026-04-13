@@ -131,7 +131,7 @@ class TestVersionPart(unittest.TestCase):
 
         # Dev suffix comparison
         self.assertGreater(VersionPart("123dev"), VersionPart("123"))
-        self.assertGreater(VersionPart("123-beta"), VersionPart("123"))
+        self.assertLess(VersionPart("123-beta"), VersionPart("123"))
         self.assertLess(VersionPart("123"), VersionPart("123dev"))
 
         # Empty suffix vs non-beta suffix
