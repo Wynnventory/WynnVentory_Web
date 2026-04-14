@@ -37,4 +37,4 @@ ADMIN_MONGO_URI=mongodb+srv://<user>:<password>@wynnventory.9axarep.mongodb.net/
 
 ## Wynnventory Mod
 
-https://github.com/Wynnventory/WynnVentory_Web
+https://github.com/Wynnventory/WynnVentory_Mod
