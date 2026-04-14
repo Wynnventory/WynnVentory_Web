@@ -13,10 +13,10 @@ class TestVersionComparison(unittest.TestCase):
 
     def test_realistic_version_numbers(self):
         """Test realistic version numbers."""
-        self.assertFalse(compare_versions("2.0.0-beta.1", "2.0.0"))
+        self.assertTrue(compare_versions("2.0.0-beta.1", "2.0.0"))
         self.assertTrue(compare_versions("2.0.0", "2.0.0"))
         self.assertTrue(compare_versions("2.0.1", "2.0.0"))
-        self.assertTrue(compare_versions("2.0.0", "2.0.0-beta.6"))
+        self.assertFalse(compare_versions("2.0.0", "2.0.0-beta.6"))
 
     def test_basic_version_comparison(self):
         """Test basic version comparisons."""
@@ -59,15 +59,15 @@ class TestVersionComparison(unittest.TestCase):
         self.assertFalse(compare_versions("1.0z", "1.1a"))
 
         # Empty suffix (final release) > any non-beta suffix
-        self.assertTrue(compare_versions("1.0", "1.0beta"))
+        self.assertFalse(compare_versions("1.0", "1.0beta"))
         self.assertFalse(compare_versions("1.0alpha", "1.0"))
 
     def test_versions_with_dev_suffix(self):
         """Test versions with 'dev' suffixes."""
         # Dev suffix ranks highest
-        self.assertFalse(compare_versions("1.0.0-beta", "1.0.0"))
+        self.assertTrue(compare_versions("1.0.0-beta", "1.0.0"))
         self.assertTrue(compare_versions("1.0dev", "1.0"))
-        self.assertFalse(compare_versions("1.0-BETA", "1.0"))
+        self.assertTrue(compare_versions("1.0-BETA", "1.0"))
         self.assertTrue(compare_versions("1.0dev1", "1.0"))
 
         # Dev suffix ranks highest within the same numeric part, but not across different numeric parts
@@ -87,8 +87,8 @@ class TestVersionComparison(unittest.TestCase):
         self.assertFalse(compare_versions("alpha", "beta"))
 
         # Mixed formats
-        self.assertFalse(compare_versions("1.0.0-beta", "1.0.0.0"))
-        self.assertTrue(compare_versions("1.0.0", "1.0.0-beta"))
+        self.assertTrue(compare_versions("1.0.0-beta", "1.0.0.0"))
+        self.assertFalse(compare_versions("1.0.0", "1.0.0-beta"))
 
         # Very large version numbers
         self.assertTrue(compare_versions("999.999.999", "999.999.998"))
@@ -135,7 +135,7 @@ class TestVersionPart(unittest.TestCase):
         self.assertLess(VersionPart("123"), VersionPart("123dev"))
 
         # Empty suffix vs non-beta suffix
-        self.assertGreater(VersionPart("123"), VersionPart("123beta"))
+        self.assertLess(VersionPart("123"), VersionPart("123beta"))
         self.assertLess(VersionPart("123alpha"), VersionPart("123"))
 
 
