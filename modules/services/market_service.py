@@ -8,6 +8,7 @@ from modules.models.collection_types import Collection
 from modules.models.sort_options import SortOption
 from modules.repositories.market_repo import get_trade_market_item_listings, get_price_history, get_historic_average, \
     get_all_items_ranking, get_trademarket_item_price
+from modules.utils.hash_utils import compute_listing_hash
 from modules.utils.queue_worker import enqueue
 from modules.utils.version import compare_versions
 
@@ -41,7 +42,7 @@ def _format_item_for_db(item: dict) -> dict:
         "icon": item_data.get('icon'),
         "player_name": item.get('playerName'),
         "mod_version": item.get('modVersion'),
-        "hash_code": item.get('hash_code'),
+        "hash_code": compute_listing_hash(item),
     }
 
     # Log any missing critical fields
