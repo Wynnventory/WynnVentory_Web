@@ -42,7 +42,7 @@ web_bp = Blueprint(
     'web', __name__,
     template_folder='templates/',
     static_folder='static',
-    static_url_path='/modules/routes/web/static'
+    static_url_path='/static'
 )
 
 
@@ -199,8 +199,13 @@ def format_last_updated(timestamp_str: str, now: datetime) -> str:
 
 def build_icon_url(icon: dict) -> str | None:
     """
-    icon is expected as {'format': 'armour'|'skins'|..., 'value': '<icon-name>'}
+    icon is expected as {'format': '...', 'value': '<icon-name>'}
     Returns the correct CDN URL or None.
+
+    Naming conventions:
+      - armour/legacy/attribute/aspect_attribute: /cdn/icons/{value}.webp
+      - compound formats (simulator, insulator, ...): /cdn/icons/{format}.{value}.webp
+      - skin: external mc-heads.net URL
     """
     if not icon:
         return None
@@ -211,7 +216,9 @@ def build_icon_url(icon: dict) -> str | None:
         return None
 
     if fmt in ("armour", "legacy", "attribute", "aspect_attribute"):
-        return f"/modules/routes/web/static/icons/wynn_icons/{val}.webp"
+        return f"/cdn/icons/{val}.webp"
+    if fmt in ("simulator", "insulator", "amplifier"):
+        return f"/cdn/icons/{fmt}.{val}.webp"
     if fmt == "skin":
         return f"https://mc-heads.net/head/{val}"
 
