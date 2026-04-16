@@ -168,3 +168,5 @@ cython_debug/
 /.idea
 scripts/wynnventory.trademarket_listings.json
 scripts/wynnventory_DEV.trademarket_listings.csv
+.mcp.json
+CLAUDE.md
