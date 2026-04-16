@@ -60,13 +60,9 @@
                 <ul class="list-unstyled">
                     {% for item in rarity_group.loot_items %}
                         <li class="lootpool-card-item">
-                            {% if item.icon_url %}
-                                <img src="{{ item.icon_url }}"
-                                     alt="{{ item.name }} icon"
-                                     class="item-icon">
-                            {% else %}
-                                <span class="sprite bg-{{ item.type|lower }}"></span>
-                            {% endif %}
+                            <img src="{{ item.icon_url }}"
+                                 alt="{{ item.name }} icon"
+                                 class="item-icon">
                             {% if rarity_group.group in ['Misc', "Common"] %}
                                 <span class="{{ item.rarity }}" style="pointer-events: none;">
                                     <span class="amount">{{ item.amount }}</span> {{ item.name }}
