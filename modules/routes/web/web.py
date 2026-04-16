@@ -215,14 +215,9 @@ def build_icon_url(icon: dict) -> str | None:
     if not (fmt and val):
         return None
 
-    if fmt in ("armour", "legacy", "attribute", "aspect_attribute"):
-        return f"/cdn/icons/{val}.webp"
-    if fmt in ("simulator", "insulator", "amplifier"):
-        return f"/cdn/icons/{fmt}.{val}.webp"
     if fmt == "skin":
         return f"https://mc-heads.net/head/{val}"
-
-    return None
+    return f"/cdn/icons/{val}.webp"
 
 
 def enrich_listings(listings: list[dict]) -> list[dict]:
