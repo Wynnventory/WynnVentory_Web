@@ -132,6 +132,7 @@
 
     <script type="module">
         import {render} from "https://esm.sh/minecraft-text";
+        const { default: DOMPurify } = await import('https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js');
 
         // Initialize tooltips
         const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
@@ -148,7 +149,7 @@
                         const color = tooltipTriggerEl.getAttribute('data-gambit-color');
                         if (color) nameEl.style.color = color;
                     }
-                    if (descEl) descEl.innerHTML = render(descEl.textContent, "§").replace(/\n/g, "<br/>");
+                    if (descEl) descEl.innerHTML = DOMPurify.sanitize(render(descEl.textContent, "§").replace(/\n/g, "<br/>"));
                     tooltipInner.dataset.rendered = "true";
                 }
             });

@@ -43,7 +43,7 @@ def get_market_item_info(item_name):
     """
     rarity = request.args.get('rarity', None, type=str)
     page = max(1, request.args.get('page', 1, type=int))
-    page_size = min(1000, request.args.get('page_size', 50, type=int))
+    page_size = max(1, min(1000, request.args.get('page_size', 50, type=int)))
 
     # Parse boolean parameters
     shiny = parse_boolean_param(request.args.get('shiny'), None)
