@@ -35,6 +35,9 @@ def create_app():
         bp.after_request(record_api_usage)
         app.register_blueprint(bp)
 
+    from modules.db import ensure_debug_indexes
+    ensure_debug_indexes()
+
     app.logger.warning(
         "Successfully started in '%s' mode with min supported version '%s'",
         Config.ENVIRONMENT,

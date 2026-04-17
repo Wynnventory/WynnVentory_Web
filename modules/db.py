@@ -51,3 +51,9 @@ def get_collection(collection: Collection):
     client = get_client("admin" if collection in (Collection.API_KEYS, Collection.API_USAGE) else "current")
     db = client.get_default_database()
     return db[collection._value_]
+
+
+def ensure_debug_indexes():
+    """Create TTL index on lootpool_debug_logs so documents auto-expire after 7 days."""
+    col = get_collection(Collection.LOOT_DEBUG)
+    col.create_index("received_at", expireAfterSeconds=604800, background=True)

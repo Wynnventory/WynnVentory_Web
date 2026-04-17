@@ -148,6 +148,20 @@ def get_week_range(
     return last_reset, next_reset
 
 
+def is_in_reset_window(pool_type: Collection, margin_minutes: int = 10) -> bool:
+    return True
+    # """Return True if now is within margin_minutes before or after the next loot/raid reset."""
+    # now = datetime.now(UTC)
+    # if pool_type == Collection.LOOT:
+    #     _, next_reset = get_week_range(reset_day=4, reset_hour=loot_reset_hour)
+    # elif pool_type == Collection.RAID:
+    #     _, next_reset = get_week_range(reset_day=4, reset_hour=raid_reset_hour)
+    # else:
+    #     return False
+    # margin = timedelta(minutes=margin_minutes)
+    # return (next_reset - margin) <= now <= (next_reset + margin)
+
+
 def is_time_valid(pool_type: Collection, time_value: Union[str, int, float, datetime]) -> bool:
     """Check if the provided timestamp belongs to the current Wynncraft period (UTC-aware)."""
     time_dt = parse_utc_timestamp(time_value)
