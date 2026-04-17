@@ -10,3 +10,4 @@ class Collection(Enum):
     GAMBIT = "gambit"
     API_KEYS = "api_keys"
     API_USAGE = "api_usage"
+    LOOT_DEBUG = "lootpool_debug_logs"

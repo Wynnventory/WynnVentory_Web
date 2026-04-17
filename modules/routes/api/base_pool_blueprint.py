@@ -1,10 +1,15 @@
-from flask import Blueprint, request
+import logging
+from datetime import datetime, timezone
+
+from flask import Blueprint, g, request
 
 from modules.auth import require_scope, mod_allowed
 from modules.models.collection_types import Collection
 from modules.services import base_pool_service
 from modules.utils.param_utils import api_response, handle_request_error
-from modules.utils.time_validation import get_lootpool_week, get_raidpool_week
+from modules.utils.time_validation import get_lootpool_week, get_raidpool_week, is_in_reset_window
+
+logger = logging.getLogger(__name__)
 
 
 class BasePoolBlueprint:
@@ -31,6 +36,8 @@ class BasePoolBlueprint:
     def _register_endpoints(self):
         """Register all endpoints for this blueprint."""
 
+        collection_type = self.collection_type
+
         @self.blueprint.post(f'/{self.name}/items')
         @require_scope(f'write:{self.name}')
         @mod_allowed
@@ -43,8 +50,10 @@ class BasePoolBlueprint:
             if not data:
                 return api_response({'message': 'No items provided'}, 400)
 
+            _maybe_log_debug_payload(collection_type, data)
+
             try:
-                base_pool_service.save(collection_type=self.collection_type, raw_data=data)
+                base_pool_service.save(collection_type=collection_type, raw_data=data)
                 return api_response({'message': 'Items received successfully'})
             except ValueError as ve:
                 return handle_request_error(ve, error_msg="Validation error while processing items", status_code=400)
@@ -120,3 +129,23 @@ class BasePoolBlueprint:
                 return api_response(raw)
             except Exception as e:
                 return handle_request_error(e)
+
+
+def _maybe_log_debug_payload(collection_type: Collection, data: dict) -> None:
+    """Insert raw payload into debug collection when near a pool reset. Never raises."""
+    if collection_type not in (Collection.LOOT, Collection.RAID):
+        return
+    try:
+        if not is_in_reset_window(collection_type):
+            return
+        from modules.db import get_collection
+        doc = {
+            "received_at": datetime.now(timezone.utc),
+            "pool_type": collection_type.value,
+            "owner": getattr(g, "owner", None),
+            "is_mod_key": getattr(g, "is_mod_key", None),
+            "raw_payload": data,
+        }
+        get_collection(Collection.LOOT_DEBUG).insert_one(doc)
+    except Exception:
+        logger.exception("Failed to write debug payload log — continuing normally")
