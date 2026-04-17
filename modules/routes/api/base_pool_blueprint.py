@@ -144,6 +144,7 @@ def _maybe_log_debug_payload(collection_type: Collection, data: dict) -> None:
             "pool_type": collection_type.value,
             "owner": getattr(g, "owner", None),
             "is_mod_key": getattr(g, "is_mod_key", None),
+            "raw_body": request.get_data(as_text=True),
             "raw_payload": data,
         }
         get_collection(Collection.LOOT_DEBUG).insert_one(doc)
