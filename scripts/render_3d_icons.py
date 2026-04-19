@@ -557,6 +557,36 @@ def _is_block_model(path, models_base, vanilla_models=None, depth=0):
     return False
 
 
+def render_block_texture_file(tex_path, icon_name, out_dir, size,
+                              overwrite=False, dry_run=False, rotation=None):
+    """Render a single block PNG as a cube and save to out_dir/icon_name."""
+    dest = out_dir / icon_name
+    if not overwrite and dest.exists():
+        print(f"  skip  {icon_name}")
+        stats.skipped += 1
+        return
+    if dry_run:
+        print(f"  [dry-run] {icon_name}")
+        stats.created += 1
+        return
+    tex_arr = np.array(Image.open(tex_path).convert("RGBA"))
+    cube_elements = [{
+        "from": [0, 0, 0], "to": [16, 16, 16],
+        "faces": {face: {"texture": "#all"} for face in
+                  ("north", "south", "east", "west", "up", "down")},
+    }]
+    tex_cache = {"__block__": tex_arr}
+    rot = rotation if rotation is not None else BLOCK_ROTATION
+    gui_display = {"rotation": rot, "scale": [0.625, 0.625, 0.625]}
+    faces = build_all_faces(cube_elements, {"all": "__block__"}, [], tex_cache)
+    view_mat, view_trans = build_gui_matrix(gui_display)
+    img = render_faces(faces, view_mat, view_trans, size)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    img.save(str(dest), "WEBP", quality=90, method=6)
+    print(f"  ok    {icon_name}")
+    stats.created += 1
+
+
 def collect_3d_models(models_base, vanilla_models=None):
     """Find all model JSONs with 'elements' (directly or inherited)."""
     results = []
@@ -749,6 +779,17 @@ def main():
         img.save(str(dest), "WEBP", quality=90, method=6)
         print(f"  ok    {icon_name}")
         stats.created += 1
+
+    # Hardcoded one-off block icons
+    emerald_block_tex = DEFAULT_TEXTURES / "block" / "emerald_block.png"
+    if emerald_block_tex.exists():
+        render_block_texture_file(
+            emerald_block_tex, "emerald.emeraldBlock.webp",
+            args.out, args.size,
+            overwrite=args.overwrite, dry_run=args.dry_run,
+        )
+    else:
+        print(f"  warn  emerald_block texture not found: {emerald_block_tex}")
 
     stats.summary()
 
