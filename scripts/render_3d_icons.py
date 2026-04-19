@@ -73,7 +73,7 @@ DEFAULT_GUI_VECTOR = [180, 0, 180]
 # Default GUI display for models that don't specify one
 DEFAULT_GUI = {"rotation": DEFAULT_GUI_VECTOR, "scale": [0.625, 0.625, 0.625]}
 
-BLOCK_ROTATION = [-15, -45, 15]
+BLOCK_ROTATION = [-15, -46, 15]
 
 
 # ---------------------------------------------------------------------------
