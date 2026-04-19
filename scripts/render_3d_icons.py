@@ -36,15 +36,15 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 DEFAULT_MODELS = Path(
-    r"C:\Users\timki\Downloads\play.wynncraft.com"
+    r"C:\Users\domin\Downloads\play.wynncraft.com"
     r"\play.wynncraft.com\assets\minecraft\models\item\wynn"
 )
 DEFAULT_TEXTURES = Path(
-    r"C:\Users\timki\Downloads\play.wynncraft.com"
+    r"C:\Users\domin\Downloads\play.wynncraft.com"
     r"\play.wynncraft.com\assets\minecraft\textures"
 )
 DEFAULT_VANILLA = Path(
-    r"C:\Users\timki\Downloads\1.21.11\assets\minecraft"
+    r"C:\Users\domin\Downloads\1.21.11\assets\minecraft"
 )
 DEFAULT_OUT = (
     Path(__file__).resolve().parent.parent
@@ -68,10 +68,12 @@ FACE_SHADE = {
     "east": 0.6, "west": 0.6,
 }
 
-DEFAULT_GUI_VECTOR = [0, 0, 0]
+DEFAULT_GUI_VECTOR = [180, 0, 180]
 
 # Default GUI display for models that don't specify one
 DEFAULT_GUI = {"rotation": DEFAULT_GUI_VECTOR, "scale": [0.625, 0.625, 0.625]}
+
+BLOCK_ROTATION = [-15, -45, 15]
 
 
 # ---------------------------------------------------------------------------
@@ -201,11 +203,14 @@ def resolve_tex_ref(ref, textures_dict, textures_bases, cache):
 # ---------------------------------------------------------------------------
 
 def build_face_quad(frm, to, face_name, face_data, textures_dict,
-                    textures_bases, tex_cache):
+                    textures_bases, tex_cache, skip_cullface=False):
     """
     Build a single face quad: 4 vertices + 4 UV coords + texture + shade.
     Returns None if face texture cannot be resolved.
     """
+    if skip_cullface and face_data.get("cullface"):
+        return None
+
     tex_ref = face_data.get("texture", "")
     tex_arr = resolve_tex_ref(tex_ref, textures_dict, textures_bases, tex_cache)
     if tex_arr is None:
@@ -277,7 +282,8 @@ def apply_element_rotation(verts, rotation):
     return rotated + origin
 
 
-def build_all_faces(elements, textures_dict, textures_bases, tex_cache):
+def build_all_faces(elements, textures_dict, textures_bases, tex_cache,
+                    skip_cullface=False):
     """Build all renderable face quads from model elements."""
     faces = []
     for elem in elements:
@@ -288,7 +294,8 @@ def build_all_faces(elements, textures_dict, textures_bases, tex_cache):
         for face_name, face_data in elem.get("faces", {}).items():
             result = build_face_quad(
                 frm, to, face_name, face_data,
-                textures_dict, textures_bases, tex_cache
+                textures_dict, textures_bases, tex_cache,
+                skip_cullface=skip_cullface,
             )
             if result is None:
                 continue
@@ -308,8 +315,12 @@ def build_all_faces(elements, textures_dict, textures_bases, tex_cache):
 # Rasterizer
 # ---------------------------------------------------------------------------
 
+def _tex_is_transparent(tex_arr):
+    return bool(np.any(tex_arr[:, :, 3] < 255))
+
+
 def rasterize_triangle(zbuf, cbuf, v0, v1, v2, uv0, uv1, uv2,
-                       tex_arr, shade):
+                       tex_arr, shade, blend=False):
     """Rasterize a single textured triangle with z-buffer (numpy-vectorized)."""
     h, w = zbuf.shape
     tex_h, tex_w = tex_arr.shape[:2]
@@ -347,9 +358,15 @@ def rasterize_triangle(zbuf, cbuf, v0, v1, v2, uv0, uv1, uv2,
     # Interpolate Z
     z = bw * v0[2] + u * v1[2] + v * v2[2]
 
-    # Z-test (larger Z = closer to camera in our projection)
     slc = (slice(min_y, max_y + 1), slice(min_x, max_x + 1))
-    z_mask = mask & (z > zbuf[slc])
+
+    if blend:
+        # Transparent pass: z-test but no z-write, alpha blend onto cbuf
+        z_mask = mask & (z > zbuf[slc])
+    else:
+        # Opaque pass: full z-test + z-write
+        z_mask = mask & (z > zbuf[slc])
+
     if not np.any(z_mask):
         return
 
@@ -361,12 +378,10 @@ def rasterize_triangle(zbuf, cbuf, v0, v1, v2, uv0, uv1, uv2,
     tx = np.clip(tex_u.astype(np.int32), 0, tex_w - 1)
     ty = np.clip(tex_v.astype(np.int32), 0, tex_h - 1)
 
-    # Get colors for valid pixels
     vy = ys[z_mask]
     vx = xs[z_mask]
     colors = tex_arr[ty[z_mask], tx[z_mask]].astype(np.float64)
 
-    # Alpha test
     alpha_ok = colors[:, 3] > 0
     if not np.any(alpha_ok):
         return
@@ -375,11 +390,20 @@ def rasterize_triangle(zbuf, cbuf, v0, v1, v2, uv0, uv1, uv2,
     vz = z[z_mask][alpha_ok]
     colors = colors[alpha_ok]
 
-    # Apply shading
     colors[:, :3] = np.clip(colors[:, :3] * shade, 0, 255)
 
-    zbuf[vy, vx] = vz
-    cbuf[vy, vx] = colors.astype(np.uint8)
+    if blend:
+        src_a = colors[:, 3:4] / 255.0
+        dst = cbuf[vy, vx].astype(np.float64)
+        cbuf[vy, vx, :3] = np.clip(
+            src_a * colors[:, :3] + (1.0 - src_a) * dst[:, :3], 0, 255
+        ).astype(np.uint8)
+        cbuf[vy, vx, 3] = np.clip(
+            colors[:, 3] + dst[:, 3] * (1.0 - src_a[:, 0]), 0, 255
+        ).astype(np.uint8)
+    else:
+        zbuf[vy, vx] = vz
+        cbuf[vy, vx] = colors.astype(np.uint8)
 
 
 def render_faces(faces, view_mat, view_trans, size):
@@ -387,17 +411,12 @@ def render_faces(faces, view_mat, view_trans, size):
     zbuf = np.full((size, size), -np.inf, dtype=np.float64)
     cbuf = np.zeros((size, size, 4), dtype=np.uint8)
 
-    # Transform all face vertices (two passes: measure bbox, then rasterize)
     view_space = []
     for verts, uvs, tex_arr, shade, normal in faces:
-        # Center model (0-16 space -> centered at origin)
         centered = verts - 8.0
-        # Apply GUI rotation + scale
         tv = (centered @ view_mat.T) + view_trans
-        # Transform normal for back-face culling
         tn = normal @ view_mat.T
 
-        # Back-face cull: skip if normal points away from camera (+Z)
         if tn[2] <= 0:
             continue
 
@@ -406,39 +425,38 @@ def render_faces(faces, view_mat, view_trans, size):
     if not view_space:
         return Image.fromarray(cbuf, "RGBA")
 
-    # Compute bounding box of all visible vertices in view space
     all_xy = np.concatenate([tv[:, :2] for tv, *_ in view_space])
     max_extent = np.max(np.abs(all_xy))
-    # Fit model into canvas with 5% padding on each side
     padding = 0.90
-    if max_extent > 0:
-        scale = (size / 2.0) * padding / max_extent
-    else:
-        scale = size / 16.0
+    scale = (size / 2.0) * padding / max_extent if max_extent > 0 else size / 16.0
 
-    # Project to screen
-    transformed = []
+    opaque = []
+    transparent = []
     for tv, uvs, tex_arr, shade in view_space:
         screen = np.zeros_like(tv)
         screen[:, 0] = tv[:, 0] * scale + size / 2.0
         screen[:, 1] = -tv[:, 1] * scale + size / 2.0
-        screen[:, 2] = tv[:, 2]  # keep Z for depth
+        screen[:, 2] = tv[:, 2]
+        bucket = transparent if _tex_is_transparent(tex_arr) else opaque
+        bucket.append((screen, uvs, tex_arr, shade))
 
-        transformed.append((screen, uvs, tex_arr, shade))
+    # Opaque first (front-to-back doesn't matter with z-buffer)
+    opaque.sort(key=lambda t: np.mean(t[0][:, 2]))
+    for screen, uvs, tex_arr, shade in opaque:
+        for i, j, k in [(0, 1, 2), (0, 2, 3)]:
+            rasterize_triangle(zbuf, cbuf,
+                               screen[i], screen[j], screen[k],
+                               uvs[i], uvs[j], uvs[k],
+                               tex_arr, shade, blend=False)
 
-    # Sort by average Z (painter's algorithm backup - z-buffer is primary)
-    transformed.sort(key=lambda t: np.mean(t[0][:, 2]))
-
-    for screen, uvs, tex_arr, shade in transformed:
-        # Split quad into 2 triangles and rasterize
-        for tri_idx in [(0, 1, 2), (0, 2, 3)]:
-            i, j, k = tri_idx
-            rasterize_triangle(
-                zbuf, cbuf,
-                screen[i], screen[j], screen[k],
-                uvs[i], uvs[j], uvs[k],
-                tex_arr, shade,
-            )
+    # Transparent back-to-front with alpha blending
+    transparent.sort(key=lambda t: np.mean(t[0][:, 2]))
+    for screen, uvs, tex_arr, shade in transparent:
+        for i, j, k in [(0, 1, 2), (0, 2, 3)]:
+            rasterize_triangle(zbuf, cbuf,
+                               screen[i], screen[j], screen[k],
+                               uvs[i], uvs[j], uvs[k],
+                               tex_arr, shade, blend=True)
 
     return Image.fromarray(cbuf, "RGBA")
 
@@ -515,6 +533,30 @@ def _has_elements(path, models_base, vanilla_models=None, depth=0):
     return False
 
 
+def _is_block_model(path, models_base, vanilla_models=None, depth=0):
+    """Return True if the model's parent chain includes a vanilla block model."""
+    if depth > 10:
+        return False
+    try:
+        with open(path, "r") as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return False
+    parent = data.get("parent", "").replace("minecraft:", "")
+    if not parent:
+        return False
+    if parent.startswith("block/"):
+        return True
+    rel = parent.replace("/", "\\") + ".json"
+    for base in [models_base.parent, vanilla_models]:
+        if base is None:
+            continue
+        candidate = base / rel
+        if candidate.exists():
+            return _is_block_model(candidate, models_base, vanilla_models, depth + 1)
+    return False
+
+
 def collect_3d_models(models_base, vanilla_models=None):
     """Find all model JSONs with 'elements' (directly or inherited)."""
     results = []
@@ -588,6 +630,15 @@ def main():
         "--category", type=str, default=None,
         help="Only render models from this category (e.g. 'prop', 'weapon')",
     )
+    parser.add_argument(
+        "--block-texture", type=Path, default=None,
+        help="Render a single block PNG as a cube_all and save to --out",
+    )
+    parser.add_argument(
+        "--rotation", type=float, nargs=3, metavar=("X", "Y", "Z"),
+        default=None,
+        help="Override GUI rotation for --block-texture (e.g. --rotation 30 225 0)",
+    )
     args = parser.parse_args()
 
     if not args.models.exists():
@@ -611,6 +662,41 @@ def main():
     print(f"Size:     {args.size}x{args.size}")
     print(f"Mode:     {'dry-run' if args.dry_run else 'write'}")
 
+    if args.block_texture:
+        tex_path = args.block_texture.resolve()
+        if not tex_path.exists():
+            print(f"Error: texture not found: {tex_path}")
+            sys.exit(1)
+
+        stem = snake_to_camel(tex_path.stem)
+        icon_name = f"block.{stem}.webp"
+        dest = args.out / icon_name
+
+        if not args.overwrite and dest.exists():
+            print(f"  skip  {icon_name}")
+        elif args.dry_run:
+            print(f"  [dry-run] {icon_name}")
+        else:
+            tex_arr = np.array(Image.open(tex_path).convert("RGBA"))
+            cube_elements = [{
+                "from": [0, 0, 0], "to": [16, 16, 16],
+                "faces": {face: {"texture": "#all"} for face in
+                          ("north", "south", "east", "west", "up", "down")},
+            }]
+            textures_dict = {"all": "__block__"}
+            tex_cache = {"__block__": tex_arr}
+            rotation = args.rotation if args.rotation is not None else BLOCK_ROTATION
+            gui_display = {"rotation": rotation, "scale": [1, 1, 1]}
+            faces = build_all_faces(cube_elements, textures_dict, [], tex_cache)
+            view_mat, view_trans = build_gui_matrix(gui_display)
+            img = render_faces(faces, view_mat, view_trans, args.size)
+            args.out.mkdir(parents=True, exist_ok=True)
+            img.save(str(dest), "WEBP", quality=100, method=6)
+            print(f"  ok    {icon_name}")
+
+        stats.summary()
+        return
+
     models = collect_3d_models(args.models, vanilla_models)
     print(f"Found {len(models)} models with 3D geometry\n")
 
@@ -618,7 +704,11 @@ def main():
         rel = model_path.relative_to(args.models)
         cat = rel.parts[0] if len(rel.parts) > 1 else ""
 
-        if args.category and cat != args.category:
+        if cat != "ingredient":
+            continue
+
+        if not _is_block_model(model_path, args.models, vanilla_models):
+            stats.skipped += 1
             continue
 
         icon_name = model_to_icon_name(str(rel))
@@ -636,13 +726,24 @@ def main():
             stats.created += 1
             continue
 
-        img = render_model(
-            model_path, args.models, textures_bases, args.size, vanilla_models
+        tex_cache = {}
+        elements, textures, _ = load_model_chain(
+            model_path, args.models, vanilla_models
         )
-        if img is None:
-            print(f"  warn  failed to render: {rel}")
+        if not elements:
+            print(f"  warn  no elements: {rel}")
             stats.warnings += 1
             continue
+
+        gui_display = {"rotation": BLOCK_ROTATION, "scale": [0.625, 0.625, 0.625]}
+        faces = build_all_faces(elements, textures, textures_bases, tex_cache)
+        if not faces:
+            print(f"  warn  no faces: {rel}")
+            stats.warnings += 1
+            continue
+
+        view_mat, view_trans = build_gui_matrix(gui_display)
+        img = render_faces(faces, view_mat, view_trans, args.size)
 
         dest.parent.mkdir(parents=True, exist_ok=True)
         img.save(str(dest), "WEBP", quality=90, method=6)
