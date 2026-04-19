@@ -3,6 +3,7 @@ Downloads item type icons from the Wynncraft CDN.
 Icons are saved to scripts/item_icons/
 """
 
+import argparse
 import os
 import urllib.request
 import urllib.error
@@ -13,7 +14,7 @@ ELEMENTS = ["earth", "fire", "thunder", "water", "multi", "air", "basicWood", "b
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "../modules/routes/web/static/icons/wynn_icons")
 
 
-def download_icons():
+def download_icons(overwrite=False):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     total = len(TYPES) * len(ELEMENTS) * 3
@@ -28,7 +29,7 @@ def download_icons():
                 url = f"{BASE_URL}/{filename}"
                 dest = os.path.join(OUTPUT_DIR, filename)
 
-                if os.path.exists(dest):
+                if os.path.exists(dest) and not overwrite:
                     print(f"  skip  {filename}")
                     skipped += 1
                     continue
@@ -49,4 +50,7 @@ def download_icons():
 
 
 if __name__ == "__main__":
-    download_icons()
+    parser = argparse.ArgumentParser(description="Download item type icons from the Wynncraft CDN.")
+    parser.add_argument("--overwrite", action="store_true", help="Re-download and overwrite existing icons.")
+    args = parser.parse_args()
+    download_icons(overwrite=args.overwrite)

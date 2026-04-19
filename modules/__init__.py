@@ -19,6 +19,10 @@ def create_app():
     from modules.routes.web.web import web_bp
     app.register_blueprint(web_bp)
 
+    # CDN ROUTES (public, no API key required)
+    from modules.routes.cdn.cdn import cdn_bp
+    app.register_blueprint(cdn_bp)
+
     # WEB ROUTES
     from modules.routes.api.item import item_bp
     from modules.routes.api.aspect import aspect_bp
