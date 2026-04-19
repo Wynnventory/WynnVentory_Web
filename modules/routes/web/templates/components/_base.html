@@ -150,15 +150,15 @@
         crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
     <script src="{{ url_for('web.static', filename='app.js') }}"></script>
-<!--<script>-->
-<!--    document.addEventListener('error', function(e) {-->
-<!--        const img = e.target;-->
-<!--        if (img.tagName === 'IMG' && img.src !== img.dataset.fallback) {-->
-<!--            img.dataset.fallback = img.src;-->
-<!--            img.src = '/cdn/icons/wynncraft_icon.webp';-->
-<!--        }-->
-<!--    }, true);-->
-<!--</script>-->
+<script>
+    document.addEventListener('error', function(e) {
+        const img = e.target;
+        if (img.tagName === 'IMG' && img.src !== img.dataset.fallback) {
+            img.dataset.fallback = img.src;
+            img.src = '/cdn/icons/wynncraft_icon.webp';
+        }
+    }, true);
+</script>
     <!-- Fruma Beta Notification Modal -->
     {% if 'beta' in request.host or 'localhost' in request.host or '127.0.0.1' in request.host %}
     <div class="modal fade" id="frumaBetaModal" tabindex="-1" aria-labelledby="frumaBetaModalLabel" aria-hidden="true">
