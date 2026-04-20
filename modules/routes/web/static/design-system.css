@@ -1,0 +1,318 @@
+/* WynnVentory Design System
+ * Reusable tokens and component classes built on Bootstrap 5.
+ * Import after style.css in _base.html. */
+
+/* ── Dark theme tokens (default) ── */
+[data-bs-theme="dark"] {
+    --wv-surface-1: #1e2023;
+    --wv-surface-2: #25282c;
+    --wv-surface-3: #2b2e33;
+    --wv-border: rgba(255, 255, 255, 0.1);
+    --wv-border-hover: rgba(255, 255, 255, 0.2);
+    --wv-text-primary: #e0e0e0;
+    --wv-text-secondary: #9ca3af;
+    --wv-text-muted: #6b7280;
+    --wv-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --wv-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --wv-chart-grid: rgba(255, 255, 255, 0.06);
+    --wv-chart-text: #9ca3af;
+    --wv-skeleton-base: #25282c;
+    --wv-skeleton-shine: #2f3338;
+}
+
+/* ── Light theme tokens ── */
+[data-bs-theme="light"] {
+    --wv-surface-1: #ffffff;
+    --wv-surface-2: #f8f9fa;
+    --wv-surface-3: #e9ecef;
+    --wv-border: rgba(0, 0, 0, 0.1);
+    --wv-border-hover: rgba(0, 0, 0, 0.2);
+    --wv-text-primary: #212529;
+    --wv-text-secondary: #6b7280;
+    --wv-text-muted: #9ca3af;
+    --wv-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --wv-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+    --wv-chart-grid: rgba(0, 0, 0, 0.06);
+    --wv-chart-text: #6b7280;
+    --wv-skeleton-base: #e9ecef;
+    --wv-skeleton-shine: #f8f9fa;
+}
+
+/* ── Shared tokens (theme-independent) ── */
+:root {
+    --wv-accent: #4facfe;
+    --wv-accent-hover: #3a9aed;
+    --wv-accent-muted: rgba(79, 172, 254, 0.3);
+    --wv-positive: #00e396;
+    --wv-negative: #ff4560;
+    --wv-neutral: #6c757d;
+    --wv-space-xs: 0.25rem;
+    --wv-space-sm: 0.5rem;
+    --wv-space-md: 1rem;
+    --wv-space-lg: 1.5rem;
+    --wv-space-xl: 2rem;
+    --wv-radius-sm: 0.375rem;
+    --wv-radius-md: 0.5rem;
+    --wv-radius-lg: 0.75rem;
+}
+
+/* ── Card ── */
+.wv-card {
+    background: var(--wv-surface-1);
+    border: 1px solid var(--wv-border);
+    border-radius: var(--wv-radius-lg);
+    box-shadow: var(--wv-shadow-sm);
+    padding: var(--wv-space-lg);
+}
+
+/* ── Stat Card ── */
+.wv-stat-card {
+    background: var(--wv-surface-1);
+    border: 1px solid var(--wv-border);
+    border-radius: var(--wv-radius-md);
+    padding: var(--wv-space-md) var(--wv-space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wv-space-xs);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.wv-stat-card:hover {
+    border-color: var(--wv-border-hover);
+    box-shadow: var(--wv-shadow-sm);
+}
+
+.wv-stat-card .wv-stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--wv-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.wv-stat-card .wv-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--wv-text-primary);
+    line-height: 1.2;
+}
+
+.wv-stat-card .wv-stat-sub {
+    font-size: 0.8rem;
+    color: var(--wv-text-muted);
+}
+
+/* ── Inputs ── */
+.wv-input {
+    background: var(--wv-surface-3);
+    border: 1px solid var(--wv-border);
+    border-radius: var(--wv-radius-md);
+    color: var(--wv-text-primary);
+    padding: 0.625rem 1rem;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+
+.wv-input:focus {
+    outline: none;
+    border-color: var(--wv-accent);
+    box-shadow: 0 0 0 3px var(--wv-accent-muted);
+}
+
+.wv-input::placeholder {
+    color: var(--wv-text-muted);
+}
+
+/* ── Search wrapper (icon inside input) ── */
+.wv-search-wrapper {
+    position: relative;
+}
+
+.wv-search-wrapper .wv-search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--wv-text-muted);
+    pointer-events: none;
+    font-size: 1rem;
+}
+
+.wv-search-wrapper .wv-input {
+    padding-left: 2.5rem;
+}
+
+/* ── Buttons ── */
+.wv-btn-primary {
+    background: var(--wv-accent);
+    color: #fff;
+    border: 1px solid var(--wv-accent);
+    border-radius: var(--wv-radius-md);
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.wv-btn-primary:hover {
+    background: var(--wv-accent-hover);
+    box-shadow: var(--wv-shadow-sm);
+}
+
+.wv-btn-outline {
+    background: transparent;
+    color: var(--wv-text-primary);
+    border: 1px solid var(--wv-border);
+    border-radius: var(--wv-radius-md);
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.wv-btn-outline:hover {
+    border-color: var(--wv-accent);
+    color: var(--wv-accent);
+}
+
+/* ── Pill toggle buttons ── */
+.wv-pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wv-space-xs);
+}
+
+.wv-btn-pill {
+    background: transparent;
+    color: var(--wv-text-secondary);
+    border: 1px solid var(--wv-border);
+    border-radius: 9999px;
+    padding: 0.375rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.wv-btn-pill:hover {
+    border-color: var(--wv-accent);
+    color: var(--wv-accent);
+}
+
+.wv-btn-pill.active {
+    background: var(--wv-accent);
+    color: #fff;
+    border-color: var(--wv-accent);
+}
+
+/* ── Section header ── */
+.wv-section-header {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--wv-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-bottom: var(--wv-space-sm);
+    margin-top: var(--wv-space-lg);
+    margin-bottom: var(--wv-space-md);
+    border-bottom: 1px solid var(--wv-border);
+}
+
+/* ── Badge ── */
+.wv-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    background: var(--wv-accent-muted);
+    color: var(--wv-accent);
+}
+
+/* ── Responsive grids ── */
+.wv-grid-2col {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--wv-space-md);
+}
+
+.wv-grid-3col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--wv-space-md);
+}
+
+.wv-grid-4col {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--wv-space-md);
+}
+
+@media (max-width: 992px) {
+    .wv-grid-4col { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .wv-grid-3col { grid-template-columns: repeat(2, 1fr); }
+    .wv-grid-4col { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+    .wv-grid-2col { grid-template-columns: 1fr; }
+    .wv-grid-3col { grid-template-columns: 1fr; }
+    .wv-grid-4col { grid-template-columns: 1fr; }
+}
+
+/* ── Skeleton loading ── */
+.wv-skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--wv-skeleton-base) 25%,
+        var(--wv-skeleton-shine) 50%,
+        var(--wv-skeleton-base) 75%
+    );
+    background-size: 200% 100%;
+    animation: wv-shimmer 1.5s infinite;
+    border-radius: var(--wv-radius-sm);
+}
+
+@keyframes wv-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ── Empty state ── */
+.wv-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--wv-space-xl) var(--wv-space-md);
+    color: var(--wv-text-muted);
+    text-align: center;
+}
+
+.wv-empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: var(--wv-space-md);
+    opacity: 0.5;
+}
+
+.wv-empty-state p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* ── Alert ── */
+.wv-alert-error {
+    background: rgba(255, 69, 96, 0.1);
+    border: 1px solid rgba(255, 69, 96, 0.3);
+    border-radius: var(--wv-radius-md);
+    padding: var(--wv-space-sm) var(--wv-space-md);
+    color: var(--wv-negative);
+    font-size: 0.9rem;
+    display: none;
+}
