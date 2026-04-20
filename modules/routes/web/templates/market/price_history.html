@@ -425,13 +425,15 @@
                     tier = match[2].trim();
                 }
 
-                const startVal = document.getElementById('startDate').value || params.get('start_date') || '';
-                const endVal = document.getElementById('endDate').value || params.get('end_date') || '';
-                document.getElementById('startDate').value = startVal;
-                document.getElementById('endDate').value = endVal;
+                // Use custom date inputs if populated, otherwise compute from timeframe
+                const startInput = document.getElementById('startDate').value.trim();
+                const endInput = document.getElementById('endDate').value.trim();
+                let s, e;
 
-                let s = startVal, e = endVal;
-                if (!s && !e) {
+                if (startInput || endInput) {
+                    s = startInput;
+                    e = endInput;
+                } else {
                     const now = new Date();
                     const lag = new Date(now.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
                     e = lag.toISOString().split('T')[0];
@@ -468,28 +470,47 @@
         }
 
         /* ── Search & navigation ── */
-        function handleSearch(item) {
-            if (!item) { showEmpty(); return; }
+        function fetchForItem(item) {
             const name = capitalizeWords(item);
             document.getElementById('itemSearch').value = name;
             document.getElementById('pageTitle').textContent = 'Price History \u2014 ' + name;
-            const baseUrl = '/history/' + encodeURIComponent(name);
-            history.replaceState(null, '', baseUrl + window.location.search);
+            history.replaceState(null, '', '/history/' + encodeURIComponent(name));
             fetchPriceData(name);
         }
 
-        function updateTimeframe(days, btn) {
-            history.replaceState(null, '', location.pathname);
+        function handleSearch(item) {
+            if (!item) { showEmpty(); return; }
+            clearDateInputs();
             document.getElementById('dateRangeContainer').style.display = 'none';
+            currentTimeframe = getCurrentActivePillDays();
+            fetchForItem(item);
+        }
+
+        function getCurrentActivePillDays() {
+            var active = document.querySelector('.wv-pill-group .wv-btn-pill.active');
+            if (!active || active.id === 'btnRange') return currentTimeframe;
+            var map = { btn7: 7, btn14: 14, btn30: 30, btn90: 90 };
+            return map[active.id] || 7;
+        }
+
+        function clearDateInputs() {
+            $('#startDate').datepicker('clearDates');
+            $('#endDate').datepicker('clearDates');
             document.getElementById('startDate').value = '';
             document.getElementById('endDate').value = '';
+        }
+
+        function updateTimeframe(days, btn) {
             currentTimeframe = days;
+            clearDateInputs();
+            document.getElementById('dateRangeContainer').style.display = 'none';
+            history.replaceState(null, '', location.pathname);
             document.querySelectorAll('.wv-pill-group .wv-btn-pill').forEach(function(b) {
                 b.classList.remove('active');
             });
             btn.classList.add('active');
             const nm = document.getElementById('itemSearch').value.trim();
-            if (nm) handleSearch(nm);
+            if (nm) fetchForItem(nm);
         }
 
         function activateDateRange(btn) {
@@ -524,11 +545,11 @@
                 handleSearch(document.getElementById('itemSearch').value.trim());
             };
             document.getElementById('applyFilter').onclick = function() {
-                handleSearch(document.getElementById('itemSearch').value.trim());
+                var nm = document.getElementById('itemSearch').value.trim();
+                if (nm) fetchForItem(nm);
             };
             document.getElementById('resetFilter').onclick = function() {
-                document.getElementById('startDate').value = '';
-                document.getElementById('endDate').value = '';
+                clearDateInputs();
                 document.getElementById('dateRangeContainer').style.display = 'none';
                 currentTimeframe = 7;
                 history.replaceState(null, '', location.pathname);
@@ -537,7 +558,7 @@
                 });
                 document.getElementById('btn7').classList.add('active');
                 var nm = document.getElementById('itemSearch').value.trim();
-                if (nm) handleSearch(nm);
+                if (nm) fetchForItem(nm);
             };
 
             // Restore state from URL
@@ -581,8 +602,7 @@
             }
 
             if (initItem && initItem !== 'None') {
-                document.getElementById('itemSearch').value = capitalizeWords(initItem);
-                handleSearch(initItem);
+                fetchForItem(initItem);
             }
         };
     </script>
