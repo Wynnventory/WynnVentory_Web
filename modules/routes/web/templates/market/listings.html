@@ -3,444 +3,358 @@
 {% block title %}Trademarket Listings{% endblock %}
 {% block content %}
 
-    <div class="container-fluid h-100">
-        <div class="row h-100">
+<div class="container-fluid">
+    <!-- Page Title -->
+    <h1 class="wv-section-header mt-3 mb-3">Trademarket Listings</h1>
 
-            <!-- Filter Sidebar -->
-            <div id="filter-sidebar"
-                 class="px-4 collapsed"
-                 style="margin-top: -1rem !important">
-                <form method="get"
-                      action="{{ url_for('web.trademarket_listings') }}"
-                      class="d-flex flex-column flex-grow-1 align-items-center align-items-sm-start px-3 pt-4 w-100">
+    <!-- Top Controls -->
+    <div class="wv-card mb-4 p-3">
+        <form method="get" action="{{ url_for('web.trademarket_listings') }}" id="filterForm">
 
-                    <!-- Search by name -->
-                    <div class="w-100 mb-3">
-                        <label for="search" class="form-label">Search Name</label>
-                        <input type="text"
-                               id="search"
-                               name="search"
-                               value="{{ request.args.get('search', '') }}"
-                               class="form-control"
-                               placeholder="Enter item name">
-                    </div>
-
-                    <!-- Filter by type -->
-                    <div class="w-100 mb-3">
-                        <label for="itemType" class="form-label">Type</label>
-                        <select id="itemType" name="itemType" class="form-select">
-                            <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
-                            <option value="GearItem"
-                                    {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear
-                            </option>
-                            <option value="MaterialItem"
-                                    {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Materials
-                            </option>
-                            <option value="IngredientItem"
-                                    {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>
-                                Ingredients
-                            </option>
-                            <option value="PowderItem"
-                                    {% if request.args.get('itemType')=='PowderItem' %}selected{% endif %}>Powders
-                            </option>
-                            <option value="RuneItem"
-                                    {% if request.args.get('itemType')=='RuneItem' %}selected{% endif %}>Runes
-                            </option>
-                            <option value="DungeonKeyItem"
-                                    {% if request.args.get('itemType')=='DungeonKeyItem' %}selected{% endif %}>Dungeon
-                                Keys
-                            </option>
-                        </select>
-                    </div>
-                    <div class="w-100 mb-3" id="subTypeOptions" style="display: none;">
-                        <label for="subType" class="form-label">Sub Type</label>
-                        <select id="subType" name="subType" class="form-select"></select>
-                    </div>
-                    <div class="w-100 mb-3">
-                        <label for="rarity" class="form-label">Rarity</label>
-                        <select id="rarity"
-                                name="rarity"
-                                class="form-select">
-                            <option value="" {% if not request.args.get('rarity') %}selected{% endif %}>All</option>
-                            <option value="mythic"
-                                    {% if request.args.get('rarity')=='mythic' %}selected{% endif %}>Mythic
-                            </option>
-                            <option value="fabled"
-                                    {% if request.args.get('rarity')=='fabled' %}selected{% endif %}>Fabled
-                            </option>
-                            <option value="legendary"
-                                    {% if request.args.get('rarity')=='legendary' %}selected{% endif %}>Legendary
-                            </option>
-                            <option value="rare"
-                                    {% if request.args.get('rarity')=='rare' %}selected{% endif %}>Rare
-                            </option>
-                            <option value="unique"
-                                    {% if request.args.get('rarity')=='unique' %}selected{% endif %}>Unique
-                            </option>
-                            <option value="normal"
-                                    {% if request.args.get('rarity')=='normal' %}selected{% endif %}>Normal
-                            </option>
-                        </select>
-                    </div>
-
-                    <!-- Shiny dropdown -->
-                    <div class="w-100 mb-3">
-                        <label for="shiny" class="form-label">Shiny</label>
-                        <select id="shiny"
-                                name="shiny"
-                                class="form-select">
-                            <option value="" {% if not request.args.get('shiny') %}selected{% endif %}>Both</option>
-                            <option value="true" {% if request.args.get('shiny')=='true' %}selected{% endif %}>Yes
-                            </option>
-                            <option value="false" {% if request.args.get('shiny')=='false' %}selected{% endif %}>No
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="w-100 mb-3">
-                        <label for="unidentified" class="form-label">Unidentified</label>
-                        <select id="unidentified"
-                                name="unidentified"
-                                class="form-select">
-                            <option value="" {% if not request.args.get('unidentified') %}selected{% endif %}>Both
-                            </option>
-                            <option value="true" {% if request.args.get('unidentified')=='true' %}selected{% endif %}>
-                                Yes
-                            </option>
-                            <option value="false" {% if request.args.get('unidentified')=='false' %}selected{% endif %}>
-                                No
-                            </option>
-                        </select>
-                    </div>
-
-                    <!-- Tier dropdown -->
-                    <div class="w-100 mb-3">
-                        <label for="tier" class="form-label">Tier</label>
-                        <select id="tier"
-                                name="tier"
-                                class="form-select">
-                            <option value="" {% if not request.args.get('tier') %}selected{% endif %}>All</option>
-                            <option value="1" {% if request.args.get('tier')=='1' %}selected{% endif %}>1</option>
-                            <option value="2" {% if request.args.get('tier')=='2' %}selected{% endif %}>2</option>
-                            <option value="3" {% if request.args.get('tier')=='3' %}selected{% endif %}>3</option>
-                            <option value="4" {% if request.args.get('tier')=='4' %}selected{% endif %}>4</option>
-                            <option value="5" {% if request.args.get('tier')=='5' %}selected{% endif %}>5</option>
-                            <option value="6" {% if request.args.get('tier')=='6' %}selected{% endif %}>6</option>
-                            <option value="7" {% if request.args.get('tier')=='7' %}selected{% endif %}>7</option>
-                            <option value="8" {% if request.args.get('tier')=='8' %}selected{% endif %}>8</option>
-                            <option value="9" {% if request.args.get('tier')=='9' %}selected{% endif %}>9</option>
-                        </select>
-                    </div>
-
-                    <!-- Sort Options -->
-                    <div class="w-100 mb-3">
-                        <label for="sort" class="form-label">Sort By</label>
-                        <select id="sort" name="sort" class="form-select">
-                            {% for opt in SORT_OPTIONS %}
-                                <option value="{{ opt.value }}" {% if sort == opt %}selected{% endif %}>
-                                    {{ opt.label() }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Page size -->
-                    <div class="w-100 mb-3">
-                        <label for="page_size" class="form-label">Page Size</label>
-                        <select id="page_size"
-                                name="page_size"
-                                class="form-select">
-                            <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
-                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
-                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100 mt-3">
-                        Apply Filters
-                    </button>
-                </form>
+            <!-- Search Row -->
+            <div class="wv-search-wrapper mb-3">
+                <i class="bi bi-search wv-search-icon"></i>
+                <input type="text"
+                       id="search"
+                       name="search"
+                       value="{{ request.args.get('search', '') }}"
+                       class="wv-input"
+                       placeholder="Search item name...">
             </div>
 
-            <button onclick="removeClass()" id="collapse-button" class="btn btn-outline-secondary mb-3"><</button>
-
-            <!-- Listings -->
-            <div id="items-container" class="col order-2 order-lg-1 expanded">
-                <h1>Trademarket Listings</h1>
-
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4 mt-2">
-                    {% for item in items %}
-                        {# compute the dynamic bit once #}
-                        {% if item.item_type == 'PowderItem' %}
-                            {% set dynamic = item.type %}
-                        {% elif item.item_type == 'DungeonKeyItem' and 'Corrupted' in item.name %}
-                            {% set dynamic = 'corrupted' %}
-                        {% else %}
-                            {% set dynamic = item.rarity or 'Normal' %}
-                        {% endif %}
-
-                        <div class="col item-stats-tooltip {{ dynamic }} items-handle">
-                            <div class="item-card d-flex flex-column h-100">
-
-                                <!-- Header -->
-                                <div class="item-header d-flex justify-content-center align-items-center">
-                                    {% if item.icon_url %}
-                                        <img src="{{ item.icon_url }}" alt="{{ item.name }} icon" class="item-icon">
-                                    {% else %}
-                                        <span class="sprite bg-{{ item.type|lower }}" style="margin-right: 10px;"></span>
-                                    {% endif %}
-
-                                    <h5 class="mb-0 {{ item.rarity or '' }}">
-                                        {% if item.unidentified %}
-                                            Unidentified
-                                        {% endif %}
-                                        {% if item.shiny_stat %}
-                                            <span class="sprite bg-shiny"
-                                                  style="
-                                                    transform: scale(0.6);
-                                                    transform-origin: 0 0;
-                                                    -webkit-transform-origin-y: bottom
-                                                  "
-                                            ></span>Shiny
-                                        {% endif %}
-                                        {{ item.name }}
-                                        {% if item.unidentified == false and item.overall_roll is not none %}
-                                            <span class="stat-overall-pct"
-                                                  data-pct="{{ item.overall_roll }}">[{{ '%.1f' % item.overall_roll }}%]</span>
-                                        {% endif %}
-                                        {% if item.item_type in TIERED_TYPES %}
-                                            {{ item.tier|to_roman }}
-                                        {% endif %}
-                                    </h5>
-                                </div>
-                                {% if item.shiny_stat %}
-                                    <div class="item-infobox item-text">
-                                        Shiny Stat<br/>
-                                        <strong>{{ item.shiny_stat.statType.displayName }}
-                                            - {{ item.shiny_stat.value }}</strong>
-                                    </div>
-                                {% endif %}
-                                {#
-
-                                #}
-                                {# ─── Top area: *fixed* stats only ────────────────── #}{#
-
-                                {% if item.fixed_identifications %}
-                                    <div class="item-infobox item-text">
-                                        {% for roll in item.fixed_identifications %}
-                                            {{ tt.id_line(roll) }}
-                                        {% endfor %}
-                                    </div>
-                                {% endif %}
-#}
-
-                                {# ─── Bottom area: all rollable stats (RAW + PERCENT) #}
-                                {% if item.rolled_identifications %}
-                                    <div class="item-infobox item-text">
-                                        {% for roll in item.rolled_identifications %}
-                                            {{ tt.id_line(roll) }}
-                                        {% endfor %}
-                                    </div>
-                                    <br/>
-                                {% endif %}
-
-                                <div class="mt-auto">
-                                    {% if item.rolled_identifications %}
-                                        <p class="mb-0 {{ item.rarity or '' }}">{{ item.rarity }} Item [{{ item.reroll_count }}]</p>
-                                    {% endif %}
-                                    <hr/>
-                                    <div class="item-infobox item-text">
-                                        Amount<br/>
-                                        <strong>{{ item.amount }}</strong>
-                                    </div>
-                                    <div class="item-infobox item-text">
-                                        Price<br/>
-                                        <strong>{{ item.listing_price|emerald_format }}</strong>
-                                        {# 1) Compute “ratio” based on whether it’s unidentified or not #}
-                                        {% if item.unidentified and item.price_averages.unidentified_average_mid_80_percent_price %}
-                                            {% set ratio = item.listing_price / item.price_averages.unidentified_average_mid_80_percent_price %}
-                                        {% elif item.price_averages.average_mid_80_percent_price %}
-                                            {% set ratio = item.listing_price / item.price_averages.average_mid_80_percent_price %}
-                                        {% endif %}
-
-                                        {% if ratio %}
-                                            {# 2) Compute the percentage and choose color #}
-                                            {% set pct = (ratio * 100) | round(1) %}
-                                            <small>
-                                                (<span
-                                                    style="color: {% if ratio > 1 %}#F85252{% elif ratio < 1 %}#56FE56{% endif %}">{{ pct }}%</span>
-                                                of avg)
-                                            </small>
-                                        {% endif %}
-                                    </div>
-                                    {% if item.timestamp %}
-                                        <footer class="item-footer mt-2 w-100 text-center">
-                                            <small class="text-muted">
-                                                Recorded {{ ("%s"|format(item.timestamp))|last_updated }} ago
-                                            </small>
-                                        </footer>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="col-12 text-center text-gray-500 py-8">
-                            No listings found.
-                        </div>
-                    {% endfor %}
+            <!-- Filter Row -->
+            <div class="d-flex flex-wrap gap-2 align-items-end">
+                <div class="listing-filter-item">
+                    <label for="itemType" class="form-label small mb-1">Type</label>
+                    <select id="itemType" name="itemType" class="form-select form-select-sm">
+                        <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
+                        <option value="GearItem" {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear</option>
+                        <option value="MaterialItem" {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Materials</option>
+                        <option value="IngredientItem" {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>Ingredients</option>
+                        <option value="PowderItem" {% if request.args.get('itemType')=='PowderItem' %}selected{% endif %}>Powders</option>
+                        <option value="RuneItem" {% if request.args.get('itemType')=='RuneItem' %}selected{% endif %}>Runes</option>
+                        <option value="DungeonKeyItem" {% if request.args.get('itemType')=='DungeonKeyItem' %}selected{% endif %}>Dungeon Keys</option>
+                    </select>
                 </div>
 
-                <!-- Pagination -->
-                <div class="flex items-center justify-between mt-4">
-                    {% set last_page = (total // page_size) + (1 if total % page_size else 0) %}
-                    <div>Page {{ page }} of {{ last_page }}</div>
-                    <div>
-                        {% if page > 1 %}
-                            <a href="{{ url_for('web.trademarket_listings',
-                                search=request.args.get('search',''),
-                                itemType=request.args.get('itemType',''),
-                                subType=request.args.get('subType',''),
-                                rarity=request.args.get('rarity',''),
-                                shiny=request.args.get('shiny',''),
-                                unidentified=request.args.get('unidentified',''),
-                                tier=request.args.get('tier',''),
-                                sort=request.args.get('sort',''),
-                                page=page - 1,
-                                page_size=page_size) }}"
-                               class="px-3 py-1 bg-gray-200 rounded">‹ Prev</a>
-                        {% endif %}
-                        {% if page < last_page %}
-                            <a href="{{ url_for('web.trademarket_listings',
-                                search=request.args.get('search',''),
-                                itemType=request.args.get('itemType',''),
-                                subType=request.args.get('subType',''),
-                                rarity=request.args.get('rarity',''),
-                                shiny=request.args.get('shiny',''),
-                                unidentified=request.args.get('unidentified',''),
-                                tier=request.args.get('tier',''),
-                                sort=request.args.get('sort',''),
-                                page=page + 1,
-                                page_size=page_size) }}"
-                               class="px-3 py-1 bg-gray-200 rounded">Next ›</a>
-                        {% endif %}
-                    </div>
+                <div class="listing-filter-item" id="subTypeOptions" style="display:none;">
+                    <label for="subType" class="form-label small mb-1">Sub Type</label>
+                    <select id="subType" name="subType" class="form-select form-select-sm"></select>
                 </div>
+
+                <div class="listing-filter-item">
+                    <label for="rarity" class="form-label small mb-1">Rarity</label>
+                    <select id="rarity" name="rarity" class="form-select form-select-sm">
+                        <option value="" {% if not request.args.get('rarity') %}selected{% endif %}>All</option>
+                        <option value="mythic" {% if request.args.get('rarity')=='mythic' %}selected{% endif %}>Mythic</option>
+                        <option value="fabled" {% if request.args.get('rarity')=='fabled' %}selected{% endif %}>Fabled</option>
+                        <option value="legendary" {% if request.args.get('rarity')=='legendary' %}selected{% endif %}>Legendary</option>
+                        <option value="rare" {% if request.args.get('rarity')=='rare' %}selected{% endif %}>Rare</option>
+                        <option value="unique" {% if request.args.get('rarity')=='unique' %}selected{% endif %}>Unique</option>
+                        <option value="normal" {% if request.args.get('rarity')=='normal' %}selected{% endif %}>Normal</option>
+                    </select>
+                </div>
+
+                <div class="listing-filter-item">
+                    <label for="shiny" class="form-label small mb-1">Shiny</label>
+                    <select id="shiny" name="shiny" class="form-select form-select-sm">
+                        <option value="" {% if not request.args.get('shiny') %}selected{% endif %}>Both</option>
+                        <option value="true" {% if request.args.get('shiny')=='true' %}selected{% endif %}>Yes</option>
+                        <option value="false" {% if request.args.get('shiny')=='false' %}selected{% endif %}>No</option>
+                    </select>
+                </div>
+
+                <div class="listing-filter-item">
+                    <label for="unidentified" class="form-label small mb-1">Unidentified</label>
+                    <select id="unidentified" name="unidentified" class="form-select form-select-sm">
+                        <option value="" {% if not request.args.get('unidentified') %}selected{% endif %}>Both</option>
+                        <option value="true" {% if request.args.get('unidentified')=='true' %}selected{% endif %}>Yes</option>
+                        <option value="false" {% if request.args.get('unidentified')=='false' %}selected{% endif %}>No</option>
+                    </select>
+                </div>
+
+                <div class="listing-filter-item">
+                    <label for="tier" class="form-label small mb-1">Tier</label>
+                    <select id="tier" name="tier" class="form-select form-select-sm">
+                        <option value="" {% if not request.args.get('tier') %}selected{% endif %}>All</option>
+                        {% for t in range(1, 10) %}
+                        <option value="{{ t }}" {% if request.args.get('tier')==t|string %}selected{% endif %}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="listing-filter-item">
+                    <label for="sort" class="form-label small mb-1">Sort</label>
+                    <select id="sort" name="sort" class="form-select form-select-sm">
+                        {% for opt in SORT_OPTIONS %}
+                        <option value="{{ opt.value }}" {% if sort == opt %}selected{% endif %}>{{ opt.label() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="wv-btn-primary" style="padding:.25rem 1rem;font-size:.875rem;line-height:1.5;">Apply</button>
             </div>
-        </div>
+
+            <!-- Active Filters -->
+            {% set has_filters = request.args.get('search') or request.args.get('itemType') or request.args.get('rarity') or request.args.get('shiny') or request.args.get('unidentified') or request.args.get('tier') or request.args.get('subType') %}
+            {% if has_filters %}
+            <div class="d-flex flex-wrap gap-1 mt-2 align-items-center">
+                <span class="text-muted small me-1">Active:</span>
+                {% if request.args.get('search') %}
+                <span class="wv-badge">Name: {{ request.args.get('search') }}</span>
+                {% endif %}
+                {% if request.args.get('itemType') %}
+                <span class="wv-badge">Type: {{ request.args.get('itemType') }}</span>
+                {% endif %}
+                {% if request.args.get('subType') %}
+                <span class="wv-badge">Sub: {{ request.args.get('subType') }}</span>
+                {% endif %}
+                {% if request.args.get('rarity') %}
+                <span class="wv-badge">Rarity: {{ request.args.get('rarity')|capitalize }}</span>
+                {% endif %}
+                {% if request.args.get('shiny') %}
+                <span class="wv-badge">Shiny: {{ request.args.get('shiny') }}</span>
+                {% endif %}
+                {% if request.args.get('unidentified') %}
+                <span class="wv-badge">Unid: {{ request.args.get('unidentified') }}</span>
+                {% endif %}
+                {% if request.args.get('tier') %}
+                <span class="wv-badge">Tier: {{ request.args.get('tier') }}</span>
+                {% endif %}
+                <a href="{{ url_for('web.trademarket_listings') }}" class="small text-muted ms-2">Clear all</a>
+            </div>
+            {% endif %}
+        </form>
     </div>
 
-    <script>
-        // Inject the URL-provided subType (or empty) into JS
-        let initialSubType = "{{ request.args.get('subType','') }}";
-        const SUBTYPE_OPTIONS = {{ SUBTYPE_OPTIONS|tojson }};
-        const itemTypeSelect = document.getElementById('itemType');
-        const subTypeSelect = document.getElementById('subType');
-        const subTypeDiv = document.getElementById('subTypeOptions');
+    <!-- Listings Grid -->
+    <div class="listings-grid">
+        {% for item in items %}
+            {% if item.item_type == 'PowderItem' %}
+                {% set dynamic = item.type %}
+            {% elif item.item_type == 'DungeonKeyItem' and 'Corrupted' in item.name %}
+                {% set dynamic = 'corrupted' %}
+            {% else %}
+                {% set dynamic = item.rarity or 'Normal' %}
+            {% endif %}
 
-        function rebuildSubtypes() {
-            const opts = SUBTYPE_OPTIONS[itemTypeSelect.value] || [];
+            <div class="wv-card listing-card {{ dynamic }}">
+                <!-- Header -->
+                <div class="listing-card-header">
+                    {% if item.icon_url %}
+                        <img src="{{ item.icon_url }}" alt="{{ item.name }}" class="listing-card-icon">
+                    {% else %}
+                        <span class="sprite bg-{{ item.type|lower }}" style="margin-right:8px;flex-shrink:0;"></span>
+                    {% endif %}
+                    <div class="listing-card-title">
+                        <h5 class="mb-0 {{ item.rarity or '' }}">
+                            {{ item.name }}
+                            {% if item.item_type in TIERED_TYPES %}
+                                {{ item.tier|to_roman }}
+                            {% endif %}
+                        </h5>
+                        <div class="d-flex gap-1 flex-wrap mt-1">
+                            {% if item.shiny_stat %}
+                                <span class="wv-badge listing-badge-shiny">Shiny</span>
+                            {% endif %}
+                            {% if item.unidentified %}
+                                <span class="wv-badge listing-badge-unid">Unidentified</span>
+                            {% endif %}
+                            {% if item.unidentified == false and item.overall_roll is not none %}
+                                <span class="stat-overall-pct" data-pct="{{ item.overall_roll }}">[{{ '%.1f' % item.overall_roll }}%]</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
 
-            // Show/hide container
-            if (opts.length > 0) {
-                subTypeDiv.style.display = 'block';
-            } else {
-                subTypeDiv.style.display = 'none';
+                <!-- Shiny Stat -->
+                {% if item.shiny_stat %}
+                <div class="listing-card-section">
+                    <span class="text-muted small">Shiny Stat:</span>
+                    <strong>{{ item.shiny_stat.statType.displayName }} - {{ item.shiny_stat.value }}</strong>
+                </div>
+                {% endif %}
+
+                <!-- Identification Rolls -->
+                {% if item.rolled_identifications %}
+                <div class="listing-card-section item-text">
+                    {% for roll in item.rolled_identifications %}
+                        {{ tt.id_line(roll) }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Footer -->
+                <div class="listing-card-footer mt-auto">
+                    {% if item.rolled_identifications %}
+                        <div class="small {{ item.rarity or '' }} mb-1">{{ item.rarity }} Item [{{ item.reroll_count }}]</div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <div>
+                            <span class="listing-price">{{ item.listing_price|emerald_format }}</span>
+                            {% if item.unidentified and item.price_averages.unidentified_average_mid_80_percent_price %}
+                                {% set ratio = item.listing_price / item.price_averages.unidentified_average_mid_80_percent_price %}
+                            {% elif item.price_averages.average_mid_80_percent_price %}
+                                {% set ratio = item.listing_price / item.price_averages.average_mid_80_percent_price %}
+                            {% endif %}
+                            {% if ratio %}
+                                {% set pct = (ratio * 100) | round(1) %}
+                                <span class="listing-pct-avg {% if ratio > 1 %}listing-pct-high{% elif ratio < 1 %}listing-pct-low{% endif %}">{{ pct }}%</span>
+                            {% endif %}
+                        </div>
+                        <span class="text-muted small">x{{ item.amount }}</span>
+                    </div>
+
+                    {% if item.timestamp %}
+                    <div class="listing-card-time">
+                        {{ ("%s"|format(item.timestamp))|last_updated }} ago
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="wv-empty-state" style="grid-column: 1 / -1;">
+                <i class="bi bi-inbox" style="font-size:2rem;"></i>
+                <p>No listings found.</p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% set last_page = (total // page_size) + (1 if total % page_size else 0) %}
+    {% if last_page > 1 %}
+    <div class="d-flex justify-content-center align-items-center gap-3 mt-4 mb-4 flex-wrap">
+        <div class="d-flex align-items-center gap-2">
+            <label for="page_size_select" class="small text-muted mb-0">Show:</label>
+            <select id="page_size_select" class="form-select form-select-sm" style="width:auto;" onchange="updatePageSize(this.value)">
+                <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+            </select>
+        </div>
+
+        <nav class="d-flex align-items-center gap-1">
+            {% if page > 1 %}
+                <a href="{{ url_for('web.trademarket_listings', **dict(request.args, page=page-1)) }}" class="wv-btn-pill">&lsaquo;</a>
+            {% endif %}
+
+            {% set start_page = [1, page - 2]|max %}
+            {% set end_page = [last_page, start_page + 4]|min %}
+            {% set start_page = [1, end_page - 4]|max %}
+
+            {% if start_page > 1 %}
+                <a href="{{ url_for('web.trademarket_listings', **dict(request.args, page=1)) }}" class="wv-btn-pill">1</a>
+                {% if start_page > 2 %}<span class="text-muted px-1">...</span>{% endif %}
+            {% endif %}
+
+            {% for p in range(start_page, end_page + 1) %}
+                {% if p == page %}
+                    <span class="wv-btn-pill active">{{ p }}</span>
+                {% else %}
+                    <a href="{{ url_for('web.trademarket_listings', **dict(request.args, page=p)) }}" class="wv-btn-pill">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if end_page < last_page %}
+                {% if end_page < last_page - 1 %}<span class="text-muted px-1">...</span>{% endif %}
+                <a href="{{ url_for('web.trademarket_listings', **dict(request.args, page=last_page)) }}" class="wv-btn-pill">{{ last_page }}</a>
+            {% endif %}
+
+            {% if page < last_page %}
+                <a href="{{ url_for('web.trademarket_listings', **dict(request.args, page=page+1)) }}" class="wv-btn-pill">&rsaquo;</a>
+            {% endif %}
+        </nav>
+
+        <span class="small text-muted">Page {{ page }} of {{ last_page }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // SubType dynamic rebuild
+    let initialSubType = {{ request.args.get('subType', '')|tojson }};
+    const SUBTYPE_OPTIONS = {{ SUBTYPE_OPTIONS|tojson }};
+    const itemTypeSelect = document.getElementById('itemType');
+    const subTypeSelect = document.getElementById('subType');
+    const subTypeDiv = document.getElementById('subTypeOptions');
+
+    function rebuildSubtypes() {
+        const opts = SUBTYPE_OPTIONS[itemTypeSelect.value] || [];
+        if (opts.length > 0) {
+            subTypeDiv.style.display = '';
+        } else {
+            subTypeDiv.style.display = 'none';
+        }
+        subTypeSelect.innerHTML = '';
+        if (opts.length > 0) {
+            subTypeSelect.append(new Option('All', ''));
+            opts.forEach(([val, label]) => {
+                subTypeSelect.append(new Option(label, val));
+            });
+            if (initialSubType) {
+                subTypeSelect.value = initialSubType;
             }
+        } else {
+            subTypeSelect.value = '';
+        }
+    }
 
-            // Rebuild <select>
-            subTypeSelect.innerHTML = '';
-            if (opts.length > 0) {
-                // default "All"
-                subTypeSelect.append(new Option('All', ''));
+    document.addEventListener('DOMContentLoaded', rebuildSubtypes);
+    itemTypeSelect.addEventListener('change', () => {
+        initialSubType = '';
+        rebuildSubtypes();
+    });
 
-                // add each option
-                opts.forEach(([val, label]) => {
-                    subTypeSelect.append(new Option(label, val));
-                });
+    // Page size change
+    function updatePageSize(size) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('page_size', size);
+        params.set('page', '1');
+        window.location.search = params.toString();
+    }
 
-                // restore the one from the URL, if any
-                if (initialSubType) {
-                    subTypeSelect.value = initialSubType;
-                }
-            } else {
-                // if hiding, also clear any selection
-                subTypeSelect.value = '';
-            }
+    // Color gradient for stat percentages
+    document.addEventListener('DOMContentLoaded', () => {
+        const stops = [
+            {pct: 0, color: '#FF5555'},
+            {pct: 40, color: '#FFAA00'},
+            {pct: 70, color: '#FFFF55'},
+            {pct: 90, color: '#55FF55'},
+            {pct: 100, color: '#55FFFF'}
+        ];
+
+        function hexToRgb(hex) {
+            const n = parseInt(hex.slice(1), 16);
+            return [(n >> 16) & 0xFF, (n >> 8) & 0xFF, n & 0xFF];
         }
 
-        document.addEventListener('DOMContentLoaded', rebuildSubtypes);
-        itemTypeSelect.addEventListener('change', () => {
-            // clear the URL-default so it only applies on first load
-            // (optional: remove if you always want to restore)
-            initialSubType = '';
-            rebuildSubtypes();
+        function lerp(a, b, t) { return Math.round(a + (b - a) * t); }
+
+        function lerpColor(pct) {
+            pct = Math.max(0, Math.min(100, pct));
+            let lo = stops[0], hi = stops[stops.length - 1];
+            for (const s of stops) {
+                if (pct <= s.pct) { hi = s; break; }
+                lo = s;
+            }
+            if (lo.pct === hi.pct) return hi.color;
+            const t = (pct - lo.pct) / (hi.pct - lo.pct);
+            const [r1, g1, b1] = hexToRgb(lo.color);
+            const [r2, g2, b2] = hexToRgb(hi.color);
+            const r = lerp(r1, r2, t), g = lerp(g1, g2, t), b = lerp(b1, b2, t);
+            return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase()}`;
+        }
+
+        document.querySelectorAll('.stat-pct[data-pct]').forEach(el => {
+            const pct = parseFloat(el.dataset.pct);
+            if (!isNaN(pct)) el.style.color = lerpColor(pct);
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1) define your gradient stops
-            const stops = [
-                {pct: 0, color: '#FF5555'},  // red
-                {pct: 40, color: '#FFAA00'},  // gold
-                {pct: 70, color: '#FFFF55'},  // yellow
-                {pct: 90, color: '#55FF55'},  // green
-                {pct: 100, color: '#55FFFF'}   // aqua
-            ];
-
-            // 2) helper to parse a "#RRGGBB" hex into [r,g,b]
-            function hexToRgb(hex) {
-                const n = parseInt(hex.slice(1), 16);
-                return [(n >> 16) & 0xFF, (n >> 8) & 0xFF, n & 0xFF];
-            }
-
-            // 3) lerp between two numbers
-            function lerp(a, b, t) {
-                return Math.round(a + (b - a) * t);
-            }
-
-            // 4) given a pct (0–100), return the interpolated hex
-            function lerpColor(pct) {
-                // clamp
-                pct = Math.max(0, Math.min(100, pct));
-                // find floor & ceil stops
-                let lo = stops[0], hi = stops[stops.length - 1];
-                for (const s of stops) {
-                    if (pct <= s.pct) {
-                        hi = s;
-                        break;
-                    }
-                    lo = s;
-                }
-                if (lo.pct === hi.pct) return hi.color;
-
-                // fraction between them
-                const t = (pct - lo.pct) / (hi.pct - lo.pct);
-                const [r1, g1, b1] = hexToRgb(lo.color);
-                const [r2, g2, b2] = hexToRgb(hi.color);
-
-                const r = lerp(r1, r2, t),
-                    g = lerp(g1, g2, t),
-                    b = lerp(b1, b2, t);
-
-                // back to hex
-                const h = ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
-                return `#${h.toUpperCase()}`;
-            }
-
-            // 5) apply to every .stat-pct
-            document.querySelectorAll('.stat-pct[data-pct]').forEach(el => {
-                const raw = el.dataset.pct;
-                const pct = parseFloat(raw);
-                if (!isNaN(pct)) {
-                    el.style.color = lerpColor(pct);
-                }
-            });
-
-            document.querySelectorAll('.stat-overall-pct[data-pct]').forEach(el => {
-                const pct = parseFloat(el.dataset.pct);
-                if (!isNaN(pct)) {
-                    el.style.color = lerpColor(pct);
-                }
-            });
+        document.querySelectorAll('.stat-overall-pct[data-pct]').forEach(el => {
+            const pct = parseFloat(el.dataset.pct);
+            if (!isNaN(pct)) el.style.color = lerpColor(pct);
         });
-    </script>
+    });
+</script>
 {% endblock %}

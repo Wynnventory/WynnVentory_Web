@@ -316,3 +316,139 @@
     font-size: 0.9rem;
     display: none;
 }
+
+/* ── Listings Page ── */
+
+.listings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--wv-space-md);
+}
+
+.listing-card {
+    display: flex;
+    flex-direction: column;
+    border-left: 4px solid var(--wv-border);
+    padding: var(--wv-space-md);
+    gap: var(--wv-space-sm);
+}
+
+/* Rarity left-border colors */
+.listing-card.mythic,
+.listing-card.Mythic   { border-left-color: rgb(187, 0, 187); }
+.listing-card.fabled,
+.listing-card.Fabled   { border-left-color: #ff5555; }
+.listing-card.legendary,
+.listing-card.Legendary { border-left-color: #55ffff; }
+.listing-card.rare,
+.listing-card.Rare     { border-left-color: #ff55ff; }
+.listing-card.unique,
+.listing-card.Unique   { border-left-color: #ffff55; }
+.listing-card.set,
+.listing-card.Set      { border-left-color: #55ff55; }
+.listing-card.corrupted { border-left-color: #AA0000; }
+
+/* Powder-type left-border colors */
+.listing-card.AirPowder     { border-left-color: #ffffff; }
+.listing-card.ThunderPowder  { border-left-color: rgb(252, 252, 84); }
+.listing-card.FirePowder     { border-left-color: rgb(254, 84, 84); }
+.listing-card.WaterPowder    { border-left-color: rgb(89, 255, 255); }
+.listing-card.EarthPowder    { border-left-color: rgb(0, 175, 0); }
+
+.listing-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--wv-space-sm);
+}
+
+.listing-card-icon {
+    width: 38px;
+    height: 38px !important;
+    object-fit: contain;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
+
+.listing-card-title {
+    min-width: 0;
+}
+
+.listing-card-title h5 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.listing-card-section {
+    border-top: 1px solid var(--wv-border);
+    padding-top: var(--wv-space-sm);
+    font-size: 0.85rem;
+}
+
+.listing-card-footer {
+    border-top: 1px solid var(--wv-border);
+    padding-top: var(--wv-space-sm);
+}
+
+.listing-price {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--wv-text-primary);
+}
+
+.listing-pct-avg {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: var(--wv-space-xs);
+}
+
+.listing-pct-high { color: var(--wv-negative); }
+.listing-pct-low  { color: var(--wv-positive); }
+
+.listing-card-time {
+    font-size: 0.75rem;
+    color: var(--wv-text-muted);
+    margin-top: var(--wv-space-xs);
+}
+
+.listing-filter-item {
+    min-width: 120px;
+    flex: 0 1 auto;
+}
+
+.listing-badge-shiny {
+    background: rgba(255, 215, 0, 0.2);
+    color: #ffd700;
+}
+
+.listing-badge-unid {
+    background: var(--wv-surface-3);
+    color: var(--wv-text-muted);
+}
+
+/* ── Identification Stat Rows ── */
+
+.stat-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.stat-name {
+    color: var(--wv-text-secondary);
+}
+
+.stat-pct {
+    margin-left: auto;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.stat-overall-pct {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
