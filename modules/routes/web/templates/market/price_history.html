@@ -175,41 +175,73 @@
             return card;
         }
 
+        function avgField(data, field) {
+            var sum = 0, count = 0;
+            for (var i = 0; i < data.length; i++) {
+                var v = data[i][field];
+                if (v != null && v > 0) { sum += v; count++; }
+            }
+            return count > 0 ? sum / count : null;
+        }
+
+        function sumField(data, field) {
+            var sum = 0;
+            for (var i = 0; i < data.length; i++) {
+                var v = data[i][field];
+                if (v != null) sum += v;
+            }
+            return sum;
+        }
+
         function renderStats(data) {
-            const latest = data[data.length - 1];
-            const idEl = document.getElementById('statsIdentified');
-            const unidEl = document.getElementById('statsUnidentified');
-            const unidHeader = document.getElementById('statsUnidentifiedHeader');
+            var idEl = document.getElementById('statsIdentified');
+            var unidEl = document.getElementById('statsUnidentified');
+            var unidHeader = document.getElementById('statsUnidentifiedHeader');
+
+            // Aggregate across the full period
+            var agg = {
+                average_price: avgField(data, 'average_price'),
+                average_mid_80: avgField(data, 'average_mid_80_percent_price'),
+                p50: avgField(data, 'p50_price'),
+                p50_ema: avgField(data, 'average_p50_ema_price'),
+                lowest: avgField(data, 'lowest_price'),
+                highest: avgField(data, 'highest_price'),
+                total_count: sumField(data, 'total_count'),
+                unid_avg: avgField(data, 'unidentified_average_price'),
+                unid_mid80: avgField(data, 'unidentified_average_mid_80_percent_price'),
+                unid_p50: avgField(data, 'unidentified_p50_price'),
+                unid_p50_ema: avgField(data, 'unidentified_average_p50_ema_price'),
+                unid_lowest: avgField(data, 'unidentified_lowest_price'),
+                unid_highest: avgField(data, 'unidentified_highest_price'),
+                unid_count: sumField(data, 'unidentified_count')
+            };
 
             // Identified stats
             idEl.innerHTML = '';
-            idEl.appendChild(buildStatCard('Average Price', latest.average_price));
-            idEl.appendChild(buildStatCard('80% Average', latest.average_mid_80_percent_price));
-            idEl.appendChild(buildStatCard('Median (P50)', latest.p50_price));
-            idEl.appendChild(buildStatCard('P50 EMA (7d)', latest.average_p50_ema_price));
-            idEl.appendChild(buildStatCard('Lowest Price', latest.lowest_price));
-            idEl.appendChild(buildStatCard('Highest Price', latest.highest_price));
-            idEl.appendChild(buildCountCard('Listings', latest.total_count));
+            idEl.appendChild(buildStatCard('Average Price', agg.average_price));
+            idEl.appendChild(buildStatCard('80% Average', agg.average_mid_80));
+            idEl.appendChild(buildStatCard('Median (P50)', agg.p50));
+            idEl.appendChild(buildStatCard('P50 EMA (7d)', agg.p50_ema));
+            idEl.appendChild(buildStatCard('Lowest Price', agg.lowest));
+            idEl.appendChild(buildStatCard('Highest Price', agg.highest));
+            idEl.appendChild(buildCountCard('Listings', agg.total_count - agg.unid_count));
             idEl.style.display = '';
 
             // Unidentified stats (show only if any value > 0)
-            const hasUnid = (latest.unidentified_average_price > 0) ||
-                            (latest.unidentified_average_mid_80_percent_price > 0) ||
-                            (latest.unidentified_p50_price > 0) ||
-                            (latest.unidentified_average_p50_ema_price > 0) ||
-                            (latest.unidentified_lowest_price > 0) ||
-                            (latest.unidentified_highest_price > 0) ||
-                            (latest.unidentified_count > 0);
+            var hasUnid = (agg.unid_avg > 0) || (agg.unid_mid80 > 0) ||
+                          (agg.unid_p50 > 0) || (agg.unid_p50_ema > 0) ||
+                          (agg.unid_lowest > 0) || (agg.unid_highest > 0) ||
+                          (agg.unid_count > 0);
 
             if (hasUnid) {
                 unidEl.innerHTML = '';
-                unidEl.appendChild(buildStatCard('Unid Average', latest.unidentified_average_price));
-                unidEl.appendChild(buildStatCard('Unid 80% Avg', latest.unidentified_average_mid_80_percent_price));
-                unidEl.appendChild(buildStatCard('Unid Median', latest.unidentified_p50_price));
-                unidEl.appendChild(buildStatCard('Unid P50 EMA', latest.unidentified_average_p50_ema_price));
-                unidEl.appendChild(buildStatCard('Unid Lowest', latest.unidentified_lowest_price));
-                unidEl.appendChild(buildStatCard('Unid Highest', latest.unidentified_highest_price));
-                unidEl.appendChild(buildCountCard('Unid Listings', latest.unidentified_count));
+                unidEl.appendChild(buildStatCard('Unid Average', agg.unid_avg));
+                unidEl.appendChild(buildStatCard('Unid 80% Avg', agg.unid_mid80));
+                unidEl.appendChild(buildStatCard('Unid Median', agg.unid_p50));
+                unidEl.appendChild(buildStatCard('Unid P50 EMA', agg.unid_p50_ema));
+                unidEl.appendChild(buildStatCard('Unid Lowest', agg.unid_lowest));
+                unidEl.appendChild(buildStatCard('Unid Highest', agg.unid_highest));
+                unidEl.appendChild(buildCountCard('Unid Listings', agg.unid_count));
                 unidEl.style.display = '';
                 unidHeader.style.display = '';
             } else {
@@ -237,16 +269,16 @@
 
             // Build price series
             const priceSeries = [
-                makeSeries('P50 (Median)',  data.map((d,i) => [timestamps[i], d.p50_price]),           true),
-                makeSeries('P50 EMA (7d)',  data.map((d,i) => [timestamps[i], d.average_p50_ema_price]), true),
+                makeSeries('P50 (Median)',  data.map((d,i) => [timestamps[i], d.p50_price]),           false),
+                makeSeries('P50 EMA (7d)',  data.map((d,i) => [timestamps[i], d.average_p50_ema_price]), false),
                 makeSeries('Average',       data.map((d,i) => [timestamps[i], d.average_price]),        false),
-                makeSeries('80% Average',   data.map((d,i) => [timestamps[i], d.average_mid_80_percent_price]), false),
+                makeSeries('80% Average',   data.map((d,i) => [timestamps[i], d.average_mid_80_percent_price]), true),
                 makeSeries('Lowest',        data.map((d,i) => [timestamps[i], d.lowest_price]),         true),
-                makeSeries('Highest',       data.map((d,i) => [timestamps[i], d.highest_price]),        true),
+                makeSeries('Highest',       data.map((d,i) => [timestamps[i], d.highest_price]),        false),
                 makeSeries('Unid P50',      data.map((d,i) => [timestamps[i], d.unidentified_p50_price]),             false),
                 makeSeries('Unid P50 EMA',  data.map((d,i) => [timestamps[i], d.unidentified_average_p50_ema_price]), false),
                 makeSeries('Unid Average',  data.map((d,i) => [timestamps[i], d.unidentified_average_price]),         false),
-                makeSeries('Unid 80% Avg',  data.map((d,i) => [timestamps[i], d.unidentified_average_mid_80_percent_price]), false),
+                makeSeries('Unid 80% Avg',  data.map((d,i) => [timestamps[i], d.unidentified_average_mid_80_percent_price]), true),
                 makeSeries('Unid Lowest',   data.map((d,i) => [timestamps[i], d.unidentified_lowest_price]),          false),
                 makeSeries('Unid Highest',  data.map((d,i) => [timestamps[i], d.unidentified_highest_price]),         false),
             ];
@@ -269,11 +301,11 @@
                     foreColor: theme.foreColor,
                     toolbar: { show: true, tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true } },
                     zoom: { enabled: true },
-                    animations: { enabled: true, easing: 'easeinout', speed: 400 }
+                    animations: { enabled: false }
                 },
                 series: priceSeries.map(s => ({ name: s.name, data: s.data })),
                 colors: priceColors,
-                stroke: { width: 2, curve: 'smooth' },
+                stroke: { width: 2, curve: 'straight' },
                 xaxis: {
                     type: 'datetime',
                     min: xMin,
@@ -314,6 +346,8 @@
 
             priceChart.render().then(function() {
                 // Hide series that should not be visible by default
+                // Guard: chart may have been destroyed if user switched timeframe quickly
+                if (!priceChart) return;
                 hiddenSeries.forEach(function(idx) {
                     priceChart.toggleSeries(priceSeries[idx].name);
                 });
@@ -333,12 +367,12 @@
                     foreColor: theme.foreColor,
                     toolbar: { show: false },
                     zoom: { enabled: false },
-                    animations: { enabled: true, easing: 'easeinout', speed: 400 }
+                    animations: { enabled: false }
                 },
                 series: volumeSeries,
                 colors: ['rgba(75, 192, 192, 0.8)', 'rgba(54, 162, 235, 0.8)'],
                 fill: { type: 'solid', opacity: [0.3, 0.3] },
-                stroke: { width: 2, curve: 'smooth' },
+                stroke: { width: 2, curve: 'straight' },
                 xaxis: {
                     type: 'datetime',
                     min: xMin,
