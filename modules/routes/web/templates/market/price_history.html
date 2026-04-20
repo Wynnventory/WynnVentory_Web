@@ -83,6 +83,7 @@
         let volumeChart = null;
         let currentTimeframe = 7;
         let lastFetchedData = null;
+        let lastDateRange = null;
         const DEFAULT_LAG_DAYS = 1;
         const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -222,9 +223,13 @@
             return { name: name, data: data, visible: visible !== false };
         }
 
-        function renderCharts(data) {
+        function renderCharts(data, startDate, endDate) {
             const theme = getChartTheme();
             const timestamps = data.map(d => new Date(d.timestamp).getTime());
+
+            // Compute X-axis range from the requested date range
+            var xMin = startDate ? new Date(startDate).getTime() : undefined;
+            var xMax = endDate ? new Date(endDate + 'T23:59:59').getTime() : undefined;
 
             // Destroy previous charts
             if (priceChart) { priceChart.destroy(); priceChart = null; }
@@ -271,7 +276,9 @@
                 stroke: { width: 2, curve: 'smooth' },
                 xaxis: {
                     type: 'datetime',
-                    labels: { datetimeUTC: false },
+                    min: xMin,
+                    max: xMax,
+                    labels: { datetimeUTC: false, format: 'dd MMM' },
                     axisBorder: { show: false },
                     axisTicks: { show: false }
                 },
@@ -334,7 +341,9 @@
                 stroke: { width: 2, curve: 'smooth' },
                 xaxis: {
                     type: 'datetime',
-                    labels: { datetimeUTC: false },
+                    min: xMin,
+                    max: xMax,
+                    labels: { datetimeUTC: false, format: 'dd MMM' },
                     axisBorder: { show: false },
                     axisTicks: { show: false }
                 },
@@ -444,7 +453,6 @@
                 const shinyParam = params.get('shiny');
                 if (shinyParam) q.append('shiny', shinyParam);
                 const url = '/api/trademarket/history/' + encodeURIComponent(base) + '?' + q;
-                console.log('[PriceHistory] fetch', url, 'timeframe=' + currentTimeframe);
                 const res = await fetch(url);
 
                 if (!res.ok) {
@@ -459,9 +467,10 @@
                 }
 
                 lastFetchedData = data;
+                lastDateRange = { start: s, end: e };
                 showData();
                 renderStats(data);
-                renderCharts(data);
+                renderCharts(data, s, e);
             } catch (err) {
                 console.error(err);
                 showError('Failed to load price data');
@@ -505,7 +514,7 @@
         var observer = new MutationObserver(function() {
             if (lastFetchedData && lastFetchedData.length > 0) {
                 showData();
-                renderCharts(lastFetchedData);
+                renderCharts(lastFetchedData, lastDateRange ? lastDateRange.start : null, lastDateRange ? lastDateRange.end : null);
             }
         });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
