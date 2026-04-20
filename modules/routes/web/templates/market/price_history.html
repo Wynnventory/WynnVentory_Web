@@ -425,19 +425,17 @@
                     tier = match[2].trim();
                 }
 
-                // Use custom date inputs if populated, otherwise compute from timeframe
-                const startInput = document.getElementById('startDate').value.trim();
-                const endInput = document.getElementById('endDate').value.trim();
-                let s, e;
-
-                if (startInput || endInput) {
-                    s = startInput;
-                    e = endInput;
-                } else {
-                    const now = new Date();
-                    const lag = new Date(now.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
+                // Read dates from inputs or URL params; fall back to timeframe
+                var startVal = document.getElementById('startDate').value || params.get('start_date') || '';
+                var endVal = document.getElementById('endDate').value || params.get('end_date') || '';
+                document.getElementById('startDate').value = startVal;
+                document.getElementById('endDate').value = endVal;
+                var s = startVal, e = endVal;
+                if (!s && !e) {
+                    var now = new Date();
+                    var lag = new Date(now.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
                     e = lag.toISOString().split('T')[0];
-                    const begin = new Date(lag.getTime() - currentTimeframe * MS_PER_DAY);
+                    var begin = new Date(lag.getTime() - currentTimeframe * MS_PER_DAY);
                     s = begin.toISOString().split('T')[0];
                 }
 
@@ -446,6 +444,7 @@
                 const shinyParam = params.get('shiny');
                 if (shinyParam) q.append('shiny', shinyParam);
                 const url = '/api/trademarket/history/' + encodeURIComponent(base) + '?' + q;
+                console.log('[PriceHistory] fetch', url, 'timeframe=' + currentTimeframe);
                 const res = await fetch(url);
 
                 if (!res.ok) {
@@ -470,47 +469,28 @@
         }
 
         /* ── Search & navigation ── */
-        function fetchForItem(item) {
-            const name = capitalizeWords(item);
+        function handleSearch(item) {
+            if (!item) { showEmpty(); return; }
+            var name = capitalizeWords(item);
             document.getElementById('itemSearch').value = name;
             document.getElementById('pageTitle').textContent = 'Price History \u2014 ' + name;
-            history.replaceState(null, '', '/history/' + encodeURIComponent(name));
+            var baseUrl = '/history/' + encodeURIComponent(name);
+            history.replaceState(null, '', baseUrl + window.location.search);
             fetchPriceData(name);
         }
 
-        function handleSearch(item) {
-            if (!item) { showEmpty(); return; }
-            clearDateInputs();
+        function updateTimeframe(days, btn) {
+            history.replaceState(null, '', location.pathname);
             document.getElementById('dateRangeContainer').style.display = 'none';
-            currentTimeframe = getCurrentActivePillDays();
-            fetchForItem(item);
-        }
-
-        function getCurrentActivePillDays() {
-            var active = document.querySelector('.wv-pill-group .wv-btn-pill.active');
-            if (!active || active.id === 'btnRange') return currentTimeframe;
-            var map = { btn7: 7, btn14: 14, btn30: 30, btn90: 90 };
-            return map[active.id] || 7;
-        }
-
-        function clearDateInputs() {
-            $('#startDate').datepicker('clearDates');
-            $('#endDate').datepicker('clearDates');
             document.getElementById('startDate').value = '';
             document.getElementById('endDate').value = '';
-        }
-
-        function updateTimeframe(days, btn) {
             currentTimeframe = days;
-            clearDateInputs();
-            document.getElementById('dateRangeContainer').style.display = 'none';
-            history.replaceState(null, '', location.pathname);
             document.querySelectorAll('.wv-pill-group .wv-btn-pill').forEach(function(b) {
                 b.classList.remove('active');
             });
             btn.classList.add('active');
-            const nm = document.getElementById('itemSearch').value.trim();
-            if (nm) fetchForItem(nm);
+            var nm = document.getElementById('itemSearch').value.trim();
+            if (nm) handleSearch(nm);
         }
 
         function activateDateRange(btn) {
@@ -522,7 +502,7 @@
         }
 
         /* ── Theme change listener ── */
-        const observer = new MutationObserver(function() {
+        var observer = new MutationObserver(function() {
             if (lastFetchedData && lastFetchedData.length > 0) {
                 showData();
                 renderCharts(lastFetchedData);
@@ -545,11 +525,11 @@
                 handleSearch(document.getElementById('itemSearch').value.trim());
             };
             document.getElementById('applyFilter').onclick = function() {
-                var nm = document.getElementById('itemSearch').value.trim();
-                if (nm) fetchForItem(nm);
+                handleSearch(document.getElementById('itemSearch').value.trim());
             };
             document.getElementById('resetFilter').onclick = function() {
-                clearDateInputs();
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
                 document.getElementById('dateRangeContainer').style.display = 'none';
                 currentTimeframe = 7;
                 history.replaceState(null, '', location.pathname);
@@ -558,25 +538,25 @@
                 });
                 document.getElementById('btn7').classList.add('active');
                 var nm = document.getElementById('itemSearch').value.trim();
-                if (nm) fetchForItem(nm);
+                if (nm) handleSearch(nm);
             };
 
             // Restore state from URL
-            const initItem = {{ item_name | tojson }};
-            const urlParams = new URLSearchParams(window.location.search);
-            const sParam = urlParams.get('start_date');
-            const eParam = urlParams.get('end_date');
-            const presets = [7, 14, 30, 90];
+            var initItem = {{ item_name | tojson }};
+            var urlParams = new URLSearchParams(window.location.search);
+            var sParam = urlParams.get('start_date');
+            var eParam = urlParams.get('end_date');
+            var presets = [7, 14, 30, 90];
 
             if (sParam || eParam) {
                 if (sParam && eParam) {
-                    const sDate = new Date(sParam);
-                    const eDate = new Date(eParam);
-                    const diffDays = (eDate - sDate) / MS_PER_DAY;
-                    const today = new Date();
-                    const lagged = new Date(today.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
-                    const lagISO = lagged.toISOString().split('T')[0];
-                    let matched = false;
+                    var sDate = new Date(sParam);
+                    var eDate = new Date(eParam);
+                    var diffDays = (eDate - sDate) / MS_PER_DAY;
+                    var today = new Date();
+                    var lagged = new Date(today.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
+                    var lagISO = lagged.toISOString().split('T')[0];
+                    var matched = false;
                     presets.forEach(function(d) {
                         if (!matched &&
                             Math.abs(diffDays - d) < 0.1 &&
@@ -602,7 +582,8 @@
             }
 
             if (initItem && initItem !== 'None') {
-                fetchForItem(initItem);
+                document.getElementById('itemSearch').value = capitalizeWords(initItem);
+                handleSearch(initItem);
             }
         };
     </script>
