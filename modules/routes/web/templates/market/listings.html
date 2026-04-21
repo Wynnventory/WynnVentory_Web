@@ -8,95 +8,117 @@
     <h1 class="wv-section-header mt-3 mb-3">Trademarket Listings</h1>
 
     <!-- Top Controls -->
+    {% set has_adv_filters = request.args.get('itemType') or request.args.get('rarity') or request.args.get('shiny') or request.args.get('unidentified') or request.args.get('tier') or request.args.get('subType') %}
     <div class="wv-card mb-4 p-3">
         <form method="get" action="{{ url_for('web.trademarket_listings') }}" id="filterForm">
 
-            <!-- Search Row -->
-            <div class="wv-search-wrapper mb-3">
-                <i class="bi bi-search wv-search-icon"></i>
-                <input type="text"
-                       id="search"
-                       name="search"
-                       value="{{ request.args.get('search', '') }}"
-                       class="wv-input"
-                       placeholder="Search item name...">
+            <!-- Search Row (always visible) -->
+            <div class="d-flex gap-2 align-items-center">
+                <div class="wv-search-wrapper flex-grow-1 mb-0">
+                    <i class="bi bi-search wv-search-icon"></i>
+                    <input type="text"
+                           id="search"
+                           name="search"
+                           value="{{ request.args.get('search', '') }}"
+                           class="wv-input"
+                           placeholder="Search item name...">
+                </div>
+                <button type="submit" class="wv-btn-primary d-flex align-items-center gap-1"
+                        style="padding:.25rem .75rem;font-size:.875rem;line-height:1.5;white-space:nowrap;">
+                    <i class="bi bi-search"></i>
+                    <span>Search</span>
+                </button>
             </div>
 
-            <!-- Filter Row -->
-            <div class="d-flex flex-wrap gap-2 align-items-end">
-                <div class="listing-filter-item">
-                    <label for="itemType" class="form-label small mb-1">Type</label>
-                    <select id="itemType" name="itemType" class="form-select form-select-sm">
-                        <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
-                        <option value="GearItem" {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear</option>
-                        <option value="MaterialItem" {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Materials</option>
-                        <option value="IngredientItem" {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>Ingredients</option>
-                        <option value="PowderItem" {% if request.args.get('itemType')=='PowderItem' %}selected{% endif %}>Powders</option>
-                        <option value="RuneItem" {% if request.args.get('itemType')=='RuneItem' %}selected{% endif %}>Runes</option>
-                        <option value="DungeonKeyItem" {% if request.args.get('itemType')=='DungeonKeyItem' %}selected{% endif %}>Dungeon Keys</option>
-                    </select>
-                </div>
+            <!-- Expand/Collapse toggle -->
+            <div class="mt-2">
+                <button type="button"
+                        class="btn btn-link btn-sm text-muted text-decoration-none p-0 d-flex align-items-center gap-1"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#advancedFilters"
+                        aria-expanded="{{ 'true' if has_adv_filters else 'false' }}"
+                        aria-controls="advancedFilters">
+                    <i class="bi bi-funnel"></i>
+                    <span>Advanced filters</span>
+                    <i class="bi bi-chevron-down filter-toggle-icon" style="font-size:.7rem;transition:transform .2s;"></i>
+                </button>
+            </div>
 
-                <div class="listing-filter-item" id="subTypeOptions" style="display:none;">
-                    <label for="subType" class="form-label small mb-1">Sub Type</label>
-                    <select id="subType" name="subType" class="form-select form-select-sm"></select>
-                </div>
+            <!-- Collapsible Filter Row -->
+            <div class="collapse {{ 'show' if has_adv_filters else '' }}" id="advancedFilters">
+                <div class="d-flex flex-wrap gap-2 align-items-end mt-2">
+                    <div class="listing-filter-item">
+                        <label for="itemType" class="form-label small mb-1">Type</label>
+                        <select id="itemType" name="itemType" class="form-select form-select-sm">
+                            <option value="" {% if not request.args.get('itemType') %}selected{% endif %}>All</option>
+                            <option value="GearItem" {% if request.args.get('itemType')=='GearItem' %}selected{% endif %}>Gear</option>
+                            <option value="MaterialItem" {% if request.args.get('itemType')=='MaterialItem' %}selected{% endif %}>Materials</option>
+                            <option value="IngredientItem" {% if request.args.get('itemType')=='IngredientItem' %}selected{% endif %}>Ingredients</option>
+                            <option value="PowderItem" {% if request.args.get('itemType')=='PowderItem' %}selected{% endif %}>Powders</option>
+                            <option value="RuneItem" {% if request.args.get('itemType')=='RuneItem' %}selected{% endif %}>Runes</option>
+                            <option value="DungeonKeyItem" {% if request.args.get('itemType')=='DungeonKeyItem' %}selected{% endif %}>Dungeon Keys</option>
+                        </select>
+                    </div>
 
-                <div class="listing-filter-item">
-                    <label for="rarity" class="form-label small mb-1">Rarity</label>
-                    <select id="rarity" name="rarity" class="form-select form-select-sm">
-                        <option value="" {% if not request.args.get('rarity') %}selected{% endif %}>All</option>
-                        <option value="mythic" {% if request.args.get('rarity')=='mythic' %}selected{% endif %}>Mythic</option>
-                        <option value="fabled" {% if request.args.get('rarity')=='fabled' %}selected{% endif %}>Fabled</option>
-                        <option value="legendary" {% if request.args.get('rarity')=='legendary' %}selected{% endif %}>Legendary</option>
-                        <option value="rare" {% if request.args.get('rarity')=='rare' %}selected{% endif %}>Rare</option>
-                        <option value="unique" {% if request.args.get('rarity')=='unique' %}selected{% endif %}>Unique</option>
-                        <option value="normal" {% if request.args.get('rarity')=='normal' %}selected{% endif %}>Normal</option>
-                    </select>
-                </div>
+                    <div class="listing-filter-item" id="subTypeOptions" style="display:none;">
+                        <label for="subType" class="form-label small mb-1">Sub Type</label>
+                        <select id="subType" name="subType" class="form-select form-select-sm"></select>
+                    </div>
 
-                <div class="listing-filter-item">
-                    <label for="shiny" class="form-label small mb-1">Shiny</label>
-                    <select id="shiny" name="shiny" class="form-select form-select-sm">
-                        <option value="" {% if not request.args.get('shiny') %}selected{% endif %}>Both</option>
-                        <option value="true" {% if request.args.get('shiny')=='true' %}selected{% endif %}>Yes</option>
-                        <option value="false" {% if request.args.get('shiny')=='false' %}selected{% endif %}>No</option>
-                    </select>
-                </div>
+                    <div class="listing-filter-item">
+                        <label for="rarity" class="form-label small mb-1">Rarity</label>
+                        <select id="rarity" name="rarity" class="form-select form-select-sm">
+                            <option value="" {% if not request.args.get('rarity') %}selected{% endif %}>All</option>
+                            <option value="mythic" {% if request.args.get('rarity')=='mythic' %}selected{% endif %}>Mythic</option>
+                            <option value="fabled" {% if request.args.get('rarity')=='fabled' %}selected{% endif %}>Fabled</option>
+                            <option value="legendary" {% if request.args.get('rarity')=='legendary' %}selected{% endif %}>Legendary</option>
+                            <option value="rare" {% if request.args.get('rarity')=='rare' %}selected{% endif %}>Rare</option>
+                            <option value="unique" {% if request.args.get('rarity')=='unique' %}selected{% endif %}>Unique</option>
+                            <option value="normal" {% if request.args.get('rarity')=='normal' %}selected{% endif %}>Normal</option>
+                        </select>
+                    </div>
 
-                <div class="listing-filter-item">
-                    <label for="unidentified" class="form-label small mb-1">Unidentified</label>
-                    <select id="unidentified" name="unidentified" class="form-select form-select-sm">
-                        <option value="" {% if not request.args.get('unidentified') %}selected{% endif %}>Both</option>
-                        <option value="true" {% if request.args.get('unidentified')=='true' %}selected{% endif %}>Yes</option>
-                        <option value="false" {% if request.args.get('unidentified')=='false' %}selected{% endif %}>No</option>
-                    </select>
-                </div>
+                    <div class="listing-filter-item">
+                        <label for="shiny" class="form-label small mb-1">Shiny</label>
+                        <select id="shiny" name="shiny" class="form-select form-select-sm">
+                            <option value="" {% if not request.args.get('shiny') %}selected{% endif %}>Both</option>
+                            <option value="true" {% if request.args.get('shiny')=='true' %}selected{% endif %}>Yes</option>
+                            <option value="false" {% if request.args.get('shiny')=='false' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
 
-                <div class="listing-filter-item">
-                    <label for="tier" class="form-label small mb-1">Tier</label>
-                    <select id="tier" name="tier" class="form-select form-select-sm">
-                        <option value="" {% if not request.args.get('tier') %}selected{% endif %}>All</option>
-                        {% for t in range(1, 10) %}
-                        <option value="{{ t }}" {% if request.args.get('tier')==t|string %}selected{% endif %}>{{ t }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    <div class="listing-filter-item">
+                        <label for="unidentified" class="form-label small mb-1">Unidentified</label>
+                        <select id="unidentified" name="unidentified" class="form-select form-select-sm">
+                            <option value="" {% if not request.args.get('unidentified') %}selected{% endif %}>Both</option>
+                            <option value="true" {% if request.args.get('unidentified')=='true' %}selected{% endif %}>Yes</option>
+                            <option value="false" {% if request.args.get('unidentified')=='false' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
 
-                <div class="listing-filter-item">
-                    <label for="sort" class="form-label small mb-1">Sort</label>
-                    <select id="sort" name="sort" class="form-select form-select-sm">
-                        {% for opt in SORT_OPTIONS %}
-                        <option value="{{ opt.value }}" {% if sort == opt %}selected{% endif %}>{{ opt.label() }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    <div class="listing-filter-item">
+                        <label for="tier" class="form-label small mb-1">Tier</label>
+                        <select id="tier" name="tier" class="form-select form-select-sm">
+                            <option value="" {% if not request.args.get('tier') %}selected{% endif %}>All</option>
+                            {% for t in range(1, 10) %}
+                            <option value="{{ t }}" {% if request.args.get('tier')==t|string %}selected{% endif %}>{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                <button type="submit" class="wv-btn-primary" style="padding:.25rem 1rem;font-size:.875rem;line-height:1.5;">Apply</button>
+                    <div class="listing-filter-item">
+                        <label for="sort" class="form-label small mb-1">Sort</label>
+                        <select id="sort" name="sort" class="form-select form-select-sm">
+                            {% for opt in SORT_OPTIONS %}
+                            <option value="{{ opt.value }}" {% if sort == opt %}selected{% endif %}>{{ opt.label() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <!-- Active Filters -->
-            {% set has_filters = request.args.get('search') or request.args.get('itemType') or request.args.get('rarity') or request.args.get('shiny') or request.args.get('unidentified') or request.args.get('tier') or request.args.get('subType') %}
+            {% set has_filters = request.args.get('search') or has_adv_filters %}
             {% if has_filters %}
             <div class="d-flex flex-wrap gap-1 mt-2 align-items-center">
                 <span class="text-muted small me-1">Active:</span>
@@ -271,6 +293,9 @@
     {% endif %}
 </div>
 
+<style>
+    [aria-expanded="true"] .filter-toggle-icon { transform: rotate(180deg); }
+</style>
 <script>
     // SubType dynamic rebuild
     let initialSubType = {{ request.args.get('subType', '')|tojson }};
