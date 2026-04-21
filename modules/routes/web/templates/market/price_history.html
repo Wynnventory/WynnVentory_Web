@@ -267,20 +267,29 @@
             if (priceChart) { priceChart.destroy(); priceChart = null; }
             if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
 
+            // Helper: map field to [timestamp, value] with null for missing data
+            // (undefined → null so ApexCharts gaps the line instead of drawing 0)
+            function ts(field) {
+                return data.map(function(d, i) {
+                    var v = d[field];
+                    return [timestamps[i], v != null ? v : null];
+                });
+            }
+
             // Build price series
             const priceSeries = [
-                makeSeries('P50 (Median)',  data.map((d,i) => [timestamps[i], d.p50_price]),           false),
-                makeSeries('P50 EMA (7d)',  data.map((d,i) => [timestamps[i], d.average_p50_ema_price]), false),
-                makeSeries('Average',       data.map((d,i) => [timestamps[i], d.average_price]),        false),
-                makeSeries('80% Average',   data.map((d,i) => [timestamps[i], d.average_mid_80_percent_price]), true),
-                makeSeries('Lowest',        data.map((d,i) => [timestamps[i], d.lowest_price]),         true),
-                makeSeries('Highest',       data.map((d,i) => [timestamps[i], d.highest_price]),        false),
-                makeSeries('Unid P50',      data.map((d,i) => [timestamps[i], d.unidentified_p50_price]),             false),
-                makeSeries('Unid P50 EMA',  data.map((d,i) => [timestamps[i], d.unidentified_average_p50_ema_price]), false),
-                makeSeries('Unid Average',  data.map((d,i) => [timestamps[i], d.unidentified_average_price]),         false),
-                makeSeries('Unid 80% Avg',  data.map((d,i) => [timestamps[i], d.unidentified_average_mid_80_percent_price]), true),
-                makeSeries('Unid Lowest',   data.map((d,i) => [timestamps[i], d.unidentified_lowest_price]),          false),
-                makeSeries('Unid Highest',  data.map((d,i) => [timestamps[i], d.unidentified_highest_price]),         false),
+                makeSeries('P50 (Median)',  ts('p50_price'),                                    false),
+                makeSeries('P50 EMA (7d)',  ts('average_p50_ema_price'),                         false),
+                makeSeries('Average',       ts('average_price'),                                 false),
+                makeSeries('80% Average',   ts('average_mid_80_percent_price'),                   true),
+                makeSeries('Lowest',        ts('lowest_price'),                                  true),
+                makeSeries('Highest',       ts('highest_price'),                                 false),
+                makeSeries('Unid P50',      ts('unidentified_p50_price'),                        false),
+                makeSeries('Unid P50 EMA',  ts('unidentified_average_p50_ema_price'),             false),
+                makeSeries('Unid Average',  ts('unidentified_average_price'),                    false),
+                makeSeries('Unid 80% Avg',  ts('unidentified_average_mid_80_percent_price'),      true),
+                makeSeries('Unid Lowest',   ts('unidentified_lowest_price'),                     false),
+                makeSeries('Unid Highest',  ts('unidentified_highest_price'),                    false),
             ];
 
             const priceColors = [
