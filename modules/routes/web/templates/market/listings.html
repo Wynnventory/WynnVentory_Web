@@ -13,7 +13,7 @@
         <form method="get" action="{{ url_for('web.trademarket_listings') }}" id="filterForm">
 
             <!-- Search Row (always visible) -->
-            <div class="d-flex gap-2 align-items-center">
+            <div class="d-flex gap-2 align-items-stretch">
                 <div class="wv-search-wrapper flex-grow-1 mb-0">
                     <i class="bi bi-search wv-search-icon"></i>
                     <input type="text"
@@ -24,7 +24,7 @@
                            placeholder="Search item name...">
                 </div>
                 <button type="submit" class="wv-btn-primary d-flex align-items-center gap-1"
-                        style="padding:.25rem .75rem;font-size:.875rem;line-height:1.5;white-space:nowrap;">
+                        style="white-space:nowrap;">
                     <i class="bi bi-search"></i>
                     <span>Search</span>
                 </button>
