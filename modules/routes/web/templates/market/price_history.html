@@ -220,8 +220,8 @@
             idEl.innerHTML = '';
             idEl.appendChild(buildStatCard('Average Price', agg.average_price));
             idEl.appendChild(buildStatCard('80% Average', agg.average_mid_80));
-            idEl.appendChild(buildStatCard('Median (P50)', agg.p50));
-            idEl.appendChild(buildStatCard('P50 EMA (7d)', agg.p50_ema));
+            idEl.appendChild(buildStatCard('Median', agg.p50));
+            idEl.appendChild(buildStatCard('Moving Median', agg.p50_ema));
             idEl.appendChild(buildStatCard('Lowest Price', agg.lowest));
             idEl.appendChild(buildStatCard('Highest Price', agg.highest));
             idEl.appendChild(buildCountCard('Listings', agg.total_count - agg.unid_count));
@@ -238,7 +238,7 @@
                 unidEl.appendChild(buildStatCard('Unid Average', agg.unid_avg));
                 unidEl.appendChild(buildStatCard('Unid 80% Avg', agg.unid_mid80));
                 unidEl.appendChild(buildStatCard('Unid Median', agg.unid_p50));
-                unidEl.appendChild(buildStatCard('Unid P50 EMA', agg.unid_p50_ema));
+                unidEl.appendChild(buildStatCard('Unid Moving Median', agg.unid_p50_ema));
                 unidEl.appendChild(buildStatCard('Unid Lowest', agg.unid_lowest));
                 unidEl.appendChild(buildStatCard('Unid Highest', agg.unid_highest));
                 unidEl.appendChild(buildCountCard('Unid Listings', agg.unid_count));
@@ -278,18 +278,18 @@
 
             // Build price series
             const priceSeries = [
-                makeSeries('P50 (Median)',  ts('p50_price'),                                    false),
-                makeSeries('P50 EMA (7d)',  ts('average_p50_ema_price'),                         false),
-                makeSeries('Average',       ts('average_price'),                                 false),
-                makeSeries('80% Average',   ts('average_mid_80_percent_price'),                   true),
-                makeSeries('Lowest',        ts('lowest_price'),                                  true),
-                makeSeries('Highest',       ts('highest_price'),                                 false),
-                makeSeries('Unid P50',      ts('unidentified_p50_price'),                        false),
-                makeSeries('Unid P50 EMA',  ts('unidentified_average_p50_ema_price'),             false),
-                makeSeries('Unid Average',  ts('unidentified_average_price'),                    false),
-                makeSeries('Unid 80% Avg',  ts('unidentified_average_mid_80_percent_price'),      true),
-                makeSeries('Unid Lowest',   ts('unidentified_lowest_price'),                     false),
-                makeSeries('Unid Highest',  ts('unidentified_highest_price'),                    false),
+                makeSeries('Median',                ts('p50_price'),                                    false),
+                makeSeries('Moving Median',         ts('average_p50_ema_price'),                         false),
+                makeSeries('Average',               ts('average_price'),                                 false),
+                makeSeries('80% Average',           ts('average_mid_80_percent_price'),                   true),
+                makeSeries('Lowest',                ts('lowest_price'),                                  true),
+                makeSeries('Highest',               ts('highest_price'),                                 false),
+                makeSeries('Unid Median',           ts('unidentified_p50_price'),                        false),
+                makeSeries('Unid Moving Median',    ts('unidentified_average_p50_ema_price'),             false),
+                makeSeries('Unid Average',          ts('unidentified_average_price'),                    false),
+                makeSeries('Unid 80% Avg',          ts('unidentified_average_mid_80_percent_price'),      true),
+                makeSeries('Unid Lowest',           ts('unidentified_lowest_price'),                     false),
+                makeSeries('Unid Highest',          ts('unidentified_highest_price'),                    false),
             ];
 
             const priceColors = [
