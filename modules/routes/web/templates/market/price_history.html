@@ -130,6 +130,24 @@
             return Math.round(val).toLocaleString() + 'e';
         }
 
+        /* \u2500\u2500 Persisted chart series visibility \u2500\u2500 */
+        const PRICE_HIDDEN_KEY = 'historyPriceChartHidden';
+        const VOLUME_HIDDEN_KEY = 'historyVolumeChartHidden';
+
+        function loadHiddenSeries(key) {
+            try {
+                var saved = localStorage.getItem(key);
+                if (saved) return JSON.parse(saved);
+            } catch (e) { /* ignore */ }
+            return null;
+        }
+
+        function saveHiddenSeries(key, names) {
+            try {
+                localStorage.setItem(key, JSON.stringify(names));
+            } catch (e) { /* ignore */ }
+        }
+
         /* ── Get current theme for ApexCharts ── */
         function getChartTheme() {
             const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
@@ -297,10 +315,12 @@
                 '#b77aff', '#9b59b6', '#6a5d9e', '#453586', '#7e57c2', '#e040fb'
             ];
 
-            // Determine which series should be hidden initially
-            const hiddenSeries = priceSeries
-                .map((s, i) => s.visible ? null : i)
-                .filter(i => i !== null);
+            // Determine which series should be hidden initially.
+            // Prefer the user's saved selection over the per-series defaults.
+            const savedPriceHidden = loadHiddenSeries(PRICE_HIDDEN_KEY);
+            const priceHiddenNames = savedPriceHidden !== null
+                ? savedPriceHidden.slice()
+                : priceSeries.filter(s => !s.visible).map(s => s.name);
 
             priceChart = new ApexCharts(document.getElementById('priceChart'), {
                 chart: {
@@ -310,7 +330,17 @@
                     foreColor: theme.foreColor,
                     toolbar: { show: true, tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true } },
                     zoom: { enabled: true },
-                    animations: { enabled: false }
+                    animations: { enabled: false },
+                    events: {
+                        legendClick: function(chartContext, seriesIndex) {
+                            const name = priceSeries[seriesIndex] && priceSeries[seriesIndex].name;
+                            if (!name) return;
+                            const idx = priceHiddenNames.indexOf(name);
+                            if (idx >= 0) priceHiddenNames.splice(idx, 1);
+                            else priceHiddenNames.push(name);
+                            saveHiddenSeries(PRICE_HIDDEN_KEY, priceHiddenNames);
+                        }
+                    }
                 },
                 series: priceSeries.map(s => ({ name: s.name, data: s.data })),
                 colors: priceColors,
@@ -354,11 +384,11 @@
             });
 
             priceChart.render().then(function() {
-                // Hide series that should not be visible by default
-                // Guard: chart may have been destroyed if user switched timeframe quickly
+                // Hide series that should not be visible (defaults or user-saved selection).
+                // Guard: chart may have been destroyed if user switched timeframe quickly.
                 if (!priceChart) return;
-                hiddenSeries.forEach(function(idx) {
-                    priceChart.toggleSeries(priceSeries[idx].name);
+                priceHiddenNames.forEach(function(name) {
+                    priceChart.toggleSeries(name);
                 });
             });
 
@@ -368,6 +398,9 @@
                 { name: 'Unid Listings',  data: data.map((d,i) => [timestamps[i], d.unidentified_count]) }
             ];
 
+            const savedVolumeHidden = loadHiddenSeries(VOLUME_HIDDEN_KEY);
+            const volumeHiddenNames = savedVolumeHidden !== null ? savedVolumeHidden.slice() : [];
+
             volumeChart = new ApexCharts(document.getElementById('volumeChart'), {
                 chart: {
                     type: 'area',
@@ -376,7 +409,17 @@
                     foreColor: theme.foreColor,
                     toolbar: { show: false },
                     zoom: { enabled: false },
-                    animations: { enabled: false }
+                    animations: { enabled: false },
+                    events: {
+                        legendClick: function(chartContext, seriesIndex) {
+                            const name = volumeSeries[seriesIndex] && volumeSeries[seriesIndex].name;
+                            if (!name) return;
+                            const idx = volumeHiddenNames.indexOf(name);
+                            if (idx >= 0) volumeHiddenNames.splice(idx, 1);
+                            else volumeHiddenNames.push(name);
+                            saveHiddenSeries(VOLUME_HIDDEN_KEY, volumeHiddenNames);
+                        }
+                    }
                 },
                 series: volumeSeries,
                 colors: ['rgba(75, 192, 192, 0.8)', 'rgba(54, 162, 235, 0.8)'],
@@ -411,7 +454,12 @@
                 theme: { mode: theme.mode }
             });
 
-            volumeChart.render();
+            volumeChart.render().then(function() {
+                if (!volumeChart) return;
+                volumeHiddenNames.forEach(function(name) {
+                    volumeChart.toggleSeries(name);
+                });
+            });
         }
 
         /* ── UI state helpers ── */
