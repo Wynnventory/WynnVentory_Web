@@ -170,22 +170,16 @@
                     {% endif %}
                     <div class="listing-card-title">
                         <h5 class="mb-0 {{ item.rarity or '' }}">
-                            {{ item.name }}
+                            {% if item.shiny_stat %}Shiny {% endif %}{% if item.unidentified %}Unidentified {% endif %}{{ item.name }}
                             {% if item.item_type in TIERED_TYPES %}
                                 {{ item.tier|to_roman }}
                             {% endif %}
                         </h5>
+                        {% if item.unidentified == false and item.overall_roll is not none %}
                         <div class="d-flex gap-1 flex-wrap mt-1">
-                            {% if item.shiny_stat %}
-                                <span class="wv-badge listing-badge-shiny">Shiny</span>
-                            {% endif %}
-                            {% if item.unidentified %}
-                                <span class="wv-badge listing-badge-unid">Unidentified</span>
-                            {% endif %}
-                            {% if item.unidentified == false and item.overall_roll is not none %}
-                                <span class="stat-overall-pct" data-pct="{{ item.overall_roll }}">[{{ '%.1f' % item.overall_roll }}%]</span>
-                            {% endif %}
+                            <span class="stat-overall-pct" data-pct="{{ item.overall_roll }}">[{{ '%.1f' % item.overall_roll }}%]</span>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -215,10 +209,10 @@
                     <div class="d-flex justify-content-between align-items-baseline">
                         <div>
                             <span class="listing-price">{{ item.listing_price|emerald_format }}</span>
-                            {% if item.unidentified and item.price_averages.unidentified_average_mid_80_percent_price %}
-                                {% set ratio = item.listing_price / item.price_averages.unidentified_average_mid_80_percent_price %}
-                            {% elif item.price_averages.average_mid_80_percent_price %}
-                                {% set ratio = item.listing_price / item.price_averages.average_mid_80_percent_price %}
+                            {% if item.unidentified and item.price_averages.unidentified_average_p50_ema_price %}
+                                {% set ratio = item.listing_price / item.price_averages.unidentified_average_p50_ema_price %}
+                            {% elif item.price_averages.average_p50_ema_price %}
+                                {% set ratio = item.listing_price / item.price_averages.average_p50_ema_price %}
                             {% endif %}
                             {% if ratio %}
                                 {% set pct = (ratio * 100) | round(1) %}
@@ -284,7 +278,7 @@
             {% endif %}
 
             {% if page < last_page %}
-                <a href="{{ url_for('web.trademarket_listings', **dict(request.args, page=page+1)) }}" class="wv-btn-pill">&rsaquo;</a>
+                <a href="{{ url_for('web.trademarket_listings', **dict(request.args, page=page + 1)) }}" class="wv-btn-pill">&rsaquo;</a>
             {% endif %}
         </nav>
 
