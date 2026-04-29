@@ -129,6 +129,7 @@ class BasePoolRepo:
             else:
                 raise ValueError(f"Unsupported collection type: {self.collection_type}")
 
+            payload_ts = pool.get('timestamp')
             pool['week'] = week
             pool['year'] = year
             pool['timestamp'] = datetime.now(timezone.utc)
@@ -137,6 +138,11 @@ class BasePoolRepo:
             region = pool.get('region')
             filter_q = {'region': region, 'week': week, 'year': year}
             existing = collection.find_one(filter_q)
+
+            logger.info(
+                f"[{region}] payload_ts={payload_ts}, week={week}, year={year}, "
+                f"new_item_count={len(pool.get('items', []))}, has_existing={existing is not None}"
+            )
 
             if existing:
                 # Apply replacement rules
@@ -150,6 +156,12 @@ class BasePoolRepo:
 
                 has_more = len(new_items) > len(old_items)
                 has_enough_and_stale = age > timedelta(hours=1) and len(new_items) >= len(old_items)
+
+                logger.info(
+                    f"[{region}] existing_ts={existing_ts}, age={age}, "
+                    f"new_items={len(new_items)}, old_items={len(old_items)}, "
+                    f"has_more={has_more}, has_enough_and_stale={has_enough_and_stale}"
+                )
 
                 if has_more or has_enough_and_stale:
                     # Replace the old document

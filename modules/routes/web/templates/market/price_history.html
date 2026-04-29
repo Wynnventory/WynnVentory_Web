@@ -2,80 +2,92 @@
 {% block title %}Price History{% endblock %}
 {% block content %}
 
-    <h1>Price History</h1>
+    <!-- Header -->
+    <h1 id="pageTitle">Price History</h1>
 
-    <!-- Input field for the item name -->
-    <div class="row">
-        <div class="input-group mb-3">
-            <input type="text" class="form-control" aria-label="Item name" aria-describedby="searchBtn" id="itemSearch"
-                   placeholder="Search Item: Hero, Dernic Ingot 3 ...">
-            <button class="btn btn-primary" type="button" id="searchBtn">Search</button>
+    <!-- Search bar -->
+    <div class="d-flex gap-2 mb-3">
+        <div class="wv-search-wrapper flex-grow-1">
+            <i class="bi bi-search wv-search-icon"></i>
+            <input type="text" class="wv-input" id="itemSearch"
+                   placeholder="Search item: Hero, Dernic Ingot 3 ...">
         </div>
+        <button class="wv-btn-primary" id="searchBtn" type="button">Search</button>
     </div>
 
-    <!-- Date range selectors (hidden until 'Date Range' clicked) -->
+    <!-- Error alert (hidden by default) -->
+    <div id="errorAlert" class="wv-alert-error mb-3"></div>
+
+    <!-- Timeframe pills -->
+    <div class="wv-pill-group mb-3">
+        <button class="wv-btn-pill active" id="btn7" onclick="updateTimeframe(7, this)">7d</button>
+        <button class="wv-btn-pill" id="btn14" onclick="updateTimeframe(14, this)">14d</button>
+        <button class="wv-btn-pill" id="btn30" onclick="updateTimeframe(30, this)">30d</button>
+        <button class="wv-btn-pill" id="btn90" onclick="updateTimeframe(90, this)">90d</button>
+        <button class="wv-btn-pill" id="btnRange" onclick="activateDateRange(this)">Custom</button>
+    </div>
+
+    <!-- Custom date range (hidden until 'Custom' clicked) -->
     <div class="row mb-3" id="dateRangeContainer" style="display: none;">
-        <div class="col-md-3 mb-3">
-            <label for="startDate" class="form-label">Start Date</label>
-            <input type="text" class="form-control" id="startDate" placeholder="YYYY-MM-DD">
+        <div class="col-md-3 mb-2">
+            <label for="startDate" class="form-label" style="font-size:0.85rem;color:var(--wv-text-secondary);">Start Date</label>
+            <input type="text" class="wv-input" id="startDate" placeholder="YYYY-MM-DD">
         </div>
-        <div class="col-md-3 mb-3">
-            <label for="endDate" class="form-label">End Date</label>
-            <input type="text" class="form-control" id="endDate" placeholder="YYYY-MM-DD">
+        <div class="col-md-3 mb-2">
+            <label for="endDate" class="form-label" style="font-size:0.85rem;color:var(--wv-text-secondary);">End Date</label>
+            <input type="text" class="wv-input" id="endDate" placeholder="YYYY-MM-DD">
         </div>
-        <div class="col-md-3 mb-3 d-flex align-items-end">
-            <button id="applyFilter" class="btn btn-primary me-2">Apply</button>
-            <button id="resetFilter" class="btn btn-secondary">Reset</button>
-        </div>
-    </div>
-
-    <!-- Timeframe toggles -->
-    <div class="row mb-3">
-        <div class="col">
-            <div class="btn-group btn-group-sm" role="group" aria-label="Timeframe toggles">
-                <button type="button" class="btn btn-primary" id="btn7" onclick="updateTimeframe(7, this)">Last 7 days
-                </button>
-                <button type="button" class="btn btn-outline-primary" id="btn14" onclick="updateTimeframe(14, this)">
-                    Last 14 days
-                </button>
-                <button type="button" class="btn btn-outline-primary" id="btn30" onclick="updateTimeframe(30, this)">
-                    Last Month
-                </button>
-                <button type="button" class="btn btn-outline-primary" id="btn90" onclick="updateTimeframe(90, this)">
-                    Last 3 Months
-                </button>
-                <button type="button" class="btn btn-outline-primary" id="btnRange" onclick="activateDateRange(this)">
-                    Date Range
-                </button>
-            </div>
+        <div class="col-md-3 mb-2 d-flex align-items-end gap-2">
+            <button id="applyFilter" class="wv-btn-primary">Apply</button>
+            <button id="resetFilter" class="wv-btn-outline">Reset</button>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col" style="min-height: 28vh;">
-            <canvas id="priceHistoryChart"></canvas>
-        </div>
+    <!-- Stats Zone: Identified (skeleton on load) -->
+    <div id="statsIdentified" class="wv-grid-4col mb-3" style="display:none;"></div>
+
+    <!-- Stats Zone: Unidentified (conditional) -->
+    <div id="statsUnidentifiedHeader" class="wv-section-header" style="display:none;">Unidentified</div>
+    <div id="statsUnidentified" class="wv-grid-4col mb-3" style="display:none;"></div>
+
+    <!-- Skeleton placeholders (visible before data loads) -->
+    <div id="statsSkeleton" class="wv-grid-4col mb-3" style="display:none;">
+        <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
+        <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
+        <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
+        <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
     </div>
-    <div class="row">
-        <div class="col" style="min-height: 28vh;">
-            <canvas id="highestPriceChart"></canvas>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col" style="min-height: 28vh;">
-            <canvas id="saturationChart"></canvas>
+
+    <!-- Price Chart -->
+    <div class="wv-card mb-3">
+        <div id="priceChart" style="min-height:400px;"></div>
+        <div id="priceChartSkeleton" style="display:none;min-height:400px;"><div class="wv-skeleton" style="height:100%;min-height:400px;"></div></div>
+        <div id="priceChartEmpty" class="wv-empty-state" style="display:none;min-height:400px;">
+            <i class="bi bi-graph-up"></i>
+            <p>No price data found for this item</p>
         </div>
     </div>
 
-    <!-- Add Chart.js, date adapter, and datepicker -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+    <!-- Volume Chart -->
+    <div class="wv-card mb-3">
+        <div id="volumeChart" style="min-height:200px;"></div>
+        <div id="volumeChartSkeleton" style="display:none;min-height:200px;"><div class="wv-skeleton" style="height:100%;min-height:200px;"></div></div>
+    </div>
+
+    <!-- ApexCharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.49.0"></script>
+
     <script>
-        let priceHistoryChart = null;
-        let highestPriceChart = null;
-        let saturationChart = null;
+        /* ── State ── */
+        let priceChart = null;
+        let volumeChart = null;
         let currentTimeframe = 7;
+        let lastFetchedData = null;
+        let lastDateRange = null;
+        const DEFAULT_LAG_DAYS = 1;
+        const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+        /* ── Helpers ── */
         function capitalizeWords(str) {
             const smallWords = ['of'];
             return str.split(' ').map((word, index) => {
@@ -87,75 +99,421 @@
         }
 
         function convertEmeraldsToGameFormat(emeralds) {
+            if (emeralds == null || isNaN(emeralds)) return '\u2014';
+            emeralds = Math.round(emeralds);
             const stx = Math.floor(emeralds / (64 * 64 * 64));
-            emeralds %= 64 * 64 * 64;
-            const le = Math.floor(emeralds / (64 * 64));
-            emeralds %= 64 * 64;
-            const eb = Math.floor(emeralds / 64);
-            const e = emeralds % 64;
-            let result = '';
+            let rem = emeralds % (64 * 64 * 64);
+            const le = Math.floor(rem / (64 * 64));
+            rem %= (64 * 64);
+            const eb = Math.floor(rem / 64);
+            const e = rem % 64;
             if (stx > 0) {
-                let decimalValue = le + eb / 64 + e / (64 * 64);
-                decimalValue = Math.round(decimalValue * 100) / 100;
-                const displayLE = Number.isInteger(decimalValue) ? decimalValue.toString() : decimalValue.toFixed(2);
-                result = `${stx}stx${displayLE !== '0' ? ` ${displayLE}le` : ''}`;
-            } else {
-                if (le > 0) result += `${le}le `;
-                if (eb > 0) result += `${eb}eb `;
-                if (e > 0) result += `${e.toFixed(2)}e`;
+                let dec = le + eb / 64 + e / (64 * 64);
+                dec = Math.round(dec * 100) / 100;
+                const display = Number.isInteger(dec) ? dec.toString() : dec.toFixed(2);
+                return stx + 'stx' + (display !== '0' ? ' ' + display + 'le' : '');
             }
-            return result.trim();
+            let result = '';
+            if (le > 0) result += le + 'le ';
+            if (eb > 0) result += eb + 'eb ';
+            if (e > 0) result += e + 'e';
+            return result.trim() || '0e';
         }
 
-        function initializeEmptyCharts() {
-            [priceHistoryChart, highestPriceChart, saturationChart].forEach(c => c && c.destroy());
-            const emptyData = {
-                labels: [],
-                datasets: [{label: 'No Data', data: [], borderColor: 'rgba(200,200,200,1)', fill: false}]
+        function formatPrice(val) {
+            if (val == null || isNaN(val) || val === 0) return '\u2014';
+            return convertEmeraldsToGameFormat(val);
+        }
+
+        function formatPriceWithRaw(val) {
+            if (val == null || isNaN(val) || val === 0) return '\u2014';
+            return Math.round(val).toLocaleString() + 'e';
+        }
+
+        /* \u2500\u2500 Persisted chart series visibility \u2500\u2500 */
+        const PRICE_HIDDEN_KEY = 'historyPriceChartHidden';
+        const VOLUME_HIDDEN_KEY = 'historyVolumeChartHidden';
+
+        function loadHiddenSeries(key) {
+            try {
+                var saved = localStorage.getItem(key);
+                if (saved) return JSON.parse(saved);
+            } catch (e) { /* ignore */ }
+            return null;
+        }
+
+        function saveHiddenSeries(key, names) {
+            try {
+                localStorage.setItem(key, JSON.stringify(names));
+            } catch (e) { /* ignore */ }
+        }
+
+        /* ── Get current theme for ApexCharts ── */
+        function getChartTheme() {
+            const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const style = getComputedStyle(document.documentElement);
+            return {
+                mode: isDark ? 'dark' : 'light',
+                background: 'transparent',
+                foreColor: style.getPropertyValue('--wv-chart-text').trim() || '#9ca3af',
+                gridColor: style.getPropertyValue('--wv-chart-grid').trim() || 'rgba(255,255,255,0.06)'
             };
-            const opts = {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {type: 'time', time: {unit: 'day'}, title: {display: true, text: 'Date'}},
-                    y: {title: {display: true, text: 'Value'}}
-                }
+        }
+
+        /* ── Stat cards ── */
+        function buildStatCard(label, value) {
+            const card = document.createElement('div');
+            card.className = 'wv-stat-card';
+            const lbl = document.createElement('span');
+            lbl.className = 'wv-stat-label';
+            lbl.textContent = label;
+            const val = document.createElement('span');
+            val.className = 'wv-stat-value';
+            val.textContent = formatPrice(value);
+            const sub = document.createElement('span');
+            sub.className = 'wv-stat-sub';
+            sub.textContent = formatPriceWithRaw(value);
+            card.appendChild(lbl);
+            card.appendChild(val);
+            card.appendChild(sub);
+            return card;
+        }
+
+        function buildCountCard(label, value) {
+            const card = document.createElement('div');
+            card.className = 'wv-stat-card';
+            const lbl = document.createElement('span');
+            lbl.className = 'wv-stat-label';
+            lbl.textContent = label;
+            const val = document.createElement('span');
+            val.className = 'wv-stat-value';
+            val.textContent = value != null ? Math.round(value).toLocaleString() : '\u2014';
+            card.appendChild(lbl);
+            card.appendChild(val);
+            return card;
+        }
+
+        function avgField(data, field) {
+            var sum = 0, count = 0;
+            for (var i = 0; i < data.length; i++) {
+                var v = data[i][field];
+                if (v != null && v > 0) { sum += v; count++; }
+            }
+            return count > 0 ? sum / count : null;
+        }
+
+        function sumField(data, field) {
+            var sum = 0;
+            for (var i = 0; i < data.length; i++) {
+                var v = data[i][field];
+                if (v != null) sum += v;
+            }
+            return sum;
+        }
+
+        function renderStats(data) {
+            var idEl = document.getElementById('statsIdentified');
+            var unidEl = document.getElementById('statsUnidentified');
+            var unidHeader = document.getElementById('statsUnidentifiedHeader');
+
+            // Aggregate across the full period
+            var agg = {
+                average_price: avgField(data, 'average_price'),
+                average_mid_80: avgField(data, 'average_mid_80_percent_price'),
+                p50: avgField(data, 'p50_price'),
+                p50_ema: avgField(data, 'average_p50_ema_price'),
+                lowest: avgField(data, 'lowest_price'),
+                highest: avgField(data, 'highest_price'),
+                total_count: sumField(data, 'total_count'),
+                unid_avg: avgField(data, 'unidentified_average_price'),
+                unid_mid80: avgField(data, 'unidentified_average_mid_80_percent_price'),
+                unid_p50: avgField(data, 'unidentified_p50_price'),
+                unid_p50_ema: avgField(data, 'unidentified_average_p50_ema_price'),
+                unid_lowest: avgField(data, 'unidentified_lowest_price'),
+                unid_highest: avgField(data, 'unidentified_highest_price'),
+                unid_count: sumField(data, 'unidentified_count')
             };
-            priceHistoryChart = new Chart(document.getElementById('priceHistoryChart'), {
-                type: 'line',
-                data: emptyData,
-                options: opts
+
+            // Identified stats
+            idEl.innerHTML = '';
+            idEl.appendChild(buildStatCard('Average Price', agg.average_price));
+            idEl.appendChild(buildStatCard('80% Average', agg.average_mid_80));
+            idEl.appendChild(buildStatCard('Median', agg.p50));
+            idEl.appendChild(buildStatCard('Moving Median', agg.p50_ema));
+            idEl.appendChild(buildStatCard('Lowest Price', agg.lowest));
+            idEl.appendChild(buildStatCard('Highest Price', agg.highest));
+            idEl.appendChild(buildCountCard('Listings', agg.total_count - agg.unid_count));
+            idEl.style.display = '';
+
+            // Unidentified stats (show only if any value > 0)
+            var hasUnid = (agg.unid_avg > 0) || (agg.unid_mid80 > 0) ||
+                          (agg.unid_p50 > 0) || (agg.unid_p50_ema > 0) ||
+                          (agg.unid_lowest > 0) || (agg.unid_highest > 0) ||
+                          (agg.unid_count > 0);
+
+            if (hasUnid) {
+                unidEl.innerHTML = '';
+                unidEl.appendChild(buildStatCard('Unid Average', agg.unid_avg));
+                unidEl.appendChild(buildStatCard('Unid 80% Avg', agg.unid_mid80));
+                unidEl.appendChild(buildStatCard('Unid Median', agg.unid_p50));
+                unidEl.appendChild(buildStatCard('Unid Moving Median', agg.unid_p50_ema));
+                unidEl.appendChild(buildStatCard('Unid Lowest', agg.unid_lowest));
+                unidEl.appendChild(buildStatCard('Unid Highest', agg.unid_highest));
+                unidEl.appendChild(buildCountCard('Unid Listings', agg.unid_count));
+                unidEl.style.display = '';
+                unidHeader.style.display = '';
+            } else {
+                unidEl.style.display = 'none';
+                unidHeader.style.display = 'none';
+            }
+        }
+
+        /* ── Charts ── */
+        function makeSeries(name, data, visible) {
+            return { name: name, data: data, visible: visible !== false };
+        }
+
+        function renderCharts(data, startDate, endDate) {
+            const theme = getChartTheme();
+            const timestamps = data.map(d => new Date(d.timestamp).getTime());
+
+            // Compute X-axis range from the requested date range
+            var xMin = startDate ? new Date(startDate).getTime() : undefined;
+            var xMax = endDate ? new Date(endDate + 'T23:59:59').getTime() : undefined;
+
+            // Destroy previous charts
+            if (priceChart) { priceChart.destroy(); priceChart = null; }
+            if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
+
+            // Helper: map field to [timestamp, value] with null for missing data
+            // (undefined → null so ApexCharts gaps the line instead of drawing 0)
+            function ts(field) {
+                return data.map(function(d, i) {
+                    var v = d[field];
+                    return [timestamps[i], v != null ? v : null];
+                });
+            }
+
+            // Build price series
+            const priceSeries = [
+                makeSeries('Median',                ts('p50_price'),                                    false),
+                makeSeries('Moving Median',         ts('average_p50_ema_price'),                         false),
+                makeSeries('Average',               ts('average_price'),                                 false),
+                makeSeries('80% Average',           ts('average_mid_80_percent_price'),                   true),
+                makeSeries('Lowest',                ts('lowest_price'),                                  true),
+                makeSeries('Highest',               ts('highest_price'),                                 false),
+                makeSeries('Unid Median',           ts('unidentified_p50_price'),                        false),
+                makeSeries('Unid Moving Median',    ts('unidentified_average_p50_ema_price'),             false),
+                makeSeries('Unid Average',          ts('unidentified_average_price'),                    false),
+                makeSeries('Unid 80% Avg',          ts('unidentified_average_mid_80_percent_price'),      true),
+                makeSeries('Unid Lowest',           ts('unidentified_lowest_price'),                     false),
+                makeSeries('Unid Highest',          ts('unidentified_highest_price'),                    false),
+            ];
+
+            const priceColors = [
+                '#4facfe', '#00d4ff', '#4bc0c0', '#358686', '#36a2eb', '#ff6384',
+                '#b77aff', '#9b59b6', '#6a5d9e', '#453586', '#7e57c2', '#e040fb'
+            ];
+
+            // Determine which series should be hidden initially.
+            // Prefer the user's saved selection over the per-series defaults.
+            const savedPriceHidden = loadHiddenSeries(PRICE_HIDDEN_KEY);
+            const priceHiddenNames = savedPriceHidden !== null
+                ? savedPriceHidden.slice()
+                : priceSeries.filter(s => !s.visible).map(s => s.name);
+
+            priceChart = new ApexCharts(document.getElementById('priceChart'), {
+                chart: {
+                    type: 'line',
+                    height: 400,
+                    background: theme.background,
+                    foreColor: theme.foreColor,
+                    toolbar: { show: true, tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true } },
+                    zoom: { enabled: true },
+                    animations: { enabled: false },
+                    events: {
+                        legendClick: function(chartContext, seriesIndex) {
+                            const name = priceSeries[seriesIndex] && priceSeries[seriesIndex].name;
+                            if (!name) return;
+                            const idx = priceHiddenNames.indexOf(name);
+                            if (idx >= 0) priceHiddenNames.splice(idx, 1);
+                            else priceHiddenNames.push(name);
+                            saveHiddenSeries(PRICE_HIDDEN_KEY, priceHiddenNames);
+                        }
+                    }
+                },
+                series: priceSeries.map(s => ({ name: s.name, data: s.data })),
+                colors: priceColors,
+                stroke: { width: 2, curve: 'straight' },
+                xaxis: {
+                    type: 'datetime',
+                    min: xMin,
+                    max: xMax,
+                    labels: { datetimeUTC: false, format: 'dd MMM' },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
+                },
+                yaxis: {
+                    title: { text: 'Price (emeralds)' },
+                    labels: {
+                        formatter: function(val) { return val != null ? convertEmeraldsToGameFormat(val) : ''; }
+                    }
+                },
+                tooltip: {
+                    shared: true,
+                    intersect: false,
+                    x: { format: 'dd MMM yyyy' },
+                    y: {
+                        formatter: function(val) {
+                            if (val == null) return '\u2014';
+                            return Math.round(val).toLocaleString() + 'e (' + convertEmeraldsToGameFormat(val) + ')';
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: theme.gridColor,
+                    strokeDashArray: 3
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'left',
+                    fontSize: '12px',
+                    itemMargin: { horizontal: 8, vertical: 4 }
+                },
+                theme: { mode: theme.mode }
             });
-            highestPriceChart = new Chart(document.getElementById('highestPriceChart'), {
-                type: 'line',
-                data: emptyData,
-                options: opts
+
+            priceChart.render().then(function() {
+                // Hide series that should not be visible (defaults or user-saved selection).
+                // Guard: chart may have been destroyed if user switched timeframe quickly.
+                if (!priceChart) return;
+                priceHiddenNames.forEach(function(name) {
+                    priceChart.toggleSeries(name);
+                });
             });
-            saturationChart = new Chart(document.getElementById('saturationChart'), {
-                type: 'line',
-                data: emptyData,
-                options: opts
+
+            // Volume chart
+            const volumeSeries = [
+                { name: 'Total Listings', data: data.map((d,i) => [timestamps[i], d.total_count]) },
+                { name: 'Unid Listings',  data: data.map((d,i) => [timestamps[i], d.unidentified_count]) }
+            ];
+
+            const savedVolumeHidden = loadHiddenSeries(VOLUME_HIDDEN_KEY);
+            const volumeHiddenNames = savedVolumeHidden !== null ? savedVolumeHidden.slice() : [];
+
+            volumeChart = new ApexCharts(document.getElementById('volumeChart'), {
+                chart: {
+                    type: 'area',
+                    height: 200,
+                    background: theme.background,
+                    foreColor: theme.foreColor,
+                    toolbar: { show: false },
+                    zoom: { enabled: false },
+                    animations: { enabled: false },
+                    events: {
+                        legendClick: function(chartContext, seriesIndex) {
+                            const name = volumeSeries[seriesIndex] && volumeSeries[seriesIndex].name;
+                            if (!name) return;
+                            const idx = volumeHiddenNames.indexOf(name);
+                            if (idx >= 0) volumeHiddenNames.splice(idx, 1);
+                            else volumeHiddenNames.push(name);
+                            saveHiddenSeries(VOLUME_HIDDEN_KEY, volumeHiddenNames);
+                        }
+                    }
+                },
+                series: volumeSeries,
+                colors: ['rgba(75, 192, 192, 0.8)', 'rgba(54, 162, 235, 0.8)'],
+                fill: { type: 'solid', opacity: [0.3, 0.3] },
+                stroke: { width: 2, curve: 'straight' },
+                xaxis: {
+                    type: 'datetime',
+                    min: xMin,
+                    max: xMax,
+                    labels: { datetimeUTC: false, format: 'dd MMM' },
+                    axisBorder: { show: false },
+                    axisTicks: { show: false }
+                },
+                yaxis: {
+                    title: { text: 'Listings' },
+                    labels: { formatter: function(val) { return val != null ? Math.round(val).toString() : ''; } }
+                },
+                tooltip: {
+                    shared: true,
+                    intersect: false,
+                    x: { format: 'dd MMM yyyy' }
+                },
+                grid: {
+                    borderColor: theme.gridColor,
+                    strokeDashArray: 3
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'left',
+                    fontSize: '12px'
+                },
+                theme: { mode: theme.mode }
+            });
+
+            volumeChart.render().then(function() {
+                if (!volumeChart) return;
+                volumeHiddenNames.forEach(function(name) {
+                    volumeChart.toggleSeries(name);
+                });
             });
         }
 
-        function activateDateRange(btn) {
-            // deactivate other toggles
-            document.querySelectorAll('.btn-group button').forEach(b => {
-                b.classList.replace('btn-primary', 'btn-outline-primary');
-                b.classList.remove('active');
-            });
-            // activate Date Range
-            btn.classList.replace('btn-outline-primary', 'btn-primary');
-            btn.classList.add('active');
-            // show date inputs
-            document.getElementById('dateRangeContainer').style.display = 'flex';
+        /* ── UI state helpers ── */
+        function showLoading() {
+            if (priceChart) { priceChart.destroy(); priceChart = null; }
+            if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
+            document.getElementById('statsSkeleton').style.display = '';
+            document.getElementById('statsIdentified').style.display = 'none';
+            document.getElementById('statsUnidentified').style.display = 'none';
+            document.getElementById('statsUnidentifiedHeader').style.display = 'none';
+            document.getElementById('priceChart').style.display = 'none';
+            document.getElementById('priceChartSkeleton').style.display = '';
+            document.getElementById('priceChartEmpty').style.display = 'none';
+            document.getElementById('volumeChart').style.display = 'none';
+            document.getElementById('volumeChartSkeleton').style.display = '';
+            document.getElementById('errorAlert').style.display = 'none';
         }
 
+        function showEmpty() {
+            document.getElementById('statsSkeleton').style.display = 'none';
+            document.getElementById('statsIdentified').style.display = 'none';
+            document.getElementById('statsUnidentified').style.display = 'none';
+            document.getElementById('statsUnidentifiedHeader').style.display = 'none';
+            document.getElementById('priceChart').style.display = 'none';
+            document.getElementById('priceChartSkeleton').style.display = 'none';
+            document.getElementById('priceChartEmpty').style.display = '';
+            document.getElementById('volumeChart').style.display = 'none';
+            document.getElementById('volumeChartSkeleton').style.display = 'none';
+            if (priceChart) { priceChart.destroy(); priceChart = null; }
+            if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
+        }
 
-        const DEFAULT_LAG_DAYS = 1;
-        const MS_PER_DAY = 24 * 60 * 60 * 1000;
+        function showError(msg) {
+            const el = document.getElementById('errorAlert');
+            el.textContent = msg;
+            el.style.display = '';
+            document.getElementById('statsSkeleton').style.display = 'none';
+            document.getElementById('priceChartSkeleton').style.display = 'none';
+            document.getElementById('volumeChartSkeleton').style.display = 'none';
+        }
 
+        function showData() {
+            document.getElementById('statsSkeleton').style.display = 'none';
+            document.getElementById('priceChart').style.display = '';
+            document.getElementById('priceChartSkeleton').style.display = 'none';
+            document.getElementById('priceChartEmpty').style.display = 'none';
+            document.getElementById('volumeChart').style.display = '';
+            document.getElementById('volumeChartSkeleton').style.display = 'none';
+            document.getElementById('errorAlert').style.display = 'none';
+        }
+
+        /* ── Data fetching ── */
         async function fetchPriceData(itemName) {
+            showLoading();
             try {
                 const params = new URLSearchParams(window.location.search);
                 const tierParam = params.get('tier');
@@ -167,301 +525,145 @@
                     tier = match[2].trim();
                 }
 
-                // get inputs / URL params
-                const startVal = document.getElementById('startDate').value || params.get('start_date') || '';
-                const endVal = document.getElementById('endDate').value || params.get('end_date') || '';
-                // apply to inputs
+                // Read dates from inputs or URL params; fall back to timeframe
+                var startVal = document.getElementById('startDate').value || params.get('start_date') || '';
+                var endVal = document.getElementById('endDate').value || params.get('end_date') || '';
                 document.getElementById('startDate').value = startVal;
                 document.getElementById('endDate').value = endVal;
-                // if none provided, derive from timeframe
-                let s = startVal, e = endVal;
+                var s = startVal, e = endVal;
                 if (!s && !e) {
-                    const now = new Date();
-                    const lag = new Date(now.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
+                    var now = new Date();
+                    var lag = new Date(now.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
                     e = lag.toISOString().split('T')[0];
-                    const begin = new Date(lag.getTime() - currentTimeframe * MS_PER_DAY);
+                    var begin = new Date(lag.getTime() - currentTimeframe * MS_PER_DAY);
                     s = begin.toISOString().split('T')[0];
                 }
-                const q = new URLSearchParams({start_date: s, end_date: e});
+
+                const q = new URLSearchParams({ start_date: s, end_date: e });
                 if (tier) q.append('tier', tier);
-                const url = `/api/trademarket/history/${encodeURIComponent(base)}?${q}`;
+                const shinyParam = params.get('shiny');
+                if (shinyParam) q.append('shiny', shinyParam);
+                const url = '/api/trademarket/history/' + encodeURIComponent(base) + '?' + q;
                 const res = await fetch(url);
+
+                if (!res.ok) {
+                    showError('Failed to load price data (HTTP ' + res.status + ')');
+                    return;
+                }
+
                 const data = await res.json();
-                if (res.ok && Array.isArray(data) && data.length) updateCharts(data); else initializeEmptyCharts();
-            } catch (x) {
-                console.error(x);
-                initializeEmptyCharts();
+                if (!Array.isArray(data) || data.length === 0) {
+                    showEmpty();
+                    return;
+                }
+
+                lastFetchedData = data;
+                lastDateRange = { start: s, end: e };
+                showData();
+                renderStats(data);
+                renderCharts(data, s, e);
+            } catch (err) {
+                console.error(err);
+                showError('Failed to load price data');
             }
         }
 
-        function updateCharts(priceData) {
-            const labels = priceData.map(item => new Date(item.timestamp));
-            const averagePrices = priceData.map(item => item.average_price);
-            const average80Prices = priceData.map(item => item.average_mid_80_percent_price);
-            const unidentifiedAveragePrice = priceData.map(item => item.unidentified_average_price);
-            const unidentifiedAverage80Prices = priceData.map(item => item.unidentified_average_mid_80_percent_price);
-            const highestPrices = priceData.map(item => item.highest_price);
-            const lowestPrices = priceData.map(item => item.lowest_price);
-            const total_listings = priceData.map(item => item.total_count);
-            const unid_listings = priceData.map(item => item.unidentified_count);
-
-            if (priceHistoryChart) priceHistoryChart.destroy();
-            if (highestPriceChart) highestPriceChart.destroy();
-            if (saturationChart) saturationChart.destroy();
-
-            // Price History Chart
-            const ctx = document.getElementById('priceHistoryChart').getContext('2d');
-            priceHistoryChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Average Price',
-                            data: averagePrices,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Average 80% Price',
-                            data: average80Prices,
-                            borderColor: 'rgba(53, 134, 134, 1)',
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Unid Average Price',
-                            data: unidentifiedAveragePrice,
-                            borderColor: 'rgba(106, 93, 158, 1)',
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Unid Average 80% Price',
-                            data: unidentifiedAverage80Prices,
-                            borderColor: 'rgba(69, 53, 134, 1)',
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Lowest Price',
-                            data: lowestPrices,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            fill: false,
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'day'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Price'
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    const emeraldValue = tooltipItem.raw;
-                                    const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
-                                    return `Price: ${emeraldValue}e (${gameFormat})`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Highest Price Chart
-            const ctx2 = document.getElementById('highestPriceChart').getContext('2d');
-            highestPriceChart = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Highest Price',
-                        data: highestPrices,
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        fill: false,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'day'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Price'
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    const emeraldValue = tooltipItem.raw;
-                                    const gameFormat = convertEmeraldsToGameFormat(emeraldValue);
-                                    return `Price: ${emeraldValue}e (${gameFormat})`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Saturation Chart
-            const ctx3 = document.getElementById('saturationChart').getContext('2d');
-            saturationChart = new Chart(ctx3, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Total Listings',
-                            data: total_listings,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            fill: false,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Unidentified Listings',
-                            data: unid_listings,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            fill: false,
-                            tension: 0.1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'day'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Listings'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
+        /* ── Search & navigation ── */
         function handleSearch(item) {
-            if (!item) return initializeEmptyCharts();
-            const name = capitalizeWords(item);
+            if (!item) { showEmpty(); return; }
+            var name = capitalizeWords(item);
             document.getElementById('itemSearch').value = name;
-            const baseUrl = `/history/${encodeURIComponent(name)}`;
+            document.getElementById('pageTitle').textContent = 'Price History \u2014 ' + name;
+            var baseUrl = '/history/' + encodeURIComponent(name);
             history.replaceState(null, '', baseUrl + window.location.search);
             fetchPriceData(name);
         }
 
         function updateTimeframe(days, btn) {
-            // clear URL params so manual range is ignored
             history.replaceState(null, '', location.pathname);
-
             document.getElementById('dateRangeContainer').style.display = 'none';
             document.getElementById('startDate').value = '';
             document.getElementById('endDate').value = '';
             currentTimeframe = days;
-            document.querySelectorAll('.btn-group button').forEach(b => {
-                b.classList.replace('btn-primary', 'btn-outline-primary');
+            document.querySelectorAll('.wv-pill-group .wv-btn-pill').forEach(function(b) {
                 b.classList.remove('active');
             });
-            btn.classList.replace('btn-outline-primary', 'btn-primary');
             btn.classList.add('active');
-            const nm = document.getElementById('itemSearch').value.trim();
+            var nm = document.getElementById('itemSearch').value.trim();
             if (nm) handleSearch(nm);
         }
 
-        window.onload = () => {
-            function onlyOlderThan7Days(date) {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const daysAgo = (today - date) / (1000 * 60 * 60 * 24);
-                return daysAgo > 7;
-            }
+        function activateDateRange(btn) {
+            document.querySelectorAll('.wv-pill-group .wv-btn-pill').forEach(function(b) {
+                b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            document.getElementById('dateRangeContainer').style.display = 'flex';
+        }
 
+        /* ── Theme change listener ── */
+        var observer = new MutationObserver(function() {
+            if (lastFetchedData && lastFetchedData.length > 0) {
+                showData();
+                renderCharts(lastFetchedData, lastDateRange ? lastDateRange.start : null, lastDateRange ? lastDateRange.end : null);
+            }
+        });
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
+
+        /* ── Init ── */
+        window.onload = function() {
             $('#startDate,#endDate').datepicker({
                 format: 'yyyy-mm-dd',
                 autoclose: true,
                 todayHighlight: true
             });
-            document.getElementById('searchBtn').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
-            document.getElementById('applyFilter').onclick = () => handleSearch(document.getElementById('itemSearch').value.trim());
-            document.getElementById('resetFilter').onclick = () => {
-                // Clear the inputs
-                document.getElementById('startDate').value = '';
-                document.getElementById('endDate').value = '';
-                // Remove any start_date/end_date from the URL
-                history.replaceState(null, '', location.pathname);
-            };
-            document.getElementById('itemSearch').addEventListener('keypress', e => {
+
+            document.getElementById('itemSearch').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') handleSearch(e.target.value.trim());
             });
+            document.getElementById('searchBtn').onclick = function() {
+                handleSearch(document.getElementById('itemSearch').value.trim());
+            };
+            document.getElementById('applyFilter').onclick = function() {
+                handleSearch(document.getElementById('itemSearch').value.trim());
+            };
+            document.getElementById('resetFilter').onclick = function() {
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+                document.getElementById('dateRangeContainer').style.display = 'none';
+                currentTimeframe = 7;
+                history.replaceState(null, '', location.pathname);
+                document.querySelectorAll('.wv-pill-group .wv-btn-pill').forEach(function(b) {
+                    b.classList.remove('active');
+                });
+                document.getElementById('btn7').classList.add('active');
+                var nm = document.getElementById('itemSearch').value.trim();
+                if (nm) handleSearch(nm);
+            };
 
-            const initItem = '{{ item_name }}';
-            const urlParams = new URLSearchParams(window.location.search);
-            const sParam = urlParams.get('start_date');
-            const eParam = urlParams.get('end_date');
-            const presets = [7, 14, 30, 90];
-            const MS_PER_DAY = 24 * 60 * 60 * 1000;
+            // Restore state from URL
+            var initItem = {{ item_name | tojson }};
+            var urlParams = new URLSearchParams(window.location.search);
+            var sParam = urlParams.get('start_date');
+            var eParam = urlParams.get('end_date');
+            var presets = [7, 14, 30, 90];
 
             if (sParam || eParam) {
                 if (sParam && eParam) {
-                    const sDate = new Date(sParam);
-                    const eDate = new Date(eParam);
-                    const diffDays = (eDate - sDate) / MS_PER_DAY;
-                    // Compute lagged 'today'
-                    const today = new Date();
-                    const lagged = new Date(today.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
-                    const lagISO = lagged.toISOString().split('T')[0];
-                    let matched = false;
-                    presets.forEach(d => {
+                    var sDate = new Date(sParam);
+                    var eDate = new Date(eParam);
+                    var diffDays = (eDate - sDate) / MS_PER_DAY;
+                    var today = new Date();
+                    var lagged = new Date(today.getTime() - DEFAULT_LAG_DAYS * MS_PER_DAY);
+                    var lagISO = lagged.toISOString().split('T')[0];
+                    var matched = false;
+                    presets.forEach(function(d) {
                         if (!matched &&
                             Math.abs(diffDays - d) < 0.1 &&
                             eParam === lagISO &&
                             sParam === new Date(lagged.getTime() - d * MS_PER_DAY).toISOString().split('T')[0]
                         ) {
-                            updateTimeframe(d, document.getElementById(`btn${d}`));
+                            updateTimeframe(d, document.getElementById('btn' + d));
                             matched = true;
                         }
                     });
@@ -482,8 +684,6 @@
             if (initItem && initItem !== 'None') {
                 document.getElementById('itemSearch').value = capitalizeWords(initItem);
                 handleSearch(initItem);
-            } else {
-                initializeEmptyCharts();
             }
         };
     </script>

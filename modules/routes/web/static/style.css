@@ -136,11 +136,6 @@ a:hover {
     z-index: 999;
 }
 
-#items-container > div > .item-stats-tooltip {
-    display: block;
-    position: relative;
-    margin: .5em;
-}
 
 .item-header h5 {
     font-size: 1.1em;
@@ -160,13 +155,13 @@ a:hover {
 background-color: var(--bs-body-bg);
 }*/
 
-/* Sidebar */
+/* Sidebar (used by lootpool pages) */
 #filter-sidebar {
     transition: width 0.3s, opacity 0.3s;
     height: calc(100vh - var(--navbar-height));
     position: fixed;
-    top: var(--navbar-height); /* Match navbar height */
-    margin-top: 0; /* Ensure no gap with navbar */
+    top: var(--navbar-height);
+    margin-top: 0;
     right: 0;
     z-index: 1020;
     width: 300px;
@@ -185,6 +180,12 @@ background-color: var(--bs-body-bg);
     transition: width 0.3s, margin-right 0.3s;
 }
 
+#items-container > div > .item-stats-tooltip {
+    display: block;
+    position: relative;
+    margin: .5em;
+}
+
 #items-container.expanded {
     width: 100%;
     transition: width 0.3s;
@@ -194,7 +195,7 @@ background-color: var(--bs-body-bg);
 #collapse-button {
     display: inline-block;
     position: fixed;
-    top: calc(var(--navbar-height) + var(--navbar-button-offset)); /* Offset below navbar */
+    top: calc(var(--navbar-height) + var(--navbar-button-offset));
     right: 310px;
     z-index: 1030;
     transition: right 0.3s;
@@ -291,7 +292,6 @@ background-color: var(--bs-body-bg);
 
     .items-handle {
         width: 320px;
-        /* height:; */
     }
 }
 
@@ -299,8 +299,8 @@ background-color: var(--bs-body-bg);
     #filter-sidebar {
         width: 100%;
         height: auto;
-        top: var(--navbar-height); /* Match navbar height */
-        margin-top: 0; /* Ensure no gap with navbar */
+        top: var(--navbar-height);
+        margin-top: 0;
         right: 0;
     }
 
@@ -330,7 +330,7 @@ background-color: var(--bs-body-bg);
 
     #collapse-button {
         right: 10px;
-        top: calc(var(--navbar-height) + var(--navbar-button-offset)); /* Offset below navbar */
+        top: calc(var(--navbar-height) + var(--navbar-button-offset));
     }
 }
 
@@ -339,7 +339,7 @@ background-color: var(--bs-body-bg);
         width: 300px;
         height: calc(100vh - var(--navbar-height));
         top: var(--navbar-height);
-        margin-top: 0; /* Ensure no gap with navbar */
+        margin-top: 0;
     }
 
     #collapse-button {
@@ -352,14 +352,14 @@ background-color: var(--bs-body-bg);
     #filter-sidebar {
         width: 100%;
         height: auto;
-        top: var(--navbar-height); /* Match navbar height */
-        margin-top: 0; /* Ensure no gap with navbar */
+        top: var(--navbar-height);
+        margin-top: 0;
         right: 0;
     }
 
     #collapse-button {
         right: 10px;
-        top: calc(var(--navbar-height) + var(--navbar-button-offset)); /* Offset below navbar */
+        top: calc(var(--navbar-height) + var(--navbar-button-offset));
     }
 }
 

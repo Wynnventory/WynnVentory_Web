@@ -632,7 +632,7 @@ def get_price_history(
     exclusive_end = end_date + timedelta(days=1)
 
     query_filter: Dict[str, Any] = {
-        'name': item_name,
+        'name': {'$regex': f'^{re.escape(item_name)}$', '$options': 'i'},
         'shiny': shiny,
         '$or': [
             {'item_type': {'$nin': TIERED_TYPES}},
