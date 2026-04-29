@@ -44,14 +44,20 @@
     </div>
 
     <!-- Stats Zone: Identified (skeleton on load) -->
-    <div id="statsIdentified" class="wv-grid-4col mb-3" style="display:none;"></div>
+    <div id="statsIdentifiedHeader" class="wv-section-header" style="display:none;">Identified</div>
+    <div id="statsIdentified" class="wv-grid-7col mb-3" style="display:none;"></div>
 
     <!-- Stats Zone: Unidentified (conditional) -->
     <div id="statsUnidentifiedHeader" class="wv-section-header" style="display:none;">Unidentified</div>
-    <div id="statsUnidentified" class="wv-grid-4col mb-3" style="display:none;"></div>
+    <div id="statsUnidentified" class="wv-grid-7col mb-3" style="display:none;"></div>
+
+    <hr class="wv-divider">
 
     <!-- Skeleton placeholders (visible before data loads) -->
-    <div id="statsSkeleton" class="wv-grid-4col mb-3" style="display:none;">
+    <div id="statsSkeleton" class="wv-grid-7col mb-3" style="display:none;">
+        <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
+        <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
+        <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
         <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
         <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
         <div class="wv-stat-card"><div class="wv-skeleton" style="height:14px;width:60%;margin-bottom:8px;"></div><div class="wv-skeleton" style="height:24px;width:80%;"></div></div>
@@ -244,6 +250,7 @@
             idEl.appendChild(buildStatCard('Highest Price', agg.highest));
             idEl.appendChild(buildCountCard('Listings', agg.total_count - agg.unid_count));
             idEl.style.display = '';
+            document.getElementById('statsIdentifiedHeader').style.display = '';
 
             // Unidentified stats (show only if any value > 0)
             var hasUnid = (agg.unid_avg > 0) || (agg.unid_mid80 > 0) ||
@@ -467,6 +474,7 @@
             if (priceChart) { priceChart.destroy(); priceChart = null; }
             if (volumeChart) { volumeChart.destroy(); volumeChart = null; }
             document.getElementById('statsSkeleton').style.display = '';
+            document.getElementById('statsIdentifiedHeader').style.display = 'none';
             document.getElementById('statsIdentified').style.display = 'none';
             document.getElementById('statsUnidentified').style.display = 'none';
             document.getElementById('statsUnidentifiedHeader').style.display = 'none';
@@ -480,6 +488,7 @@
 
         function showEmpty() {
             document.getElementById('statsSkeleton').style.display = 'none';
+            document.getElementById('statsIdentifiedHeader').style.display = 'none';
             document.getElementById('statsIdentified').style.display = 'none';
             document.getElementById('statsUnidentified').style.display = 'none';
             document.getElementById('statsUnidentifiedHeader').style.display = 'none';
