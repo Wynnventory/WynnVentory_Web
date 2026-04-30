@@ -735,12 +735,12 @@ def get_historic_average(
             'unidentified_average_price': {'$round': ['$unidentified_avg', 2]},
             'unidentified_average_mid_80_percent_price': {'$round': ['$unidentified_mid80_avg', 2]},
             'unidentified_count': {'$toInt': '$unidentified_count'},
-            'average_p50': {'$round': ['$avg_p50', 2]},
-            'unidentified_average_p50': {'$round': ['$unidentified_avg_p50', 2]},
-            'p50_ema_price': {
+            'p50_price': {'$round': ['$avg_p50', 2]},
+            'unidentified_p50_price': {'$round': ['$unidentified_avg_p50', 2]},
+            'average_p50_ema_price': {
                 '$round': ['$average_p50_ema_price', 2]
             },
-            'unidentified_p50_ema_price': {
+            'unidentified_average_p50_ema_price': {
                 '$round': ['$unidentified_average_p50_ema_price', 2]
             },
         }}
