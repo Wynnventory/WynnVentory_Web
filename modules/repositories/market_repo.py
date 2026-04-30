@@ -696,6 +696,9 @@ def get_historic_average(
 
     pipeline = [
         {'$match': query},
+
+        {'$sort': {'timestamp': 1}},
+
         {'$group': {
             '_id': None,
             'name': {'$first': '$name'},
@@ -711,7 +714,13 @@ def get_historic_average(
             'avg_mid80': {'$avg': '$average_mid_80_percent_price'},
             'unidentified_avg': {'$avg': '$unidentified_average_price'},
             'unidentified_mid80_avg': {'$avg': '$unidentified_average_mid_80_percent_price'},
-            'unidentified_count': {'$sum': '$unidentified_count'}
+            'unidentified_count': {'$sum': '$unidentified_count'},
+            'avg_p50': {'$avg': '$p50_price'},
+            'unidentified_avg_p50': {'$avg': '$unidentified_p50_price'},
+            'average_p50_ema_price': {'$last': '$average_p50_ema_price'},
+            'unidentified_average_p50_ema_price': {
+                '$last': '$unidentified_average_p50_ema_price'
+            },
         }},
         {'$project': {
             '_id': 0,
@@ -725,7 +734,15 @@ def get_historic_average(
             'average_mid_80_percent_price': {'$round': ['$avg_mid80', 2]},
             'unidentified_average_price': {'$round': ['$unidentified_avg', 2]},
             'unidentified_average_mid_80_percent_price': {'$round': ['$unidentified_mid80_avg', 2]},
-            'unidentified_count': {'$toInt': '$unidentified_count'}
+            'unidentified_count': {'$toInt': '$unidentified_count'},
+            'average_p50': {'$round': ['$avg_p50', 2]},
+            'unidentified_average_p50': {'$round': ['$unidentified_avg_p50', 2]},
+            'p50_ema_price': {
+                '$round': ['$average_p50_ema_price', 2]
+            },
+            'unidentified_p50_ema_price': {
+                '$round': ['$unidentified_average_p50_ema_price', 2]
+            },
         }}
     ]
 
