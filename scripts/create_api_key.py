@@ -18,7 +18,7 @@ SCOPES = [
     # "write:raidpool",
     "read:market",
     # "write:market",
-    # "read:market_archive",
+    "read:market_archive",
     # "write:market_archive"
 ]
 
