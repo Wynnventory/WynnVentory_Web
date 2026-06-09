@@ -135,6 +135,8 @@ def api_key():
         return reject("Please enter your Discord username.")
     if email and not is_valid_email(email):
         return reject("Please enter a valid email address.")
+    if not description:
+        return reject("Please describe the intended use of this key.")
     if not selected_scopes:
         return reject("Please select at least one scope.")
     if any(scope not in SELF_SERVICE_SCOPES for scope in selected_scopes):

@@ -96,10 +96,22 @@ class TestApiKeyRoute(unittest.TestCase):
         mock_gen.assert_not_called()
 
     @patch("modules.routes.web.web.generate_and_store_key", return_value="X")
+    def test_post_missing_description_is_rejected(self, mock_gen):
+        resp = self.client.post("/developer/api-key", data={
+            "owner": "alice",
+            "discord": "alice#4321",
+            "scopes": ["read:market"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("intended use", resp.get_data(as_text=True))
+        mock_gen.assert_not_called()
+
+    @patch("modules.routes.web.web.generate_and_store_key", return_value="X")
     def test_post_write_scope_is_rejected(self, mock_gen):
         resp = self.client.post("/developer/api-key", data={
             "owner": "alice",
             "discord": "alice#4321",
+            "description": "my app",
             "scopes": ["write:market"],
         })
         self.assertEqual(resp.status_code, 200)
@@ -111,6 +123,7 @@ class TestApiKeyRoute(unittest.TestCase):
         resp = self.client.post("/developer/api-key", data={
             "owner": "alice",
             "discord": "alice#4321",
+            "description": "my app",
         })
         self.assertEqual(resp.status_code, 200)
         self.assertIn("at least one scope", resp.get_data(as_text=True))
@@ -121,6 +134,7 @@ class TestApiKeyRoute(unittest.TestCase):
         resp = self.client.post("/developer/api-key", data={
             "owner": "alice",
             "discord": "alice#4321",
+            "description": "my app",
             "scopes": ["read:market", "write:market"],
         })
         self.assertEqual(resp.status_code, 200)
