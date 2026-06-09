@@ -14,20 +14,20 @@ from modules.models.collection_types import Collection
 # read-only and only read access is ever granted here.
 SELF_SERVICE_SCOPE_DETAILS = {
     "read:market": {
-        "label": "Trade Market",
-        "description": "Current trade market listings and live item prices.",
+        "label": "Live Trade Market",
+        "description": "I need access to current trade market listings and live item prices.",
     },
     "read:market_archive": {
-        "label": "Market Archive",
-        "description": "Historical market prices and long-term price trends.",
+        "label": "Historic Trade Market Archive",
+        "description": "I need access to historical market prices and long-term price trends.",
     },
     "read:lootpool": {
-        "label": "Lootpool",
-        "description": "Current weekly Lootrun loot pool contents.",
+        "label": "Lootrun Rewards",
+        "description": "I need access to current / historic lootrun rewards.",
     },
     "read:raidpool": {
-        "label": "Raidpool",
-        "description": "Current weekly raid reward pool and gambits.",
+        "label": "Raid Rewards",
+        "description": "I need access to current / historic raid rewards and gambits.",
     },
 }
 
