@@ -40,17 +40,17 @@
         </div>
 
         <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="email" name="email"
-                   value="{{ form.email if form else '' }}" required>
-            <div class="form-text">Used for contact about your key. Not shared.</div>
+            <label for="discord" class="form-label">Discord username</label>
+            <input type="text" class="form-control" id="discord" name="discord"
+                   value="{{ form.discord if form else '' }}" required>
+            <div class="form-text">So we can reach you on our Discord if needed.</div>
         </div>
 
         <div class="mb-3">
-            <label for="discord" class="form-label">Discord username <span class="text-secondary">(optional)</span></label>
-            <input type="text" class="form-control" id="discord" name="discord"
-                   value="{{ form.discord if form else '' }}">
-            <div class="form-text">So we can reach you on our Discord if needed.</div>
+            <label for="email" class="form-label">Email <span class="text-secondary">(optional)</span></label>
+            <input type="email" class="form-control" id="email" name="email"
+                   value="{{ form.email if form else '' }}">
+            <div class="form-text">Used for contact about your key. Not shared.</div>
         </div>
 
         <div class="mb-3">

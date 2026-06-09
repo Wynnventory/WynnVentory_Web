@@ -131,7 +131,9 @@ def api_key():
 
     if not owner:
         return reject("Please enter a project or application name.")
-    if not is_valid_email(email):
+    if not discord:
+        return reject("Please enter your Discord username.")
+    if email and not is_valid_email(email):
         return reject("Please enter a valid email address.")
     if not selected_scopes:
         return reject("Please select at least one scope.")
@@ -139,7 +141,7 @@ def api_key():
         return reject("Invalid scope selected.")
 
     token = generate_and_store_key(
-        owner, description, selected_scopes, email=email, discord=discord or None
+        owner, description, selected_scopes, email=email or None, discord=discord
     )
     return render_template(
         "developer/api_key.html",
