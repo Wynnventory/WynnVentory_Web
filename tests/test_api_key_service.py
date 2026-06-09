@@ -66,6 +66,16 @@ class TestGenerateAndStoreKey(BaseTestCase):
         doc = self.mock_collection.insert_one.call_args[0][0]
         self.assertNotIn("email", doc)
 
+    def test_discord_included_when_provided(self):
+        api_key_service.generate_and_store_key("bob", "d", ["read:market"], discord="bob#1234")
+        doc = self.mock_collection.insert_one.call_args[0][0]
+        self.assertEqual(doc["discord"], "bob#1234")
+
+    def test_discord_omitted_when_not_provided(self):
+        api_key_service.generate_and_store_key("bob", "d", ["read:market"])
+        doc = self.mock_collection.insert_one.call_args[0][0]
+        self.assertNotIn("discord", doc)
+
 
 if __name__ == "__main__":
     unittest.main()

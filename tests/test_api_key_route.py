@@ -42,7 +42,23 @@ class TestApiKeyRoute(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertIn("TEST-TOKEN-123", resp.get_data(as_text=True))
         mock_gen.assert_called_once_with(
-            "alice", "my app", ["read:market", "read:lootpool"], email="alice@example.com"
+            "alice", "my app", ["read:market", "read:lootpool"],
+            email="alice@example.com", discord=None,
+        )
+
+    @patch("modules.routes.web.web.generate_and_store_key", return_value="TEST-TOKEN-123")
+    def test_post_passes_discord_when_provided(self, mock_gen):
+        resp = self.client.post("/developer/api-key", data={
+            "owner": "alice",
+            "email": "alice@example.com",
+            "discord": "alice#4321",
+            "description": "my app",
+            "scopes": ["read:market"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        mock_gen.assert_called_once_with(
+            "alice", "my app", ["read:market"],
+            email="alice@example.com", discord="alice#4321",
         )
 
     @patch("modules.routes.web.web.generate_and_store_key", return_value="X")
@@ -53,7 +69,7 @@ class TestApiKeyRoute(unittest.TestCase):
             "scopes": ["read:market"],
         })
         self.assertEqual(resp.status_code, 200)
-        self.assertIn("Please enter a name", resp.get_data(as_text=True))
+        self.assertIn("project or application name", resp.get_data(as_text=True))
         mock_gen.assert_not_called()
 
     @patch("modules.routes.web.web.generate_and_store_key", return_value="X")

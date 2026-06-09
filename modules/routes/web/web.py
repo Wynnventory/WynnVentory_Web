@@ -8,6 +8,7 @@ from modules.repositories.market_repo import TIERED_TYPES
 from modules.services import base_pool_service, market_service, raidpool_service
 from modules.services.api_key_service import (
     SELF_SERVICE_SCOPES,
+    SELF_SERVICE_SCOPE_DETAILS,
     generate_and_store_key,
     is_valid_email,
 )
@@ -104,16 +105,18 @@ def emerald_calculator():
 @web_bp.route("/developer/api-key", methods=["GET", "POST"])
 def api_key():
     if request.method == "GET":
-        return render_template("developer/api_key.html", scopes=SELF_SERVICE_SCOPES)
+        return render_template("developer/api_key.html", scope_details=SELF_SERVICE_SCOPE_DETAILS)
 
     owner = (request.form.get("owner") or "").strip()
     email = (request.form.get("email") or "").strip()
+    discord = (request.form.get("discord") or "").strip()
     description = (request.form.get("description") or "").strip()
     selected_scopes = request.form.getlist("scopes")
 
     form = {
         "owner": owner,
         "email": email,
+        "discord": discord,
         "description": description,
         "selected_scopes": selected_scopes,
     }
@@ -121,13 +124,13 @@ def api_key():
     def reject(message):
         return render_template(
             "developer/api_key.html",
-            scopes=SELF_SERVICE_SCOPES,
+            scope_details=SELF_SERVICE_SCOPE_DETAILS,
             error=message,
             form=form,
         )
 
     if not owner:
-        return reject("Please enter a name.")
+        return reject("Please enter a project or application name.")
     if not is_valid_email(email):
         return reject("Please enter a valid email address.")
     if not selected_scopes:
@@ -135,10 +138,12 @@ def api_key():
     if any(scope not in SELF_SERVICE_SCOPES for scope in selected_scopes):
         return reject("Invalid scope selected.")
 
-    token = generate_and_store_key(owner, description, selected_scopes, email=email)
+    token = generate_and_store_key(
+        owner, description, selected_scopes, email=email, discord=discord or None
+    )
     return render_template(
         "developer/api_key.html",
-        scopes=SELF_SERVICE_SCOPES,
+        scope_details=SELF_SERVICE_SCOPE_DETAILS,
         token=token,
         form=form,
     )
