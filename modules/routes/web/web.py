@@ -111,14 +111,12 @@ def api_key():
     email = (request.form.get("email") or "").strip()
     discord = (request.form.get("discord") or "").strip()
     description = (request.form.get("description") or "").strip()
-    selected_scopes = request.form.getlist("scopes")
 
     form = {
         "owner": owner,
         "email": email,
         "discord": discord,
         "description": description,
-        "selected_scopes": selected_scopes,
     }
 
     def reject(message):
@@ -137,13 +135,11 @@ def api_key():
         return reject("Please enter a valid email address.")
     if not description:
         return reject("Please describe the intended use of this key.")
-    if not selected_scopes:
-        return reject("Please select at least one scope.")
-    if any(scope not in SELF_SERVICE_SCOPES for scope in selected_scopes):
-        return reject("Invalid scope selected.")
 
+    # Every self-service key is granted the full read-only scope set; users
+    # don't choose scopes.
     token = generate_and_store_key(
-        owner, description, selected_scopes, email=email or None, discord=discord
+        owner, description, SELF_SERVICE_SCOPES, email=email or None, discord=discord
     )
     return render_template(
         "developer/api_key.html",
