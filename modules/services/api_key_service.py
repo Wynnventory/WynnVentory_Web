@@ -15,10 +15,13 @@ SELF_SERVICE_SCOPES = [
     "read:raidpool",
 ]
 
+# Intentionally loose: only checks for a basic local@domain.tld shape, no DNS
+# or deliverability. Accepts edge cases like double-dots (e.g. "a@b..c"); that's
+# acceptable for a non-critical sanity check at the API-key boundary.
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
-def is_valid_email(email: str) -> bool:
+def is_valid_email(email: str | None) -> bool:
     """Loose, good-enough email shape check (no DNS / deliverability)."""
     return bool(email) and bool(_EMAIL_RE.match(email))
 

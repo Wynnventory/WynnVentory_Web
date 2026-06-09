@@ -2,24 +2,27 @@ import hashlib
 import os
 import sys
 import unittest
-from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from tests.test_base import BaseTestCase
 
 from modules.services import api_key_service
 
 
-class TestSelfServiceScopes(unittest.TestCase):
+class TestSelfServiceScopes(BaseTestCase):
     def test_only_read_scopes_are_self_serviceable(self):
         # No write scope may ever appear in the self-service allowlist.
         self.assertTrue(all(s.startswith("read:") for s in api_key_service.SELF_SERVICE_SCOPES))
+        # Deliberate change-detector: any scope added/removed must force a
+        # conscious update here so the self-service allowlist can't drift silently.
         self.assertEqual(
             set(api_key_service.SELF_SERVICE_SCOPES),
             {"read:market", "read:market_archive", "read:lootpool", "read:raidpool"},
         )
 
 
-class TestIsValidEmail(unittest.TestCase):
+class TestIsValidEmail(BaseTestCase):
     def test_accepts_normal_address(self):
         self.assertTrue(api_key_service.is_valid_email("dev@example.com"))
 
@@ -32,15 +35,10 @@ class TestIsValidEmail(unittest.TestCase):
         self.assertFalse(api_key_service.is_valid_email("foo@bar"))
 
 
-class TestGenerateAndStoreKey(unittest.TestCase):
+class TestGenerateAndStoreKey(BaseTestCase):
     def setUp(self):
-        self.mock_collection = MagicMock()
-        patcher = patch(
-            'modules.services.api_key_service.get_collection',
-            return_value=self.mock_collection,
-        )
-        self.addCleanup(patcher.stop)
-        patcher.start()
+        super().setUp()
+        self.mock_collection = self.setup_collection_mock('modules.services.api_key_service')
 
     def test_returns_token_whose_hash_is_stored(self):
         token = api_key_service.generate_and_store_key(
