@@ -78,6 +78,27 @@ class TestApiKeyRoute(unittest.TestCase):
         self.assertIn("Invalid scope", resp.get_data(as_text=True))
         mock_gen.assert_not_called()
 
+    @patch("modules.routes.web.web.generate_and_store_key", return_value="X")
+    def test_post_no_scopes_is_rejected(self, mock_gen):
+        resp = self.client.post("/developer/api-key", data={
+            "owner": "alice",
+            "email": "alice@example.com",
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("at least one scope", resp.get_data(as_text=True))
+        mock_gen.assert_not_called()
+
+    @patch("modules.routes.web.web.generate_and_store_key", return_value="X")
+    def test_post_mixed_valid_and_write_scope_is_rejected(self, mock_gen):
+        resp = self.client.post("/developer/api-key", data={
+            "owner": "alice",
+            "email": "alice@example.com",
+            "scopes": ["read:market", "write:market"],
+        })
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("Invalid scope", resp.get_data(as_text=True))
+        mock_gen.assert_not_called()
+
 
 if __name__ == "__main__":
     unittest.main()
