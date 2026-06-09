@@ -6,6 +6,11 @@ from modules.models.collection_types import Collection
 from modules.models.sort_options import SortOption
 from modules.repositories.market_repo import TIERED_TYPES
 from modules.services import base_pool_service, market_service, raidpool_service
+from modules.services.api_key_service import (
+    SELF_SERVICE_SCOPES,
+    generate_and_store_key,
+    is_valid_email,
+)
 from modules.utils.time_validation import get_week_range
 
 SUBTYPE_OPTIONS = {
@@ -94,6 +99,49 @@ def ranking():
 @web_bp.route("/emerald_calculator")
 def emerald_calculator():
     return render_template("emerald_calculator.html")
+
+
+@web_bp.route("/developer/api-key", methods=["GET", "POST"])
+def api_key():
+    if request.method == "GET":
+        return render_template("developer/api_key.html", scopes=SELF_SERVICE_SCOPES)
+
+    owner = (request.form.get("owner") or "").strip()
+    email = (request.form.get("email") or "").strip()
+    description = (request.form.get("description") or "").strip()
+    selected_scopes = request.form.getlist("scopes")
+
+    form = {
+        "owner": owner,
+        "email": email,
+        "description": description,
+        "selected_scopes": selected_scopes,
+    }
+
+    def reject(message):
+        return render_template(
+            "developer/api_key.html",
+            scopes=SELF_SERVICE_SCOPES,
+            error=message,
+            form=form,
+        )
+
+    if not owner:
+        return reject("Please enter a name.")
+    if not is_valid_email(email):
+        return reject("Please enter a valid email address.")
+    if not selected_scopes:
+        return reject("Please select at least one scope.")
+    if any(scope not in SELF_SERVICE_SCOPES for scope in selected_scopes):
+        return reject("Invalid scope selected.")
+
+    token = generate_and_store_key(owner, description, selected_scopes, email=email)
+    return render_template(
+        "developer/api_key.html",
+        scopes=SELF_SERVICE_SCOPES,
+        token=token,
+        form=form,
+    )
 
 
 @web_bp.route('/listings', defaults={'item_name': None})

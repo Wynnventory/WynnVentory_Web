@@ -1,10 +1,6 @@
 import base64
-import hashlib
-import secrets
-from datetime import datetime, timezone
 
-from modules.db import get_collection
-from modules.models.collection_types import Collection
+from modules.services.api_key_service import generate_and_store_key
 
 # #######################
 # # API PARAMS
@@ -21,23 +17,6 @@ SCOPES = [
     "read:market_archive",
     # "write:market_archive"
 ]
-
-coll = get_collection(Collection.API_KEYS)
-
-
-def generate_and_store_key(owner: str, description: str, scopes: list[str]) -> str:
-    raw_token = secrets.token_urlsafe(32)
-    key_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-
-    coll.insert_one({
-        "key_hash": key_hash,
-        "owner": owner,
-        "description": description,
-        "scopes": scopes,
-        "created_at": datetime.now(timezone.utc),
-        "revoked": False
-    })
-    return raw_token
 
 
 def obfuscate_key(raw_key: str) -> str:

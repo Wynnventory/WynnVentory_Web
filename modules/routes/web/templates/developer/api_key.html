@@ -1,0 +1,69 @@
+{% extends '/components/_base.html' %}
+
+{% block title %}API Key{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 720px;">
+    <h1 class="mb-3">Generate an API Key</h1>
+    <p class="text-secondary">
+        Create a read-only API key to access the Wynnventory API. The key is shown
+        <strong>once</strong> — copy it somewhere safe before leaving the page.
+    </p>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert">{{ error }}</div>
+    {% endif %}
+
+    {% if token %}
+    <div class="alert alert-success" role="alert">
+        <p class="mb-2"><strong>Your new API key (shown once — save it now):</strong></p>
+        <div class="input-group">
+            <input type="text" class="form-control font-monospace" id="generatedToken"
+                   value="{{ token }}" readonly>
+            <button class="btn btn-outline-secondary" type="button"
+                    onclick="navigator.clipboard.writeText(document.getElementById('generatedToken').value)">
+                Copy
+            </button>
+        </div>
+        <p class="mt-2 mb-0 small">
+            Send it as the <code>X-API-Key</code> header (or <code>Authorization: Api-Key &lt;token&gt;</code>).
+        </p>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('web.api_key') }}">
+        <div class="mb-3">
+            <label for="owner" class="form-label">Name</label>
+            <input type="text" class="form-control" id="owner" name="owner"
+                   value="{{ form.owner if form else '' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email"
+                   value="{{ form.email if form else '' }}" required>
+            <div class="form-text">Used for contact about your key. Not shared.</div>
+        </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Description / intended use</label>
+            <textarea class="form-control" id="description" name="description"
+                      rows="2">{{ form.description if form else '' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Scopes (read-only)</label>
+            {% for scope in scopes %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="scopes"
+                       value="{{ scope }}" id="scope_{{ loop.index }}"
+                       {% if form and scope in form.selected_scopes %}checked{% endif %}>
+                <label class="form-check-label" for="scope_{{ loop.index }}">{{ scope }}</label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Generate Key</button>
+    </form>
+</div>
+{% endblock %}
