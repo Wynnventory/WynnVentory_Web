@@ -2,7 +2,7 @@ import math
 from datetime import datetime, timezone
 from typing import Any
 
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, request, url_for
 
 from modules.auth import require_api_key, record_api_usage
 from modules.config import Config
@@ -35,6 +35,12 @@ def create_app():
         bp.after_request(record_api_usage)
         app.register_blueprint(bp)
 
+    # API v2 — the standardized, versioned surface (see docs/api-v2-conventions.md)
+    from modules.routes.api.v2 import build_v2_blueprint
+    from modules.routes.api.v2.errors import register_error_handlers
+    app.register_blueprint(build_v2_blueprint())
+    register_error_handlers(app)
+
     from modules.db import ensure_debug_indexes
     ensure_debug_indexes()
 
@@ -44,9 +50,16 @@ def create_app():
         Config.MIN_SUPPORTED_VERSION,
     )
 
-    # 404 Error
+    # 404 Error — JSON for the v2 API, homepage redirect everywhere else
     @app.errorhandler(404)
     def page_not_found(error):
+        if request.path.startswith('/api/v2'):
+            from modules.routes.api.v2.errors import error_response
+            return error_response(
+                'not_found',
+                f'No such endpoint: {request.method} {request.path}',
+                404,
+            )
         return redirect(url_for('web.index'))
 
     @app.template_filter('emerald_format')
