@@ -53,7 +53,7 @@ def create_app():
     # 404 Error — JSON for the v2 API, homepage redirect everywhere else
     @app.errorhandler(404)
     def page_not_found(error):
-        if request.path.startswith('/api/v2'):
+        if request.path == '/api/v2' or request.path.startswith('/api/v2/'):
             from modules.routes.api.v2.errors import error_response
             return error_response(
                 'not_found',

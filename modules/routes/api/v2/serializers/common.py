@@ -15,6 +15,8 @@ _ITEM_TYPE_FROM_STORAGE = {
     'PowderItem': 'powder',
     'AmplifierItem': 'amplifier',
     'EmeraldPouchItem': 'emerald_pouch',
+    'AspectItem': 'aspect',
+    'TomeItem': 'tome',
 }
 
 # v2 label -> storage item_type (only labels accepted as filters)
