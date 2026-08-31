@@ -130,6 +130,12 @@ class TestSpecificPool(PoolsTestBase):
         details = resp.get_json()['error']['details']
         self.assertEqual(details[0]['field'], 'week')
 
+    def test_unknown_query_param_on_current_is_a_400(self):
+        resp = self.request('GET', '/api/v2/lootpools/current?pagesize=3',
+                            token='reader')
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.get_json()['error']['code'], 'validation_error')
+
     def test_current_pool_delegates_to_week_lookup(self):
         mock = self.patch_service('get_specific_pool',
                                   return_value=dict(RAW_POOL))

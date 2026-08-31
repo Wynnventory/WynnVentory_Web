@@ -49,6 +49,10 @@ class BodyModel(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
 
+class EmptyQuery(QueryModel):
+    """For endpoints that take no query parameters — any parameter is a 400."""
+
+
 class PaginationParams(QueryModel):
     page: int = Field(1, ge=1)
     page_size: int = Field(50, ge=1, le=200)

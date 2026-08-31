@@ -14,7 +14,7 @@ RAW_LISTING = {
     '_id': 'should-never-leak',
     'name': 'Divzer',
     'rarity': 'Legendary',
-    'item_type': 'Weapon',
+    'item_type': 'GearItem',
     'type': 'Bow',
     'tier': None,
     'unidentified': False,
@@ -56,7 +56,7 @@ class TestListings(MarketTestBase):
                          {'page': 1, 'page_size': 50,
                           'total_items': 1, 'total_pages': 1})
         item = body['data'][0]
-        self.assertEqual(item['item_type'], 'weapon')
+        self.assertEqual(item['item_type'], 'gear')
         self.assertEqual(item['subtype'], 'bow')
         self.assertEqual(item['rarity'], 'legendary')
         self.assertFalse(item['shiny'])
@@ -91,6 +91,14 @@ class TestListings(MarketTestBase):
         self.assertEqual(kwargs['sub_type'], 'Bow')
         self.assertEqual(kwargs['sort_option'].value, 'listing_price_asc')
 
+    def test_gear_filter_translates_to_storage(self):
+        mock = self.patch_service('get_item_listings', return_value={
+            'page': 1, 'page_size': 50, 'count': 0, 'total': 0, 'items': [],
+        })
+        self.request('GET', '/api/v2/market/listings?item_type=gear',
+                     token='reader')
+        self.assertEqual(mock.call_args.kwargs['item_type'], 'GearItem')
+
     def test_unknown_query_param_is_a_400(self):
         resp = self.request('GET', '/api/v2/market/listings?itemType=Weapon',
                             token='reader')
@@ -110,6 +118,18 @@ class TestListings(MarketTestBase):
         resp = self.request('GET', '/api/v2/market/listings?item_type=Weapon',
                             token='reader')
         self.assertEqual(resp.status_code, 400)
+
+    def test_listing_item_type_values_round_trip_as_filters(self):
+        # Every label the serializer can emit for market storage values must
+        # be accepted back by the listings filter.
+        from modules.routes.api.v2.serializers.common import (
+            ITEM_TYPE_TO_STORAGE, item_type_from_storage)
+
+        for storage_value in ('GearItem', 'MaterialItem', 'IngredientItem',
+                              'PowderItem', 'RuneItem', 'DungeonKeyItem',
+                              'AmplifierItem', 'EmeraldPouchItem'):
+            label = item_type_from_storage(storage_value)
+            self.assertEqual(ITEM_TYPE_TO_STORAGE[label], storage_value)
 
     def test_page_size_zero_is_a_400(self):
         resp = self.request('GET', '/api/v2/market/listings?page_size=0',

@@ -207,6 +207,7 @@ paths:
                   data: { type: object, additionalProperties: true }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '502': { $ref: '#/components/responses/UpstreamUnavailable' }
 
   /items/batch:
     post:
@@ -242,6 +243,7 @@ paths:
                       type: [object, 'null']
         '400': { $ref: '#/components/responses/ValidationError' }
         '401': { $ref: '#/components/responses/Unauthorized' }
+        '502': { $ref: '#/components/responses/UpstreamUnavailable' }
 
   /aspects/{class_name}/{aspect_name}:
     get:
@@ -263,6 +265,7 @@ paths:
                   data: { type: object, additionalProperties: true }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '502': { $ref: '#/components/responses/UpstreamUnavailable' }
 
   /lootpools:
     get:
@@ -445,7 +448,7 @@ components:
   schemas:
     ItemTypeLabel:
       type: string
-      enum: [weapon, armour, accessory, material, powder, amplifier, emerald_pouch]
+      enum: [gear, material, ingredient, powder, rune, dungeon_key, amplifier, emerald_pouch]
     BoolParam:
       type: string
       enum: ['true', 'false', '1', '0']
@@ -473,7 +476,7 @@ components:
           properties:
             code:
               type: string
-              enum: [validation_error, missing_api_key, invalid_api_key, missing_scope, forbidden, not_found, method_not_allowed, internal_error]
+              enum: [validation_error, missing_api_key, invalid_api_key, missing_scope, forbidden, not_found, method_not_allowed, upstream_unavailable, internal_error]
             message: { type: string }
             details:
               type: array
@@ -605,6 +608,11 @@ components:
           schema: { $ref: '#/components/schemas/Error' }
     NotFound:
       description: The named resource does not exist.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    UpstreamUnavailable:
+      description: The upstream Wynncraft API could not be reached — retry later.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }

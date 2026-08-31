@@ -64,6 +64,33 @@ class TestListingsParams(ApiTestBase):
         self.assertEqual(resp.get_json()['page_size'], 1000)
 
 
+class TestRarityTierFilterCombination(ApiTestBase):
+    def test_rarity_normal_with_tier_keeps_both_filters(self):
+        # Regression: the tier fallback used to overwrite the rarity=normal
+        # $or clause, silently dropping the rarity filter.
+        coll = shared_collection_mock()
+        coll.count_documents.return_value = 0
+        cursor = MagicMock()
+        cursor.sort.return_value.skip.return_value.limit.return_value = iter([])
+        coll.find.return_value = cursor
+
+        self.add_key('reader', scopes=ALL_SCOPES)
+        resp = self.request(
+            'GET',
+            '/api/trademarket/listings/Oak?rarity=normal&tier=3',
+            token='reader')
+        self.assertEqual(resp.status_code, 200)
+
+        query_filter = coll.find.call_args.kwargs['filter']
+        self.assertIn('$and', query_filter)
+        rarity_clause, tier_clause = query_filter['$and']
+        self.assertIn({'rarity': {'$eq': None}}, rarity_clause['$or'])
+        self.assertIn({'item_type': {'$in': ['MaterialItem', 'PowderItem',
+                                             'AmplifierItem',
+                                             'EmeraldPouchItem']},
+                       'tier': 3}, tier_clause['$or'])
+
+
 class TestTierOnOtherMarketRoutes(ApiTestBase):
     def setUp(self):
         super().setUp()

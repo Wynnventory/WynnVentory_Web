@@ -5,27 +5,35 @@ mod-submitted vocabulary ("Weapon", "MaterialItem", ...). These tables are the
 single translation point between the two.
 """
 
-# storage item_type -> v2 label
+# storage item_type -> v2 label. The market storage vocabulary is the
+# *Item family (see the listings filter UI and scripts/cleanup_duplicate_
+# listings.py); the bare gear labels appear in pool submissions.
 _ITEM_TYPE_FROM_STORAGE = {
-    'Weapon': 'weapon',
-    'Armour': 'armour',
-    'Accessory': 'accessory',
     'GearItem': 'gear',
     'MaterialItem': 'material',
+    'IngredientItem': 'ingredient',
     'PowderItem': 'powder',
+    'RuneItem': 'rune',
+    'DungeonKeyItem': 'dungeon_key',
     'AmplifierItem': 'amplifier',
     'EmeraldPouchItem': 'emerald_pouch',
     'AspectItem': 'aspect',
     'TomeItem': 'tome',
+    'Weapon': 'weapon',
+    'Armour': 'armour',
+    'Accessory': 'accessory',
 }
 
-# v2 label -> storage item_type (only labels accepted as filters)
+# v2 label -> storage item_type. Only labels stored in the market collection
+# are accepted as listings filters, so every value read off a v2 listing
+# round-trips as a filter.
 ITEM_TYPE_TO_STORAGE = {
-    'weapon': 'Weapon',
-    'armour': 'Armour',
-    'accessory': 'Accessory',
+    'gear': 'GearItem',
     'material': 'MaterialItem',
+    'ingredient': 'IngredientItem',
     'powder': 'PowderItem',
+    'rune': 'RuneItem',
+    'dungeon_key': 'DungeonKeyItem',
     'amplifier': 'AmplifierItem',
     'emerald_pouch': 'EmeraldPouchItem',
 }

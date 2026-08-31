@@ -12,8 +12,8 @@ from modules.schemas.v2.common import (
 )
 
 ItemTypeLabel = Literal[
-    'weapon', 'armour', 'accessory',
-    'material', 'powder', 'amplifier', 'emerald_pouch',
+    'gear', 'material', 'ingredient', 'powder',
+    'rune', 'dungeon_key', 'amplifier', 'emerald_pouch',
 ]
 
 
