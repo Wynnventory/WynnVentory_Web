@@ -97,6 +97,12 @@ class ApiTestBase(unittest.TestCase):
         self.service_mocks = _service_mocks
         _keys_by_hash.clear()
         _keys_by_hash[MOD_KEY_HASH] = {'owner': 'mod', 'scopes': list(ALL_SCOPES)}
+        # Reset shared upstream-service mocks to their defaults.
+        for mock in _service_mocks.values():
+            mock.reset_mock(return_value=False, side_effect=True)
+        _service_mocks['fetch_item'].return_value = {'name': 'Test Item'}
+        _service_mocks['search_items'].return_value = {'items': [], 'next_page': None}
+        _service_mocks['fetch_aspect'].return_value = {'name': 'Test Aspect'}
 
     def add_key(self, token, scopes, owner='tester'):
         token_hash = hashlib.sha256(token.encode()).hexdigest()
