@@ -34,6 +34,15 @@ _keys_by_hash = {}
 _app = None
 _service_mocks = {}
 
+# The patched Mongo client. Every non-auth collection resolves to the same
+# child mock: mongo_client_mock.get_default_database()[<any name>].
+mongo_client_mock = MagicMock()
+
+
+def shared_collection_mock():
+    """The mock object all repository collections resolve to."""
+    return mongo_client_mock.get_default_database.return_value.__getitem__.return_value
+
 
 def _find_key_doc(query, *args, **kwargs):
     doc = _keys_by_hash.get(query.get('key_hash'))
@@ -50,7 +59,7 @@ def get_test_app():
 
     # All repository code reaches Mongo through modules.db.get_collection,
     # which resolves get_client at call time — one patch blocks every collection.
-    patch('modules.db.get_client', return_value=MagicMock()).start()
+    patch('modules.db.get_client', return_value=mongo_client_mock).start()
     patch('modules.db.ensure_debug_indexes').start()
 
     # modules.auth holds its own get_collection reference for key lookups.

@@ -5,7 +5,7 @@ class SortOption(str, Enum):
     TIMESTAMP_DESC = "timestamp_desc"
     TIMESTAMP_ASC = "timestamp_asc"
     LISTING_PRICE_DESC = "listing_price_desc"
-    LISTING_PRICE_ASC = "listing_price_asc",
+    LISTING_PRICE_ASC = "listing_price_asc"
     OVERALL_ROLL_DESC = "overall_roll_desc"
     OVERALL_ROLL_ASC = "overall_roll_asc"
 

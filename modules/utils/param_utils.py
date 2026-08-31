@@ -50,7 +50,7 @@ def parse_boolean_param(param_value: Optional[str], default: Optional[bool] = Fa
     return param_value.lower() == 'true' if param_value is not None else default
 
 
-def parse_tier_param(tier_param: Optional[str]) -> Optional[int]:
+def parse_tier_param(tier_param: Optional[str]) -> Tuple[Optional[int], Optional[Dict[str, str]]]:
     """
     Parse a tier parameter from a string value.
 
@@ -58,9 +58,16 @@ def parse_tier_param(tier_param: Optional[str]) -> Optional[int]:
         tier_param: The string value to parse
 
     Returns:
-        Parsed tier as int or None
+        Tuple containing:
+        - tier: Parsed tier as int or None
+        - error: Error dict if parsing fails, None otherwise
     """
-    return int(tier_param) if tier_param is not None else None
+    if tier_param is None:
+        return None, None
+    try:
+        return int(tier_param), None
+    except ValueError:
+        return None, {'error': 'Invalid tier. Must be an integer.'}
 
 
 def api_response(data: Any, status_code: int = 200) -> tuple[Response, int]:
