@@ -41,7 +41,7 @@ def error_response(code, message, status, details=None):
 
 
 def _is_v2_request():
-    return request.path.startswith('/api/v2')
+    return request.path == '/api/v2' or request.path.startswith('/api/v2/')
 
 
 def register_error_handlers(app):
