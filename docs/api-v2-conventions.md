@@ -69,7 +69,7 @@ Every error response is a JSON object with an `error` key:
 `details` is present only for validation errors. The `code` vocabulary is
 fixed: `validation_error`, `missing_api_key`, `invalid_api_key`,
 `missing_scope`, `forbidden`, `not_found`, `method_not_allowed`,
-`internal_error`.
+`upstream_unavailable`, `internal_error`.
 
 ## Status codes
 
@@ -83,6 +83,7 @@ fixed: `validation_error`, `missing_api_key`, `invalid_api_key`,
 | 404 | Unknown **named resource** (item, aspect, pool week) and unknown `/api/v2` path — always JSON, never a redirect. |
 | 405 | Wrong HTTP method — JSON. |
 | 500 | Unexpected failure. The body is always `{"error": {"code": "internal_error", "message": "Internal server error"}}`; detail goes to server logs only. |
+| 502 | The upstream Wynncraft API could not be reached (`upstream_unavailable`) — retry later; it does NOT mean the resource is missing. |
 
 The empty-result rule: filtering a collection (`?rarity=mythic`) can match
 nothing — that is a 200. Naming a resource that does not exist
@@ -91,9 +92,12 @@ nothing — that is a 200. Naming a resource that does not exist
 ## Naming
 
 - **snake_case** for all query parameters and all response keys.
-- `item_type`: the item category, lowercase (`weapon`, `armour`, `accessory`,
-  `material`, `powder`, `amplifier`, `emerald_pouch`). The storage
-  vocabulary (`GearItem`, `MaterialItem`, ...) is an internal detail.
+- `item_type`: the item category, lowercase and snake_case. Market data uses
+  `gear`, `material`, `ingredient`, `powder`, `rune`, `dungeon_key`,
+  `amplifier`, `emerald_pouch`; pool data can additionally carry `aspect`,
+  `tome`, `weapon`, `armour`, `accessory`. Every value emitted on a market
+  listing is accepted back as a listings filter. The storage vocabulary
+  (`GearItem`, `MaterialItem`, ...) is an internal detail.
 - `subtype`: the sub-category (`bow`, `helmet`, `ring`, ...). Never `type`,
   `subType`, or `sub_type`.
 - `shiny` (boolean) and `shiny_stat` (object or `null`) are both always

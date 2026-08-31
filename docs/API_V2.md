@@ -51,8 +51,9 @@ differ as described in the migration guide.
 
 ## Vocabulary
 
-- `item_type`: `weapon`, `armour`, `accessory`, `material`, `powder`,
-  `amplifier`, `emerald_pouch` (in pools also `aspect`, `tome`)
+- `item_type` (market): `gear`, `material`, `ingredient`, `powder`, `rune`,
+  `dungeon_key`, `amplifier`, `emerald_pouch` (in pools also `aspect`,
+  `tome`, `weapon`, `armour`, `accessory`)
 - `subtype`: lowercase sub-category — `bow`, `wand`, `spear`, `dagger`,
   `relik`, `helmet`, `chestplate`, `leggings`, `boots`, `ring`, `bracelet`,
   `necklace`

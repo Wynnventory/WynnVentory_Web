@@ -41,6 +41,25 @@ class TestGetItem(ItemsTestBase):
         resp = self.request('GET', '/api/v2/items/Divzer')
         self.assertEqual(resp.status_code, 401)
 
+    def test_upstream_failure_is_a_502_not_a_404(self):
+        from modules.routes.api.wynncraft_api import UpstreamError
+
+        self.service_mocks['fetch_item'].side_effect = UpstreamError('down')
+        try:
+            resp = self.request('GET', '/api/v2/items/Divzer',
+                                token='keyholder')
+        finally:
+            self.service_mocks['fetch_item'].side_effect = None
+        self.assertEqual(resp.status_code, 502)
+        self.assertEqual(resp.get_json()['error']['code'],
+                         'upstream_unavailable')
+
+    def test_unknown_query_param_is_a_400(self):
+        resp = self.request('GET', '/api/v2/items/Divzer?shiny=true',
+                            token='keyholder')
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.get_json()['error']['code'], 'validation_error')
+
 
 class TestItemBatch(ItemsTestBase):
     def test_batch_maps_names_to_items(self):

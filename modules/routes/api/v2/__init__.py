@@ -9,6 +9,8 @@ from flask import Blueprint
 from modules.auth import record_api_usage
 from modules.routes.api.v2.auth import require_api_key_v2
 from modules.routes.api.v2.responses import envelope
+from modules.routes.api.v2.validation import validate
+from modules.schemas.v2.common import EmptyQuery
 
 
 def add_cors_headers(response):
@@ -29,7 +31,8 @@ def build_v2_blueprint():
     bp.after_request(add_cors_headers)
 
     @bp.get('/status')
-    def status():
+    @validate(query=EmptyQuery)
+    def status(query: EmptyQuery):
         return envelope({'status': 'ok', 'version': 'v2'})
 
     from modules.routes.api.v2.market import market_v2_bp

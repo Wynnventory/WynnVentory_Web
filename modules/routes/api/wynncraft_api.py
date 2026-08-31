@@ -66,6 +66,13 @@ def cached(ttl: int = 300):
     return decorator
 
 
+class UpstreamError(Exception):
+    """The Wynncraft API could not be reached or answered with an error.
+
+    Distinct from a None return, which means the upstream answered but the
+    requested resource does not exist."""
+
+
 def api_request(func):
     """Decorator to handle API requests and error handling"""
 
@@ -75,11 +82,13 @@ def api_request(func):
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as http_err:
             logging.error(f"HTTP error occurred: {http_err}")
-        except requests.exceptions.Timeout:
+            raise UpstreamError(str(http_err)) from http_err
+        except requests.exceptions.Timeout as timeout_err:
             logging.error("Request timed out")
+            raise UpstreamError("Wynncraft API request timed out") from timeout_err
         except Exception as err:
             logging.error(f"Other error occurred: {err}")
-        return None
+            raise UpstreamError(str(err)) from err
 
     return wrapper
 

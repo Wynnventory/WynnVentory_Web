@@ -56,7 +56,7 @@ All errors are `{"error": {"code", "message", "details?"}}` — v1's mix of
 `{"error": "..."}` and `{"message": "..."}` strings is gone. Match on
 `error.code`, not the message text: `validation_error`, `missing_api_key`,
 `invalid_api_key`, `missing_scope`, `forbidden`, `not_found`,
-`method_not_allowed`, `internal_error`.
+`method_not_allowed`, `upstream_unavailable`, `internal_error`.
 
 - An **invalid/revoked key is now 401** (v1: 403). Missing key stays 401.
 - **"No data" is now 404** with `not_found` — v1 returned `{}`/`[]` with 200.
@@ -66,6 +66,9 @@ All errors are `{"error": {"code", "message", "details?"}}` — v1's mix of
   returned 400s with different bodies or crashed with 500.
 - Unknown `/api/v2/...` URLs return JSON 404 — v1 redirects (302) to the
   website homepage.
+- When the upstream Wynncraft API is unreachable, item/aspect endpoints
+  return **502 `upstream_unavailable`** instead of pretending the resource
+  does not exist — retry later rather than caching a 404.
 
 ### 3. Authentication is required everywhere
 
@@ -88,7 +91,7 @@ or full ISO-8601, and are interpreted as UTC.
 
 | Concept | v1 | v2 |
 |---|---|---|
-| Item category (query + response) | `itemType` / `item_type` / `"MaterialItem"` | `item_type`, lowercase values: `weapon`, `armour`, `accessory`, `material`, `powder`, `amplifier`, `emerald_pouch` (pools also: `aspect`, `tome`) |
+| Item category (query + response) | `itemType` / `item_type` / `"GearItem"` / `"MaterialItem"` | `item_type`, lowercase snake_case: `gear`, `material`, `ingredient`, `powder`, `rune`, `dungeon_key`, `amplifier`, `emerald_pouch` (pools also: `aspect`, `tome`, `weapon`, `armour`, `accessory`) |
 | Item sub-category | `subType` (query), `type`/`subtype` (responses) | `subtype`, lowercase values (`bow`, `helmet`, `ring`, ...) |
 | Shiny | `shiny_stat` object only (listings), `shiny` bool (averages), both camelCase in pools | `shiny` (boolean) **and** `shiny_stat` (object or null), always both present |
 | Rarity | Mixed casing per endpoint | Always lowercase in responses; filters case-insensitive |
