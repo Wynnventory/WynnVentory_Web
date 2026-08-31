@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 
 from modules.auth import require_scope, public_endpoint, mod_allowed
+from modules.models.sort_options import SortOption
 from modules.services.market_service import save_items, get_price, get_item_listings, get_history, \
     get_historic_item_price, \
     get_ranking
@@ -43,18 +44,26 @@ def get_market_item_info(item_name):
     """
     rarity = request.args.get('rarity', None, type=str)
     page = max(1, request.args.get('page', 1, type=int))
-    page_size = min(1000, request.args.get('page_size', 50, type=int))
+    page_size = min(1000, max(1, request.args.get('page_size', 50, type=int)))
 
     # Parse boolean parameters
     shiny = parse_boolean_param(request.args.get('shiny'), None)
     unidentified = parse_boolean_param(request.args.get('unidentified'), None)
 
     # Parse tier parameter
-    tier = parse_tier_param(request.args.get('tier'))
+    tier, tier_error = parse_tier_param(request.args.get('tier'))
+    if tier_error:
+        return api_response(tier_error, 400)
 
     type_param = request.args.get('itemType')
     subtype_param = request.args.get('subType', type=str)
-    sort_option = request.args.get('sort')
+
+    sort_param = request.args.get('sort')
+    try:
+        sort_option = SortOption(sort_param) if sort_param else SortOption.TIMESTAMP_DESC
+    except ValueError:
+        allowed = ', '.join(option.value for option in SortOption)
+        return api_response({'error': f'Invalid sort option. Allowed values: {allowed}'}, 400)
 
     try:
         result = get_item_listings(
@@ -90,7 +99,9 @@ def get_market_item_price_info(item_name):
     shiny = parse_boolean_param(request.args.get('shiny'))
 
     # Parse tier parameter
-    tier = parse_tier_param(request.args.get('tier'))
+    tier, tier_error = parse_tier_param(request.args.get('tier'))
+    if tier_error:
+        return api_response(tier_error, 400)
 
     try:
         result = get_price(item_name, shiny, tier)
@@ -123,7 +134,9 @@ def get_market_history(item_name):
     shiny = parse_boolean_param(request.args.get('shiny'))
 
     # Parse tier parameter
-    tier = parse_tier_param(request.args.get('tier'))
+    tier, tier_error = parse_tier_param(request.args.get('tier'))
+    if tier_error:
+        return api_response(tier_error, 400)
 
     try:
         result = get_history(
@@ -164,7 +177,9 @@ def get_latest_market_history(item_name):
     shiny = parse_boolean_param(request.args.get('shiny'))
 
     # Parse tier parameter
-    tier = parse_tier_param(request.args.get('tier'))
+    tier, tier_error = parse_tier_param(request.args.get('tier'))
+    if tier_error:
+        return api_response(tier_error, 400)
 
     try:
         result = get_historic_item_price(
