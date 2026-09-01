@@ -4,6 +4,7 @@ v2 exposes lowercase, snake_case vocabulary; the storage layer keeps the
 mod-submitted vocabulary ("Weapon", "MaterialItem", ...). These tables are the
 single translation point between the two.
 """
+import re
 
 # storage item_type -> v2 label. The market storage vocabulary is the
 # *Item family (see the listings filter UI and scripts/cleanup_duplicate_
@@ -19,6 +20,7 @@ _ITEM_TYPE_FROM_STORAGE = {
     'EmeraldPouchItem': 'emerald_pouch',
     'AspectItem': 'aspect',
     'TomeItem': 'tome',
+    'EmeraldItem': 'emerald',
     'Weapon': 'weapon',
     'Armour': 'armour',
     'Accessory': 'accessory',
@@ -42,7 +44,12 @@ ITEM_TYPE_TO_STORAGE = {
 def item_type_from_storage(value):
     if not isinstance(value, str):
         return value
-    return _ITEM_TYPE_FROM_STORAGE.get(value, value.lower())
+    if value in _ITEM_TYPE_FROM_STORAGE:
+        return _ITEM_TYPE_FROM_STORAGE[value]
+    # Unlisted storage values still normalize to the documented shape:
+    # strip the *Item suffix and convert CamelCase to snake_case.
+    base = value[:-4] if value.endswith('Item') and len(value) > 4 else value
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', base).lower()
 
 
 def item_type_to_storage(label):

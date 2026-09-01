@@ -111,6 +111,22 @@ class TestTierOnOtherMarketRoutes(ApiTestBase):
         self.assertEqual(resp.status_code, 400)
 
 
+class TestHistoricAverageNameMatching(ApiTestBase):
+    def test_latest_history_matches_name_case_insensitively(self):
+        # Regression: get_historic_average used an exact name match while the
+        # sibling price/history queries were case-insensitive.
+        coll = shared_collection_mock()
+        coll.aggregate.return_value = iter([])
+
+        from modules.repositories.market_repo import get_historic_average
+        get_historic_average(item_name='divzer')
+
+        pipeline = coll.aggregate.call_args.args[0]
+        name_filter = pipeline[0]['$match']['name']
+        self.assertEqual(name_filter,
+                         {'$regex': '^divzer$', '$options': 'i'})
+
+
 class TestPoolPageSize(ApiTestBase):
     def setUp(self):
         super().setUp()

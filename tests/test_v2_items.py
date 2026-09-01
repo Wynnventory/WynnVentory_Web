@@ -101,6 +101,57 @@ class TestItemBatch(ItemsTestBase):
         self.assertEqual(details[0]['location'], 'body')
 
 
+class TestQuickSearchUpstreamStatuses(unittest.TestCase):
+    """quick_search_item must return None only for genuinely missing items
+    (Wynncraft 400/404) and raise UpstreamError for other failures."""
+
+    def _response(self, status):
+        from unittest.mock import MagicMock
+
+        import requests
+
+        resp = MagicMock()
+        resp.status_code = status
+        if status >= 400:
+            resp.raise_for_status.side_effect = requests.exceptions.HTTPError(
+                f'{status} error')
+        else:
+            resp.raise_for_status.return_value = None
+        return resp
+
+    def _call(self, status, name):
+        from unittest.mock import patch
+
+        from modules.routes.api import wynncraft_api
+
+        with patch.object(wynncraft_api.requests, 'get',
+                          return_value=self._response(status)):
+            # Unique names per case keep the TTL cache out of the way.
+            return wynncraft_api.quick_search_item(name)
+
+    def test_404_and_400_mean_missing_item(self):
+        self.assertIsNone(self._call(404, 'missing-404'))
+        self.assertIsNone(self._call(400, 'missing-400'))
+
+    def test_429_and_5xx_raise_upstream_error(self):
+        from modules.routes.api.wynncraft_api import UpstreamError
+
+        for status in (429, 500, 502):
+            with self.subTest(status=status):
+                with self.assertRaises(UpstreamError):
+                    self._call(status, f'failing-{status}')
+
+
+class TestItemTypeFallbackNormalization(unittest.TestCase):
+    def test_unlisted_storage_values_snake_case(self):
+        from modules.routes.api.v2.serializers.common import (
+            item_type_from_storage)
+
+        self.assertEqual(item_type_from_storage('EmeraldItem'), 'emerald')
+        self.assertEqual(item_type_from_storage('SomeNewThingItem'),
+                         'some_new_thing')
+
+
 class TestAspects(ItemsTestBase):
     def test_aspect_is_enveloped(self):
         self.service_mocks['fetch_aspect'].return_value = {'name': 'Arrow Shield'}

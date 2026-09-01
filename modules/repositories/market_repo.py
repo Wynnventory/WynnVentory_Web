@@ -690,7 +690,7 @@ def get_historic_average(
 
     # base query
     query: Dict[str, Any] = {
-        'name': item_name,
+        'name': {'$regex': f'^{re.escape(item_name)}$', '$options': 'i'},
         'shiny': shiny,
         '$or': [
             {'item_type': {'$nin': TIERED_TYPES}},
