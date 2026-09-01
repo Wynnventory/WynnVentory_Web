@@ -6,6 +6,12 @@ from modules.models.collection_types import Collection
 from modules.models.sort_options import SortOption
 from modules.repositories.market_repo import TIERED_TYPES
 from modules.services import base_pool_service, market_service, raidpool_service
+from modules.services.api_key_service import (
+    SELF_SERVICE_SCOPES,
+    SELF_SERVICE_SCOPE_DETAILS,
+    generate_and_store_key,
+    is_valid_email,
+)
 from modules.utils.time_validation import get_week_range
 
 SUBTYPE_OPTIONS = {
@@ -94,6 +100,53 @@ def ranking():
 @web_bp.route("/emerald_calculator")
 def emerald_calculator():
     return render_template("emerald_calculator.html")
+
+
+@web_bp.route("/developer/api-key", methods=["GET", "POST"])
+def api_key():
+    if request.method == "GET":
+        return render_template("developer/api_key.html", scope_details=SELF_SERVICE_SCOPE_DETAILS)
+
+    owner = (request.form.get("owner") or "").strip()
+    email = (request.form.get("email") or "").strip()
+    discord = (request.form.get("discord") or "").strip()
+    description = (request.form.get("description") or "").strip()
+
+    form = {
+        "owner": owner,
+        "email": email,
+        "discord": discord,
+        "description": description,
+    }
+
+    def reject(message):
+        return render_template(
+            "developer/api_key.html",
+            scope_details=SELF_SERVICE_SCOPE_DETAILS,
+            error=message,
+            form=form,
+        )
+
+    if not owner:
+        return reject("Please enter a project or application name.")
+    if not discord:
+        return reject("Please enter your Discord username.")
+    if email and not is_valid_email(email):
+        return reject("Please enter a valid email address.")
+    if not description:
+        return reject("Please describe the intended use of this key.")
+
+    # Every self-service key is granted the full read-only scope set; users
+    # don't choose scopes.
+    token = generate_and_store_key(
+        owner, description, SELF_SERVICE_SCOPES, email=email or None, discord=discord
+    )
+    return render_template(
+        "developer/api_key.html",
+        scope_details=SELF_SERVICE_SCOPE_DETAILS,
+        token=token,
+        form=form,
+    )
 
 
 @web_bp.route('/listings', defaults={'item_name': None})

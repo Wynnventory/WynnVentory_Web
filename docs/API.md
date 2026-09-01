@@ -1,6 +1,15 @@
-# WynnVentory API Documentation
+# WynnVentory API Documentation (v1 — legacy)
+
+> **v1 is frozen.** These endpoints keep working for the WynnVentory game mod
+> and the website, but receive no new features. New integrations should use
+> the standardized **[API v2](API_V2.md)** (`/api/v2/...`) — see the
+> [migration guide](API_V2_MIGRATION.md).
 
 WynnVentory is a data aggregation service for the Wynncraft MMORPG. It collects trade market listings, loot pools, and raid pools submitted by the WynnVentory game mod, computes price statistics, and exposes all data through a REST API.
+
+> **Timestamp format note:** v1 responses serialize datetimes in RFC 1123
+> HTTP-date format (`"Fri, 14 Mar 2026 12:00:00 GMT"`), not ISO-8601 as some
+> examples below show. API v2 uses ISO-8601 UTC.
 
 ---
 
@@ -244,7 +253,7 @@ curl -X POST https://wynnventory.com/api/trademarket/items \
 
 ### GET /api/trademarket/listings/{item_name}
 
-Retrieve paginated live trade market listings. Both routes are identical in behavior; providing `item_name` in the path is equivalent to filtering by `item_name` as a query parameter and is offered for convenience.
+Retrieve paginated live trade market listings. Filtering by name is done via the `item_name` **path** segment (there is no `item_name` query parameter on v1; API v2 provides one).
 
 **Auth:** `read:market` scope required. The Mod Key is not accepted on this endpoint.
 
@@ -328,8 +337,8 @@ curl "https://wynnventory.com/api/trademarket/listings/Divzer?rarity=Legendary&s
 ```
 
 ```bash
-# Equivalent using query parameter
-curl "https://wynnventory.com/api/trademarket/listings?item_name=divzer&rarity=Legendary" \
+# Unfiltered, with a rarity filter
+curl "https://wynnventory.com/api/trademarket/listings?rarity=Legendary" \
   -H "Authorization: Api-Key YOUR_KEY"
 ```
 

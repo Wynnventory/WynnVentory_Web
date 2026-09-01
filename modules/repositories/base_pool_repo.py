@@ -104,6 +104,16 @@ def build_pool_pipeline(
     return pipeline
 
 
+def count_pool_weeks(collection_type: Collection) -> int:
+    """Count the distinct (year, week) pools stored for a collection."""
+    coll = get_collection(collection_type)
+    result = list(coll.aggregate([
+        {"$group": {"_id": {"year": "$year", "week": "$week"}}},
+        {"$count": "total"},
+    ]))
+    return result[0]["total"] if result else 0
+
+
 class BasePoolRepo:
     """
     Base repository class for lootpool and raidpool operations.

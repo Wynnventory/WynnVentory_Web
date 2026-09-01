@@ -14,7 +14,10 @@ To interact with the database, you'll need MongoDB Compass. Follow the steps bel
 
 ## 🔗 API Endpoints
 
-Explore and interact with the API using the detailed documentation provided by Postman:
+**API v2** (standardized, recommended for new integrations):
+[docs/API_V2.md](docs/API_V2.md) · [OpenAPI spec](docs/openapi_v2.yaml) · [v1 → v2 migration guide](docs/API_V2_MIGRATION.md)
+
+Legacy v1 endpoints ([docs/API.md](docs/API.md)) remain available; Postman documentation:
 [API Endpoints](https://documenter.getpostman.com/view/30826165/2sB2j69qVC)
 
 ## 🌐 Website

@@ -1,0 +1,79 @@
+"""Field-normalization helpers shared by v2 serializers.
+
+v2 exposes lowercase, snake_case vocabulary; the storage layer keeps the
+mod-submitted vocabulary ("Weapon", "MaterialItem", ...). These tables are the
+single translation point between the two.
+"""
+import re
+
+# storage item_type -> v2 label. The market storage vocabulary is the
+# *Item family (see the listings filter UI and scripts/cleanup_duplicate_
+# listings.py); the bare gear labels appear in pool submissions.
+_ITEM_TYPE_FROM_STORAGE = {
+    'GearItem': 'gear',
+    'MaterialItem': 'material',
+    'IngredientItem': 'ingredient',
+    'PowderItem': 'powder',
+    'RuneItem': 'rune',
+    'DungeonKeyItem': 'dungeon_key',
+    'AmplifierItem': 'amplifier',
+    'EmeraldPouchItem': 'emerald_pouch',
+    'AspectItem': 'aspect',
+    'TomeItem': 'tome',
+    'EmeraldItem': 'emerald',
+    'Weapon': 'weapon',
+    'Armour': 'armour',
+    'Accessory': 'accessory',
+}
+
+# v2 label -> storage item_type. Only labels stored in the market collection
+# are accepted as listings filters, so every value read off a v2 listing
+# round-trips as a filter.
+ITEM_TYPE_TO_STORAGE = {
+    'gear': 'GearItem',
+    'material': 'MaterialItem',
+    'ingredient': 'IngredientItem',
+    'powder': 'PowderItem',
+    'rune': 'RuneItem',
+    'dungeon_key': 'DungeonKeyItem',
+    'amplifier': 'AmplifierItem',
+    'emerald_pouch': 'EmeraldPouchItem',
+}
+
+
+def item_type_from_storage(value):
+    if not isinstance(value, str):
+        return value
+    if value in _ITEM_TYPE_FROM_STORAGE:
+        return _ITEM_TYPE_FROM_STORAGE[value]
+    # Unlisted storage values still normalize to the documented shape:
+    # strip the *Item suffix and convert CamelCase to snake_case.
+    base = value[:-4] if value.endswith('Item') and len(value) > 4 else value
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', base).lower()
+
+
+def item_type_to_storage(label):
+    if label is None:
+        return None
+    return ITEM_TYPE_TO_STORAGE[label]
+
+
+def subtype_from_storage(value):
+    if not isinstance(value, str):
+        return value
+    return value.lower()
+
+
+def subtype_to_storage(label):
+    # Stored subtype casing is not uniform — gear is upper case ("BOW",
+    # "CHESTPLATE") while powders and runes are compound ("WaterPowder",
+    # "UthRune") — so no casing rule reverses subtype_from_storage. The label
+    # passes through untouched and the repository matches it
+    # case-insensitively, which keeps every emitted value usable as a filter.
+    return label
+
+
+def rarity_from_storage(value):
+    if not isinstance(value, str):
+        return value
+    return value.lower()
