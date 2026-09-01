@@ -17,7 +17,7 @@ aspects_v2_bp = Blueprint('aspects', __name__, url_prefix='/aspects')
 
 @aspects_v2_bp.get('/<class_name>/<aspect_name>')
 @validate(query=EmptyQuery)
-def get_aspect(class_name, aspect_name, query: EmptyQuery):
+def get_aspect(class_name, aspect_name):
     try:
         aspect = fetch_aspect(class_name, aspect_name)
     except UpstreamError:

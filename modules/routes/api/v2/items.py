@@ -28,18 +28,18 @@ def _lookup(name):
         return None
 
 
-def _upstream_unavailable(error):
+def _upstream_unavailable():
     return ApiError('upstream_unavailable',
                     'The Wynncraft API is currently unavailable', 502)
 
 
 @items_v2_bp.get('/<item_name>')
 @validate(query=EmptyQuery)
-def get_item(item_name, query: EmptyQuery):
+def get_item(item_name):
     try:
         item = _lookup(item_name)
-    except UpstreamError as error:
-        raise _upstream_unavailable(error)
+    except UpstreamError:
+        raise _upstream_unavailable()
     if not item:
         raise ApiError('not_found', f"Item '{item_name}' not found", 404)
     return envelope(item)
@@ -54,6 +54,6 @@ def get_items_batch(body: ItemBatchBody):
     try:
         with ThreadPoolExecutor(max_workers=8) as pool:
             results = list(pool.map(_lookup, body.item_names))
-    except UpstreamError as error:
-        raise _upstream_unavailable(error)
+    except UpstreamError:
+        raise _upstream_unavailable()
     return envelope(dict(zip(body.item_names, results)))
