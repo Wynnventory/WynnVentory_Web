@@ -200,6 +200,113 @@ class TestQuickSearchUpstreamStatuses(unittest.TestCase):
                     self._call(status, f'failing-{status}')
 
 
+class TestArrayShapedUpstreamResponses(unittest.TestCase):
+    """Wynncraft v3 returns arrays of objects where the code was written
+    against name-keyed maps; both shapes must parse."""
+
+    def _get_returning(self, payload):
+        from unittest.mock import MagicMock
+
+        resp = MagicMock()
+        resp.status_code = 200
+        resp.raise_for_status.return_value = None
+        resp.json.return_value = payload
+        return resp
+
+    def _quick_search(self, payload, name):
+        from unittest.mock import patch
+
+        from modules.routes.api import wynncraft_api
+
+        with patch.object(wynncraft_api.requests, 'get',
+                          return_value=self._get_returning(payload)):
+            # Unique names per case keep the TTL cache out of the way.
+            return wynncraft_api.quick_search_item(name)
+
+    def test_item_search_array_is_matched_by_display_name(self):
+        payload = [{'displayName': 'Divzer', 'internalName': 'Divzer',
+                    'type': 'weapon', 'subType': 'bow', 'tier': 'mythic'}]
+        found = self._quick_search(payload, 'divzer-array')
+        # 'divzer-array' != 'Divzer' after cleaning — no match — so probe
+        # with the matching name (unique per test run via the payload).
+        self.assertIsNone(found)
+        found = self._quick_search(
+            [dict(payload[0], displayName='Divzer Array')], 'Divzer Array')
+        self.assertEqual(found['item_name'], 'Divzer Array')
+        self.assertEqual(found['subType'], 'bow')
+
+    def test_item_search_legacy_map_still_matched(self):
+        payload = {'Divzer Legacy': {'type': 'weapon', 'weaponType': 'bow'}}
+        found = self._quick_search(payload, 'Divzer Legacy')
+        self.assertEqual(found['item_name'], 'Divzer Legacy')
+
+    def test_aspects_array_is_scanned_by_name(self):
+        from unittest.mock import patch
+
+        from modules.routes.api import wynncraft_api
+
+        payload = [
+            {'name': 'Aspect of the Iron String', 'rarity': 'Legendary'},
+            {'name': 'Aspect of Stinging Swarms', 'rarity': 'Fabled'},
+        ]
+        with patch.object(wynncraft_api.requests, 'get',
+                          return_value=self._get_returning(payload)):
+            hit = wynncraft_api.get_aspect_by_name(
+                'archer-a', 'Aspect of the Iron String')
+            case_insensitive = wynncraft_api.get_aspect_by_name(
+                'archer-b', 'aspect of stinging swarms')
+            miss = wynncraft_api.get_aspect_by_name('archer-c', 'Nope')
+        self.assertEqual(hit['rarity'], 'Legendary')
+        self.assertEqual(case_insensitive['rarity'], 'Fabled')
+        self.assertIsNone(miss)
+
+
+class TestNewSchemaNormalization(unittest.TestCase):
+    """_process must accept the current v3 fields (displayName/tier/subType)
+    as well as the legacy ones the models were written against."""
+
+    def test_new_schema_weapon_is_processed(self):
+        from modules.services.item_service import _process
+
+        item = _process({
+            'displayName': 'Divzer', 'internalName': 'Divzer',
+            'type': 'weapon', 'subType': 'bow', 'tier': 'mythic',
+            'attackSpeed': 'superFast', 'averageDps': 957,
+            'powderSlots': 3, 'dropRestriction': 'normal',
+            'requirements': {'level': 97, 'classRequirement': 'archer'},
+            'identifications': {}, 'base': {},
+        })
+        self.assertEqual(item['name'], 'Divzer')
+        self.assertEqual(item['item_type'], 'weapon')
+        self.assertEqual(item['item_subtype'], 'bow')
+        self.assertEqual(item['rarity'], 'Mythic')
+        self.assertEqual(item['attack_speed'], 'Superfast')
+
+    def test_legacy_schema_still_processed(self):
+        from modules.services.item_service import _process
+
+        item = _process({
+            'item_name': 'Divzer', 'type': 'weapon', 'weaponType': 'bow',
+            'rarity': 'mythic', 'attackSpeed': 'super_fast',
+            'identifications': {}, 'base': {}, 'requirements': {},
+        })
+        self.assertEqual(item['item_subtype'], 'bow')
+        self.assertEqual(item['rarity'], 'Mythic')
+
+    def test_search_results_accept_array_and_legacy_map(self):
+        from modules.services.item_service import _extract_result_items
+
+        entry = {'displayName': 'Divzer', 'type': 'weapon', 'subType': 'bow'}
+        as_array = _extract_result_items({'results': [dict(entry)]})
+        self.assertEqual(as_array[0]['displayName'], 'Divzer')
+
+        as_map = _extract_result_items(
+            {'results': {'Divzer': {'type': 'weapon', 'weaponType': 'bow'}}})
+        self.assertEqual(as_map[0]['item_name'], 'Divzer')
+
+        self.assertEqual(_extract_result_items({'results': None}), [])
+
+
 class TestItemTypeFallbackNormalization(unittest.TestCase):
     def test_unlisted_storage_values_snake_case(self):
         from modules.routes.api.v2.serializers.common import (

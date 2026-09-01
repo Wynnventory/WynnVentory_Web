@@ -9,6 +9,39 @@ from modules.routes.api import wynncraft_api
 from modules.schemas.item_search import ItemSearchRequest
 
 
+# Wynncraft v3 gives every item a single `subType`; the model classes were
+# written against the legacy per-family field names.
+_LEGACY_SUBTYPE_FIELD = {
+    'weapon': 'weaponType',
+    'armour': 'armourType',
+    'accessory': 'accessoryType',
+    'tome': 'tomeType',
+}
+
+
+def _normalize(data):
+    """Map the current Wynncraft v3 item schema onto the legacy field names
+    the model classes read.
+
+    Current payloads carry `displayName`/`internalName`, `tier`, and
+    `subType`; the models expect `item_name`, `rarity`, and
+    `weaponType`/`armourType`/`accessoryType`. Legacy-shaped payloads pass
+    through untouched.
+    """
+    normalized = dict(data)
+    if 'item_name' not in normalized:
+        name = normalized.get('displayName') or normalized.get('internalName')
+        if name:
+            normalized['item_name'] = name
+    if 'rarity' not in normalized and 'tier' in normalized:
+        normalized['rarity'] = normalized['tier']
+    legacy_field = _LEGACY_SUBTYPE_FIELD.get(normalized.get('type'))
+    if legacy_field and legacy_field not in normalized \
+            and 'subType' in normalized:
+        normalized[legacy_field] = normalized['subType']
+    return normalized
+
+
 def _process(data):
     """
     Process item data from the Wynncraft API and store it in the appropriate model class.
@@ -25,6 +58,7 @@ def _process(data):
     if not data:
         return None
 
+    data = _normalize(data)
     item_type = data.get('type', 'Unknown Type')
     item_subtype = data.get('weaponType',
                             data.get('armourType',
@@ -54,6 +88,20 @@ def _process(data):
     return item.to_dict()
 
 
+def _extract_result_items(api_resp):
+    """Return search-result items as a list.
+
+    Wynncraft v3 returns `results` as an array of item objects; older
+    revisions used a name-keyed map. Accept both.
+    """
+    raw_items = api_resp.get("results") or []
+    if isinstance(raw_items, dict):
+        for name, info in raw_items.items():
+            info["item_name"] = name
+        raw_items = list(raw_items.values())
+    return raw_items
+
+
 def search_items(req: ItemSearchRequest) -> Dict:
     """Search for items based on the provided criteria."""
     # Skip empty values, default level range, and pagination parameter
@@ -78,12 +126,7 @@ def search_items(req: ItemSearchRequest) -> Dict:
     if not api_resp:
         return {"items": [], "next_page": None}
 
-    raw_items = api_resp.get("results", {})
-
-    for name, info in raw_items.items():
-        info["item_name"] = name
-
-    processed = [_process(i) for i in raw_items.values()]
+    processed = [_process(i) for i in _extract_result_items(api_resp)]
     return {
         "items": processed,
         "next_page": api_resp["controller"].get("next")

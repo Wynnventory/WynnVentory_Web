@@ -93,21 +93,6 @@ def api_request(func):
     return wrapper
 
 
-@cached(ttl=3600)  # Cache for 1 hour
-@api_request
-def get_item_database():
-    url = f"{BASE_URL}/item/database?fullResult"
-    # Add timeout to prevent hanging requests
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    data = response.json()
-    if isinstance(data, dict):
-        return data
-    else:
-        logging.warning("Unexpected data format received: %s", type(data))
-        return None
-
-
 @cached(ttl=300)  # Cache for 5 minutes
 @api_request
 def search_items(payload, page=1):
@@ -137,7 +122,15 @@ def quick_search_item(item_name):
     data = response.json()
     normalized_target = clean_name(item_name)
 
-    for key, obj in data.items():
+    # Wynncraft v3 answers with an array of item objects; older revisions
+    # used a name-keyed map. Accept both.
+    if isinstance(data, dict):
+        entries = data.items()
+    else:
+        entries = ((obj.get('displayName') or obj.get('internalName') or '',
+                    obj) for obj in data)
+
+    for key, obj in entries:
         if clean_name(key) == normalized_target:
             obj['item_name'] = key
             return obj
@@ -154,8 +147,16 @@ def get_aspect_by_name(class_name, aspect_name):
     response.raise_for_status()
     data = response.json()
 
-    if aspect_name in data:
-        return data[aspect_name]
+    # Wynncraft v3 answers with an array of aspect objects; older revisions
+    # used a name-keyed map. Accept both.
+    if isinstance(data, dict):
+        if aspect_name in data:
+            return data[aspect_name]
+    else:
+        target = clean_name(aspect_name)
+        for aspect in data:
+            if clean_name(aspect.get('name', '')) == target:
+                return aspect
 
     logging.warning(f"Aspect not found: {aspect_name}")
     return None
