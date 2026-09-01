@@ -22,7 +22,7 @@ Self-service keys: <https://wynnventory.com/developer/api-key>.
 | GET | `/market/listings` | `read:market` | Paginated live listings. Filters: `item_name` (substring), `item_type`, `subtype`, `rarity`, `tier`, `shiny`, `unidentified`, `sort` |
 | GET | `/market/items/{name}/price` | `read:market` | Current price statistics; `shiny`, `tier` params; 404 when unknown |
 | GET | `/market/items/{name}/history` | `read:market` | Paginated daily archive snapshots; `start_date`, `end_date`, `shiny`, `tier` |
-| GET | `/market/items/{name}/history/latest` | `read:market_archive` | Aggregated statistics over the range; 404 when empty |
+| GET | `/market/items/{name}/history/latest` | `read:market_archive` | Aggregated statistics over the range; 404 when empty. Pure aggregate with its own smaller field set (`AggregatedPriceStats` in the spec): adds `document_count`, omits the per-snapshot fields (`shiny`, `timestamp`, `item_type`, `icon`, unidentified lowest/highest) |
 | GET | `/market/rankings` | `read:market` | Paginated price ranking; `start_date`, `end_date` |
 | GET | `/items/{name}` | key only | Wynncraft item (cached proxy); 404 when unknown |
 | POST | `/items/batch` | key only | `{"item_names": [1..100]}` → name → item-or-null map |
