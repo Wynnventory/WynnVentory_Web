@@ -275,7 +275,7 @@ Retrieve paginated live trade market listings. Filtering by name is done via the
 | `subType` | string | — | Filter by sub-type (e.g. `"Bow"`, `"Spear"`, `"Helmet"`) |
 | `sort` | string | `timestamp_desc` | Sort order. See table below. |
 | `page` | integer | `1` | Page number. Minimum value: `1`. |
-| `page_size` | integer | `50` | Results per page. Maximum value: `1000`. |
+| `page_size` | integer | `50` | Results per page. Clamped to the range 1–1000. |
 
 **Sort options:**
 
@@ -342,6 +342,14 @@ curl "https://wynnventory.com/api/trademarket/listings?rarity=Legendary" \
   -H "Authorization: Api-Key YOUR_KEY"
 ```
 
+**Error responses:**
+
+| Status | Body | Cause |
+|--------|------|-------|
+| `400` | `{ "error": "Invalid tier. Must be an integer." }` | Non-integer `tier` value |
+| `400` | `{ "error": "Invalid sort option. Allowed values: ..." }` | Unknown `sort` value (v1 used to answer 500) |
+| `500` | `{ "error": "Internal server error" }` | Unexpected failure |
+
 ---
 
 ## Trade Market — Price
@@ -398,6 +406,7 @@ For descriptions of all price fields, see the [Price Fields Reference](#price-fi
 | Status | Body | Cause |
 |--------|------|-------|
 | `400` | `{ "message": "No item name provided" }` | `item_name` path parameter was empty |
+| `400` | `{ "error": "Invalid tier. Must be an integer." }` | Non-integer `tier` value |
 | `500` | `{ "error": "Internal server error" }` | Unexpected failure |
 
 **Example curl:**
@@ -478,6 +487,7 @@ Returns raw daily archive snapshots for an item over a date range. Each element 
 |--------|------|-------|
 | `400` | `{ "message": "No item name provided" }` | Empty `item_name` |
 | `400` | `{ "error": "Invalid date format. Use YYYY-MM-DD." }` | Malformed date string |
+| `400` | `{ "error": "Invalid tier. Must be an integer." }` | Non-integer `tier` value |
 | `500` | `{ "error": "Internal server error" }` | Unexpected failure |
 
 **Example curl:**
@@ -532,9 +542,9 @@ Returns aggregated price statistics averaged across all archive documents in the
 | Field | Type | Description |
 |-------|------|-------------|
 | `document_count` | integer | Number of daily archive documents included in the aggregation |
-| `lowest_price` | float | Lowest single listing price seen across the date range |
-| `highest_price` | float | Highest single listing price seen across the date range |
-| `average_price` | float | Mean of all listing prices across the date range |
+| `lowest_price` | float | Mean of each archive day's lowest listing price |
+| `highest_price` | float | Mean of each archive day's highest listing price |
+| `average_price` | float | Mean of the daily average listing prices |
 | `average_mid_80_percent_price` | float | Mean of the middle-80% trimmed price averaged across archive days |
 | `total_count` | integer | Total number of listings observed across the date range |
 | `unidentified_*` | float or null | Same statistics for unidentified variants |
@@ -551,6 +561,13 @@ curl "https://wynnventory.com/api/trademarket/history/Divzer/price?start_date=20
 curl "https://wynnventory.com/api/trademarket/history/Divzer/latest?start_date=2026-03-07&end_date=2026-03-13" \
   -H "Authorization: Api-Key YOUR_KEY"
 ```
+
+**Error responses:**
+
+| Status | Body | Cause |
+|--------|------|-------|
+| `400` | `{ "error": "Invalid tier. Must be an integer." }` | Non-integer `tier` value |
+| `500` | `{ "error": "Internal server error" }` | Unexpected failure |
 
 ---
 
@@ -714,7 +731,7 @@ curl -X POST "https://wynnventory.com/api/items" \
 
 ### GET /api/aspect/{class_name}/{aspect_name}
 
-Fetch data for a specific class aspect from the Wynncraft v3 aspects API. Results are cached for 30 minutes. This endpoint carries no authentication decorator in the current implementation and behaves as effectively public.
+Fetch data for a specific class aspect from the Wynncraft v3 aspects API. Results are cached for 30 minutes. This endpoint is explicitly marked public (the website's JS fetches aspects without an API key).
 
 **Auth:** None required.
 

@@ -57,7 +57,7 @@ paths:
       parameters:
         - { name: item_name, in: query, schema: { type: string }, description: Case-insensitive substring match on the item name. }
         - { name: item_type, in: query, schema: { $ref: '#/components/schemas/ItemTypeLabel' } }
-        - { name: subtype, in: query, schema: { type: string }, description: 'Lowercase sub-category, e.g. bow, helmet, ring.' }
+        - { name: subtype, in: query, schema: { type: string }, description: 'Lowercase sub-category, e.g. bow, helmet, ring, waterpowder, uthrune. Matched case-insensitively.' }
         - { name: rarity, in: query, schema: { type: string }, description: Case-insensitive rarity filter. }
         - { name: tier, in: query, schema: { type: integer, minimum: 1 } }
         - { name: shiny, in: query, schema: { $ref: '#/components/schemas/BoolParam' } }
