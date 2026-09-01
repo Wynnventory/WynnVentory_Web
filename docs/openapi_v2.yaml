@@ -1,0 +1,647 @@
+openapi: 3.1.0
+info:
+  title: WynnVentory API v2
+  version: 2.0.0
+  description: |
+    Standardized read-only API for WynnVentory data: Wynncraft trade market
+    listings and price statistics, weekly loot/raid pools, gambits, and a
+    proxy for the Wynncraft item and aspect databases.
+
+    Every endpoint requires a valid API key. Conventions (envelope, error
+    codes, naming, dates) are defined in docs/api-v2-conventions.md.
+servers:
+  - url: https://wynnventory.com/api/v2
+    description: Production
+  - url: http://localhost:5000/api/v2
+    description: Development
+
+security:
+  - apiKeyHeader: []
+  - apiKeyAuthorization: []
+
+tags:
+  - name: meta
+  - name: market
+  - name: items
+  - name: aspects
+  - name: pools
+  - name: gambits
+
+paths:
+  /status:
+    get:
+      tags: [meta]
+      summary: API status probe
+      operationId: getStatus
+      responses:
+        '200':
+          description: The API is up and the key is valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status: { type: string, const: ok }
+                      version: { type: string, const: v2 }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /market/listings:
+    get:
+      tags: [market]
+      summary: Live trade market listings
+      operationId: listMarketListings
+      description: Requires the `read:market` scope.
+      parameters:
+        - { name: item_name, in: query, schema: { type: string }, description: Case-insensitive substring match on the item name. }
+        - { name: item_type, in: query, schema: { $ref: '#/components/schemas/ItemTypeLabel' } }
+        - { name: subtype, in: query, schema: { type: string }, description: 'Lowercase sub-category, e.g. bow, helmet, ring.' }
+        - { name: rarity, in: query, schema: { type: string }, description: Case-insensitive rarity filter. }
+        - { name: tier, in: query, schema: { type: integer, minimum: 1 } }
+        - { name: shiny, in: query, schema: { $ref: '#/components/schemas/BoolParam' } }
+        - { name: unidentified, in: query, schema: { $ref: '#/components/schemas/BoolParam' } }
+        - { name: sort, in: query, schema: { $ref: '#/components/schemas/SortOption' } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          description: Paginated listings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Listing' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /market/items/{item_name}/price:
+    get:
+      tags: [market]
+      summary: Current price statistics for an item
+      operationId: getItemPrice
+      description: Requires the `read:market` scope.
+      parameters:
+        - { $ref: '#/components/parameters/ItemName' }
+        - { name: shiny, in: query, schema: { $ref: '#/components/schemas/BoolParam', default: false } }
+        - { name: tier, in: query, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Price statistics.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PriceStats' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /market/items/{item_name}/history:
+    get:
+      tags: [market]
+      summary: Daily archived price snapshots for an item
+      operationId: getItemHistory
+      description: Requires the `read:market` scope. Defaults to the last 7 archived days.
+      parameters:
+        - { $ref: '#/components/parameters/ItemName' }
+        - { $ref: '#/components/parameters/StartDate' }
+        - { $ref: '#/components/parameters/EndDate' }
+        - { name: shiny, in: query, schema: { $ref: '#/components/schemas/BoolParam', default: false } }
+        - { name: tier, in: query, schema: { type: integer, minimum: 1 } }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          description: Paginated daily snapshots (oldest first). An empty range is a 200 with an empty array.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/PriceStats' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /market/items/{item_name}/history/latest:
+    get:
+      tags: [market]
+      summary: Aggregated price statistics over a date range
+      operationId: getItemHistoryLatest
+      description: Requires the `read:market_archive` scope. Defaults to the last 7 archived days.
+      parameters:
+        - { $ref: '#/components/parameters/ItemName' }
+        - { $ref: '#/components/parameters/StartDate' }
+        - { $ref: '#/components/parameters/EndDate' }
+        - { name: shiny, in: query, schema: { $ref: '#/components/schemas/BoolParam', default: false } }
+        - { name: tier, in: query, schema: { type: integer, minimum: 1 } }
+      responses:
+        '200':
+          description: Aggregated statistics across the matched archive days.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PriceStats' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /market/rankings:
+    get:
+      tags: [market]
+      summary: Items ranked by average price over a date range
+      operationId: listMarketRankings
+      description: Requires the `read:market` scope. Defaults to the last 7 archived days.
+      parameters:
+        - { $ref: '#/components/parameters/StartDate' }
+        - { $ref: '#/components/parameters/EndDate' }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PageSize' }
+      responses:
+        '200':
+          description: Paginated ranking rows, most expensive first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/RankingEntry' }
+                  pagination: { $ref: '#/components/schemas/Pagination' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /items/{item_name}:
+    get:
+      tags: [items]
+      summary: Wynncraft item lookup
+      operationId: getItem
+      description: Any valid key; no scope required. Proxies the Wynncraft v3 item API with caching.
+      parameters:
+        - { $ref: '#/components/parameters/ItemName' }
+      responses:
+        '200':
+          description: The processed item object (free-form, upstream-defined).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: object, additionalProperties: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '502': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /items/batch:
+    post:
+      tags: [items]
+      summary: Batch Wynncraft item lookup
+      operationId: getItemsBatch
+      description: Any valid key; no scope required. A read modeled as POST to carry the name list.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [item_names]
+              additionalProperties: false
+              properties:
+                item_names:
+                  type: array
+                  items: { type: string }
+                  minItems: 1
+                  maxItems: 100
+      responses:
+        '200':
+          description: Map of requested name to item object, or null when not found.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    additionalProperties:
+                      type: [object, 'null']
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '502': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /aspects/{class_name}/{aspect_name}:
+    get:
+      tags: [aspects]
+      summary: Wynncraft class aspect lookup
+      operationId: getAspect
+      description: Any valid key; no scope required. Proxies the Wynncraft v3 aspects API with caching.
+      parameters:
+        - { name: class_name, in: path, required: true, schema: { type: string, enum: [archer, warrior, mage, assassin, shaman] } }
+        - { name: aspect_name, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: The aspect object (free-form, upstream-defined).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: object, additionalProperties: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '502': { $ref: '#/components/responses/UpstreamUnavailable' }
+
+  /lootpools:
+    get:
+      tags: [pools]
+      summary: Stored loot pool weeks, newest first
+      operationId: listLootpools
+      description: Requires the `read:lootpool` scope.
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PoolPageSize' }
+      responses:
+        '200': { $ref: '#/components/responses/PoolPage' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /lootpools/current:
+    get:
+      tags: [pools]
+      summary: Current week's loot pool
+      operationId: getCurrentLootpool
+      description: Requires the `read:lootpool` scope.
+      responses:
+        '200': { $ref: '#/components/responses/Pool' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /lootpools/current/items:
+    get:
+      tags: [pools]
+      summary: Current week's processed loot pool items
+      operationId: getCurrentLootpoolItems
+      description: Requires the `read:lootpool` scope.
+      responses:
+        '200': { $ref: '#/components/responses/ProcessedRegions' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /lootpools/{year}/{week}:
+    get:
+      tags: [pools]
+      summary: Loot pool for a specific ISO year and week
+      operationId: getLootpoolWeek
+      description: Requires the `read:lootpool` scope.
+      parameters:
+        - { $ref: '#/components/parameters/Year' }
+        - { $ref: '#/components/parameters/Week' }
+      responses:
+        '200': { $ref: '#/components/responses/Pool' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /raidpools:
+    get:
+      tags: [pools]
+      summary: Stored raid pool weeks, newest first
+      operationId: listRaidpools
+      description: Requires the `read:raidpool` scope.
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PoolPageSize' }
+      responses:
+        '200': { $ref: '#/components/responses/PoolPage' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /raidpools/current:
+    get:
+      tags: [pools]
+      summary: Current week's raid pool
+      operationId: getCurrentRaidpool
+      description: Requires the `read:raidpool` scope.
+      responses:
+        '200': { $ref: '#/components/responses/Pool' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /raidpools/current/items:
+    get:
+      tags: [pools]
+      summary: Current week's processed raid pool items
+      operationId: getCurrentRaidpoolItems
+      description: Requires the `read:raidpool` scope.
+      responses:
+        '200': { $ref: '#/components/responses/ProcessedRegions' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /raidpools/{year}/{week}:
+    get:
+      tags: [pools]
+      summary: Raid pool for a specific ISO year and week
+      operationId: getRaidpoolWeek
+      description: Requires the `read:raidpool` scope.
+      parameters:
+        - { $ref: '#/components/parameters/Year' }
+        - { $ref: '#/components/parameters/Week' }
+      responses:
+        '200': { $ref: '#/components/responses/Pool' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /gambits/current:
+    get:
+      tags: [gambits]
+      summary: Current day's gambits
+      operationId: getCurrentGambits
+      description: Requires the `read:raidpool` scope.
+      responses:
+        '200':
+          description: The gambit document for the current gambit day (free-form).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: object, additionalProperties: true }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    apiKeyAuthorization:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: 'Format: Api-Key <your-key>'
+
+  parameters:
+    ItemName:
+      name: item_name
+      in: path
+      required: true
+      schema: { type: string }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: page_size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    PoolPageSize:
+      name: page_size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 8, default: 5 }
+    StartDate:
+      name: start_date
+      in: query
+      schema: { type: string, format: date }
+      description: Inclusive start of the range (UTC). Defaults to 7 days before end_date.
+    EndDate:
+      name: end_date
+      in: query
+      schema: { type: string, format: date }
+      description: Inclusive end of the range (UTC). Defaults to yesterday.
+    Year:
+      name: year
+      in: path
+      required: true
+      schema: { type: integer, minimum: 2020, maximum: 2100 }
+    Week:
+      name: week
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1, maximum: 53 }
+
+  schemas:
+    ItemTypeLabel:
+      type: string
+      enum: [gear, material, ingredient, powder, rune, dungeon_key, amplifier, emerald_pouch]
+    BoolParam:
+      type: string
+      enum: ['true', 'false', '1', '0']
+    SortOption:
+      type: string
+      enum: [timestamp_desc, timestamp_asc, listing_price_desc, listing_price_asc, overall_roll_desc, overall_roll_asc]
+      default: timestamp_desc
+    Timestamp:
+      type: string
+      format: date-time
+      description: ISO-8601 UTC with Z suffix, e.g. 2026-08-31T12:00:00Z.
+    Pagination:
+      type: object
+      properties:
+        page: { type: integer }
+        page_size: { type: integer }
+        total_items: { type: integer }
+        total_pages: { type: integer }
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [validation_error, missing_api_key, invalid_api_key, missing_scope, forbidden, not_found, method_not_allowed, upstream_unavailable, internal_error]
+            message: { type: string }
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string }
+                  location: { type: string, enum: [query, body, path] }
+                  message: { type: string }
+    Listing:
+      type: object
+      properties:
+        name: { type: string }
+        rarity: { type: [string, 'null'], description: Lowercase rarity. }
+        item_type: { type: [string, 'null'] }
+        subtype: { type: [string, 'null'] }
+        tier: { type: [integer, 'null'] }
+        unidentified: { type: boolean }
+        shiny: { type: boolean }
+        shiny_stat: { type: [object, 'null'] }
+        overall_roll: { type: [number, 'null'] }
+        stat_rolls: { type: [object, 'null'] }
+        reroll_count: { type: [integer, 'null'] }
+        amount: { type: integer }
+        listing_price: { type: integer }
+        icon: { type: [string, 'null'] }
+        timestamp: { $ref: '#/components/schemas/Timestamp' }
+    PriceStats:
+      type: object
+      description: >
+        Computed price statistics. unidentified_* fields mirror the base
+        fields for unidentified variants and are null when absent.
+      properties:
+        name: { type: string }
+        tier: { type: [integer, 'null'] }
+        shiny: { type: boolean }
+        item_type: { type: [string, 'null'] }
+        icon: { type: [string, 'null'] }
+        lowest_price: { type: [number, 'null'] }
+        highest_price: { type: [number, 'null'] }
+        average_price: { type: [number, 'null'] }
+        average_mid_80_percent_price: { type: [number, 'null'] }
+        p50_price: { type: [number, 'null'] }
+        average_p50_ema_price: { type: [number, 'null'] }
+        total_count: { type: integer }
+        unidentified_count: { type: integer }
+        document_count: { type: integer, description: Only on aggregated history responses. }
+        timestamp: { $ref: '#/components/schemas/Timestamp' }
+      additionalProperties: true
+    RankingEntry:
+      type: object
+      properties:
+        rank: { type: integer }
+        name: { type: string }
+        tier: { type: [integer, 'null'] }
+        item_type: { type: [string, 'null'] }
+        lowest_price: { type: [number, 'null'] }
+        highest_price: { type: [number, 'null'] }
+        average_price: { type: [number, 'null'] }
+        average_mid_80_percent_price: { type: [number, 'null'] }
+        unidentified_average_mid_80_percent_price: { type: [number, 'null'] }
+        average_total_count: { type: [number, 'null'] }
+        average_unidentified_count: { type: [number, 'null'] }
+        total_count: { type: integer }
+        unidentified_count: { type: integer }
+    PoolItem:
+      type: object
+      properties:
+        name: { type: string }
+        amount: { type: [integer, 'null'] }
+        rarity: { type: [string, 'null'] }
+        item_type: { type: [string, 'null'] }
+        subtype: { type: [string, 'null'] }
+        tier: { type: [integer, 'null'] }
+        shiny: { type: boolean }
+        shiny_stat: { type: [object, 'null'] }
+        icon: { type: [string, 'null'] }
+    Pool:
+      type: object
+      properties:
+        year: { type: integer }
+        week: { type: integer }
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string, description: Region or raid name. }
+              type: { type: [string, 'null'] }
+              timestamp: { $ref: '#/components/schemas/Timestamp' }
+              items:
+                type: array
+                items: { $ref: '#/components/schemas/PoolItem' }
+    ProcessedRegion:
+      type: object
+      properties:
+        region: { type: string }
+        year: { type: integer }
+        week: { type: integer }
+        timestamp: { $ref: '#/components/schemas/Timestamp' }
+        groups:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string, description: 'Grouping label, e.g. Shiny, Mythic, Aspect, Tomes.' }
+              items:
+                type: array
+                items: { $ref: '#/components/schemas/PoolItem' }
+
+  responses:
+    ValidationError:
+      description: The request failed validation.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Missing or invalid API key.
+      headers:
+        WWW-Authenticate:
+          schema: { type: string, const: Api-Key }
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: The key lacks the required scope, or the mod key was used.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: The named resource does not exist.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    UpstreamUnavailable:
+      description: The upstream Wynncraft API could not be reached — retry later.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Pool:
+      description: A single pool week.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data: { $ref: '#/components/schemas/Pool' }
+    PoolPage:
+      description: Paginated pool weeks.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items: { $ref: '#/components/schemas/Pool' }
+              pagination: { $ref: '#/components/schemas/Pagination' }
+    ProcessedRegions:
+      description: Processed per-region pool items for the current week.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items: { $ref: '#/components/schemas/ProcessedRegion' }

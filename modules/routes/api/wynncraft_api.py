@@ -66,6 +66,13 @@ def cached(ttl: int = 300):
     return decorator
 
 
+class UpstreamError(Exception):
+    """The Wynncraft API could not be reached or answered with an error.
+
+    Distinct from a None return, which means the upstream answered but the
+    requested resource does not exist."""
+
+
 def api_request(func):
     """Decorator to handle API requests and error handling"""
 
@@ -75,11 +82,13 @@ def api_request(func):
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as http_err:
             logging.error(f"HTTP error occurred: {http_err}")
-        except requests.exceptions.Timeout:
+            raise UpstreamError(str(http_err)) from http_err
+        except requests.exceptions.Timeout as timeout_err:
             logging.error("Request timed out")
+            raise UpstreamError("Wynncraft API request timed out") from timeout_err
         except Exception as err:
             logging.error(f"Other error occurred: {err}")
-        return None
+            raise UpstreamError(str(err)) from err
 
     return wrapper
 
@@ -115,6 +124,13 @@ def quick_search_item(item_name):
     url = f"{BASE_URL}/item/search"
     response = requests.get(f"{url}/{item_name}", timeout=10)
 
+    if response.status_code in (400, 404):
+        # Wynncraft answers 400/404 for a search with no matches — a genuine
+        # missing resource, not an upstream failure.
+        return None
+    # Anything else non-2xx (429, 5xx, ...) is an upstream failure and must
+    # not masquerade as "item not found".
+    response.raise_for_status()
     if response.status_code != 200:
         return None
 

@@ -329,10 +329,18 @@ def get_trade_market_item_listings(
         else:
             # fallback to original OR logic
             if tier is not None:
-                query_filter['$or'] = [
+                tier_clauses = [
                     {'item_type': {'$nin': TIERED_TYPES}},
                     {'item_type': {'$in': TIERED_TYPES}, 'tier': tier}
                 ]
+                if '$or' in query_filter:
+                    # Don't clobber the rarity=normal $or — intersect them.
+                    query_filter['$and'] = [
+                        {'$or': query_filter.pop('$or')},
+                        {'$or': tier_clauses},
+                    ]
+                else:
+                    query_filter['$or'] = tier_clauses
     # 2) NO-NAME branch
     else:
         if item_type is not None:
@@ -345,7 +353,12 @@ def get_trade_market_item_listings(
                 query_filter['tier'] = tier
 
     if sub_type is not None:
-        query_filter['type'] = sub_type
+        # Stored casing varies by family ("BOW" for gear, "WaterPowder" and
+        # "UthRune" for powders and runes), and v2 emits subtypes lowercased,
+        # so match the whole value case-insensitively instead of demanding the
+        # caller reproduce the stored spelling.
+        escaped = re.escape(sub_type)
+        query_filter['type'] = {'$regex': f'^{escaped}$', '$options': 'i'}
 
     coll = get_collection(ColEnum.MARKET_LISTINGS)
     total = coll.count_documents(query_filter)
@@ -594,7 +607,7 @@ def get_trademarket_item_price(
         tier = None
 
     filter_q = {
-        'name': item_name,
+        'name': {'$regex': f'^{re.escape(item_name)}$', '$options': 'i'},
         'tier': tier,
         'shiny': shiny
     }
@@ -682,7 +695,7 @@ def get_historic_average(
 
     # base query
     query: Dict[str, Any] = {
-        'name': item_name,
+        'name': {'$regex': f'^{re.escape(item_name)}$', '$options': 'i'},
         'shiny': shiny,
         '$or': [
             {'item_type': {'$nin': TIERED_TYPES}},
