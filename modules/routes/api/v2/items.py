@@ -51,9 +51,16 @@ def get_items_batch(body: ItemBatchBody):
     # A read modeled as POST purely to carry the name list; the result maps
     # each requested name to its item object, or null when not found.
     # Uncached lookups hit the upstream API, so fan them out.
+    pool = ThreadPoolExecutor(max_workers=8)
     try:
-        with ThreadPoolExecutor(max_workers=8) as pool:
-            results = list(pool.map(_lookup, body.item_names))
+        futures = [pool.submit(_lookup, name) for name in body.item_names]
+        results = [future.result() for future in futures]
     except UpstreamError:
         raise _upstream_unavailable()
+    finally:
+        # Drop whatever has not started rather than letting the context
+        # manager's shutdown(wait=True) drain it: during an outage a full
+        # batch would otherwise hold the worker for every remaining upstream
+        # timeout before the 502 goes out.
+        pool.shutdown(wait=False, cancel_futures=True)
     return envelope(dict(zip(body.item_names, results)))

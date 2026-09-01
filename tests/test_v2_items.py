@@ -98,6 +98,51 @@ class TestItemBatch(ItemsTestBase):
         self.assertEqual(resp.get_json()['error']['code'],
                          'upstream_unavailable')
 
+    def test_upstream_failure_does_not_wait_for_in_flight_lookups(self):
+        """The 502 must go out while the already-running lookups are still
+        blocked upstream, instead of holding the worker for their timeouts.
+
+        Queued lookups are dropped either way (Executor.map cancels them as
+        it unwinds); what the explicit shutdown adds is not waiting on the
+        in-flight ones.
+        """
+        import threading
+
+        from modules.routes.api.wynncraft_api import UpstreamError
+
+        release = threading.Event()
+        self.addCleanup(release.set)
+        lock = threading.Lock()
+        started, finished = [], []
+
+        def lookup(name):
+            # The first submitted name fails immediately; the rest occupy the
+            # remaining workers and stay blocked for the whole request.
+            if name == 'Item0':
+                raise UpstreamError('down')
+            with lock:
+                started.append(name)
+            release.wait(timeout=10)
+            with lock:
+                finished.append(name)
+            return {'name': name}
+
+        self.service_mocks['fetch_item'].side_effect = lookup
+        try:
+            resp = self.request('POST', '/api/v2/items/batch', token='keyholder',
+                                json={'item_names': [f'Item{i}'
+                                                     for i in range(100)]})
+        finally:
+            release.set()
+            self.service_mocks['fetch_item'].side_effect = None
+
+        self.assertEqual(resp.status_code, 502)
+        with lock:
+            # Nothing completed: the response overtook every blocked lookup.
+            self.assertEqual(finished, [])
+            # And the queue behind them was never worked through.
+            self.assertLessEqual(len(started), 8)
+
     def test_malformed_json_is_a_400(self):
         resp = self.client.post('/api/v2/items/batch',
                                 headers=self.auth_headers('keyholder'),

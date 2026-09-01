@@ -65,10 +65,12 @@ def subtype_from_storage(value):
 
 
 def subtype_to_storage(label):
-    # Stored subtypes are title-cased single words ("Bow", "Helmet", "Ring").
-    if label is None:
-        return None
-    return label.title()
+    # Stored subtype casing is not uniform — gear is upper case ("BOW",
+    # "CHESTPLATE") while powders and runes are compound ("WaterPowder",
+    # "UthRune") — so no casing rule reverses subtype_from_storage. The label
+    # passes through untouched and the repository matches it
+    # case-insensitively, which keeps every emitted value usable as a filter.
+    return label
 
 
 def rarity_from_storage(value):

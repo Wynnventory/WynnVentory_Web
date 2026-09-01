@@ -88,8 +88,22 @@ class TestListings(MarketTestBase):
         self.assertEqual(resp.status_code, 200)
         kwargs = mock.call_args.kwargs
         self.assertEqual(kwargs['item_type'], 'MaterialItem')
-        self.assertEqual(kwargs['sub_type'], 'Bow')
+        # Subtypes pass through unchanged; the repository matches them
+        # case-insensitively because stored casing is not uniform.
+        self.assertEqual(kwargs['sub_type'], 'bow')
         self.assertEqual(kwargs['sort_option'].value, 'listing_price_asc')
+
+    def test_compound_subtype_filter_is_not_recased(self):
+        """Values v2 emits must survive the round trip back into a filter."""
+        mock = self.patch_service('get_item_listings', return_value={
+            'page': 1, 'page_size': 50, 'count': 0, 'total': 0, 'items': [],
+        })
+        for emitted in ('waterpowder', 'uthrune', 'chestplate'):
+            with self.subTest(subtype=emitted):
+                self.request(
+                    'GET', f'/api/v2/market/listings?subtype={emitted}',
+                    token='reader')
+                self.assertEqual(mock.call_args.kwargs['sub_type'], emitted)
 
     def test_gear_filter_translates_to_storage(self):
         mock = self.patch_service('get_item_listings', return_value={
@@ -241,6 +255,28 @@ class TestRankings(MarketTestBase):
         self.assertEqual(first['item_type'], 'weapon')
         self.assertNotIn('itemType', first)
         self.assertEqual(first['rank'], 1)
+
+
+class TestSubtypeFilterIsCaseInsensitive(unittest.TestCase):
+    """The stored `type` spelling varies by item family, so the subtype
+    filter has to match regardless of the caller's casing."""
+
+    def _query_filter(self, sub_type):
+        from modules.repositories import market_repo
+
+        with patch.object(market_repo, 'get_collection') as get_collection:
+            market_repo.get_trade_market_item_listings(sub_type=sub_type)
+        return get_collection.return_value.count_documents.call_args.args[0]
+
+    def test_lowercased_subtype_matches_stored_casing(self):
+        for emitted in ('waterpowder', 'uthrune', 'chestplate'):
+            with self.subTest(subtype=emitted):
+                self.assertEqual(self._query_filter(emitted)['type'],
+                                 {'$regex': f'^{emitted}$', '$options': 'i'})
+
+    def test_regex_metacharacters_are_escaped(self):
+        self.assertEqual(self._query_filter('a.b')['type']['$regex'],
+                         r'^a\.b$')
 
 
 if __name__ == '__main__':

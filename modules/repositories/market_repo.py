@@ -353,7 +353,12 @@ def get_trade_market_item_listings(
                 query_filter['tier'] = tier
 
     if sub_type is not None:
-        query_filter['type'] = sub_type
+        # Stored casing varies by family ("BOW" for gear, "WaterPowder" and
+        # "UthRune" for powders and runes), and v2 emits subtypes lowercased,
+        # so match the whole value case-insensitively instead of demanding the
+        # caller reproduce the stored spelling.
+        escaped = re.escape(sub_type)
+        query_filter['type'] = {'$regex': f'^{escaped}$', '$options': 'i'}
 
     coll = get_collection(ColEnum.MARKET_LISTINGS)
     total = coll.count_documents(query_filter)
