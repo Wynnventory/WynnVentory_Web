@@ -29,10 +29,14 @@ def validate(query=None, body=None):
         def wrapped(*args, **kwargs):
             if query is not None:
                 try:
-                    kwargs['query'] = query.model_validate(request.args.to_dict())
+                    parsed = query.model_validate(request.args.to_dict())
                 except ValidationError as exc:
                     raise ApiError('validation_error', 'Invalid query parameters',
                                    400, _details(exc, 'query'))
+                # Field-less models (EmptyQuery) only reject unknown params;
+                # don't force views to accept an argument they never read.
+                if query.model_fields:
+                    kwargs['query'] = parsed
             if body is not None:
                 data = request.get_json(silent=True)
                 if data is None:

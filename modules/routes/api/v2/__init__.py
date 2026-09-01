@@ -32,7 +32,7 @@ def build_v2_blueprint():
 
     @bp.get('/status')
     @validate(query=EmptyQuery)
-    def status(query: EmptyQuery):
+    def status():
         return envelope({'status': 'ok', 'version': 'v2'})
 
     from modules.routes.api.v2.market import market_v2_bp

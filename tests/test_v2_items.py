@@ -85,6 +85,19 @@ class TestItemBatch(ItemsTestBase):
                             json={'item_names': ['x'] * 101})
         self.assertEqual(resp.status_code, 400)
 
+    def test_upstream_failure_is_a_502(self):
+        from modules.routes.api.wynncraft_api import UpstreamError
+
+        self.service_mocks['fetch_item'].side_effect = UpstreamError('down')
+        try:
+            resp = self.request('POST', '/api/v2/items/batch', token='keyholder',
+                                json={'item_names': ['Divzer']})
+        finally:
+            self.service_mocks['fetch_item'].side_effect = None
+        self.assertEqual(resp.status_code, 502)
+        self.assertEqual(resp.get_json()['error']['code'],
+                         'upstream_unavailable')
+
     def test_malformed_json_is_a_400(self):
         resp = self.client.post('/api/v2/items/batch',
                                 headers=self.auth_headers('keyholder'),

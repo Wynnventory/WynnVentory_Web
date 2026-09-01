@@ -60,14 +60,14 @@ def _build_pool_blueprint(name, collection_type, scope, week_fn):
     @bp.get('/current')
     @require_scope_v2(scope)
     @validate(query=EmptyQuery)
-    def current_pool(query: EmptyQuery):
+    def current_pool():
         year, week = week_fn()
         return _pool_or_404(year, week)
 
     @bp.get('/current/items')
     @require_scope_v2(scope)
     @validate(query=EmptyQuery)
-    def current_pool_items(query: EmptyQuery):
+    def current_pool_items():
         regions = base_pool_service.get_current_pools(collection_type)
         return envelope([serialize_processed_region(region)
                          for region in regions])
@@ -75,7 +75,7 @@ def _build_pool_blueprint(name, collection_type, scope, week_fn):
     @bp.get('/<int:year>/<int:week>')
     @require_scope_v2(scope)
     @validate(query=EmptyQuery)
-    def specific_pool(year, week, query: EmptyQuery):
+    def specific_pool(year, week):
         _validate_week(year, week)
         return _pool_or_404(year, week)
 
@@ -93,7 +93,7 @@ gambits_v2_bp = Blueprint('gambits', __name__, url_prefix='/gambits')
 @gambits_v2_bp.get('/current')
 @require_scope_v2('read:raidpool')
 @validate(query=EmptyQuery)
-def current_gambits(query: EmptyQuery):
+def current_gambits():
     data = raidpool_service.get_current_gambits()
     if not data:
         raise ApiError('not_found', 'No gambit data for the current day', 404)
