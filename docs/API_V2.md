@@ -54,9 +54,12 @@ differ as described in the migration guide.
 - `item_type` (market): `gear`, `material`, `ingredient`, `powder`, `rune`,
   `dungeon_key`, `amplifier`, `emerald_pouch` (in pools also `aspect`,
   `tome`, `emerald`, `weapon`, `armour`, `accessory`)
-- `subtype`: lowercase sub-category — `bow`, `wand`, `spear`, `dagger`,
+- `subtype`: lowercase sub-category — gear: `bow`, `wand`, `spear`, `dagger`,
   `relik`, `helmet`, `chestplate`, `leggings`, `boots`, `ring`, `bracelet`,
-  `necklace`
+  `necklace`; powders: `waterpowder`, `firepowder`, `thunderpowder`,
+  `airpowder`, `earthpowder`; runes: `uthrune`, `azrune`, `niirune`,
+  `tolrune`. Filters are matched case-insensitively, so every emitted value
+  round-trips as a filter
 - `rarity`: `normal`, `unique`, `rare`, `legendary`, `fabled`, `mythic`, `set`
 
 ## Keeping the spec honest
