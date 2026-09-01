@@ -149,13 +149,16 @@ paths:
         - { name: tier, in: query, schema: { type: integer, minimum: 1 } }
       responses:
         '200':
-          description: Aggregated statistics across the matched archive days.
+          description: >
+            Aggregated statistics across the matched archive days. Unlike
+            /price and /history, this payload is a pure aggregate — see
+            AggregatedPriceStats for its exact (smaller) field set.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  data: { $ref: '#/components/schemas/PriceStats' }
+                  data: { $ref: '#/components/schemas/AggregatedPriceStats' }
         '400': { $ref: '#/components/responses/ValidationError' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
@@ -523,9 +526,35 @@ components:
         average_p50_ema_price: { type: [number, 'null'] }
         total_count: { type: integer }
         unidentified_count: { type: integer }
-        document_count: { type: integer, description: Only on aggregated history responses. }
         timestamp: { $ref: '#/components/schemas/Timestamp' }
       additionalProperties: true
+    AggregatedPriceStats:
+      type: object
+      description: >
+        Aggregate of the archived daily statistics over the requested range,
+        returned only by /market/items/{item_name}/history/latest. Price
+        fields are means of the daily values (the EMA fields take the latest
+        day's), counts are sums, and document_count is the number of archive
+        days matched. The per-snapshot fields of PriceStats (shiny,
+        timestamp, item_type, icon, unidentified lowest/highest) are not
+        part of this payload.
+      properties:
+        name: { type: string }
+        tier: { type: [integer, 'null'] }
+        document_count: { type: integer }
+        lowest_price: { type: [number, 'null'] }
+        highest_price: { type: [number, 'null'] }
+        average_price: { type: [number, 'null'] }
+        average_mid_80_percent_price: { type: [number, 'null'] }
+        p50_price: { type: [number, 'null'] }
+        average_p50_ema_price: { type: [number, 'null'] }
+        total_count: { type: integer }
+        unidentified_average_price: { type: [number, 'null'] }
+        unidentified_average_mid_80_percent_price: { type: [number, 'null'] }
+        unidentified_p50_price: { type: [number, 'null'] }
+        unidentified_average_p50_ema_price: { type: [number, 'null'] }
+        unidentified_count: { type: integer }
+      additionalProperties: false
     RankingEntry:
       type: object
       properties:
