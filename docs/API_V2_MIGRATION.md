@@ -91,7 +91,7 @@ or full ISO-8601, and are interpreted as UTC.
 
 | Concept | v1 | v2 |
 |---|---|---|
-| Item category (query + response) | `itemType` / `item_type` / `"GearItem"` / `"MaterialItem"` | `item_type`, lowercase snake_case: `gear`, `material`, `ingredient`, `powder`, `rune`, `dungeon_key`, `amplifier`, `emerald_pouch` (pools also: `aspect`, `tome`, `weapon`, `armour`, `accessory`) |
+| Item category (query + response) | `itemType` / `item_type` / `"GearItem"` / `"MaterialItem"` | `item_type`, lowercase snake_case: `gear`, `material`, `ingredient`, `powder`, `rune`, `dungeon_key`, `amplifier`, `emerald_pouch` (pools also: `aspect`, `tome`, `emerald`, `weapon`, `armour`, `accessory`) |
 | Item sub-category | `subType` (query), `type`/`subtype` (responses) | `subtype`, lowercase values (`bow`, `helmet`, `ring`, ...) |
 | Shiny | `shiny_stat` object only (listings), `shiny` bool (averages), both camelCase in pools | `shiny` (boolean) **and** `shiny_stat` (object or null), always both present |
 | Rarity | Mixed casing per endpoint | Always lowercase in responses; filters case-insensitive |

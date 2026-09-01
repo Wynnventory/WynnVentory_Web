@@ -124,6 +124,13 @@ def quick_search_item(item_name):
     url = f"{BASE_URL}/item/search"
     response = requests.get(f"{url}/{item_name}", timeout=10)
 
+    if response.status_code in (400, 404):
+        # Wynncraft answers 400/404 for a search with no matches — a genuine
+        # missing resource, not an upstream failure.
+        return None
+    # Anything else non-2xx (429, 5xx, ...) is an upstream failure and must
+    # not masquerade as "item not found".
+    response.raise_for_status()
     if response.status_code != 200:
         return None
 

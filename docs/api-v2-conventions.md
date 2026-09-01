@@ -95,9 +95,11 @@ nothing — that is a 200. Naming a resource that does not exist
 - `item_type`: the item category, lowercase and snake_case. Market data uses
   `gear`, `material`, `ingredient`, `powder`, `rune`, `dungeon_key`,
   `amplifier`, `emerald_pouch`; pool data can additionally carry `aspect`,
-  `tome`, `weapon`, `armour`, `accessory`. Every value emitted on a market
-  listing is accepted back as a listings filter. The storage vocabulary
-  (`GearItem`, `MaterialItem`, ...) is an internal detail.
+  `tome`, `emerald`, `weapon`, `armour`, `accessory`. Every value emitted on
+  a market listing is accepted back as a listings filter. The storage
+  vocabulary (`GearItem`, `MaterialItem`, ...) is an internal detail; storage
+  values without an explicit mapping are normalized to snake_case with the
+  `Item` suffix stripped.
 - `subtype`: the sub-category (`bow`, `helmet`, `ring`, ...). Never `type`,
   `subType`, or `sub_type`.
 - `shiny` (boolean) and `shiny_stat` (object or `null`) are both always
