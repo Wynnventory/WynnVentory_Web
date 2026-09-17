@@ -61,7 +61,7 @@ BASIC_MAP = {
 SKIP_DIRS = {"gui", "jigsaw", "signage", "housing", "prop", "spell", "loot"}
 
 GENERIC_CATEGORIES = [
-    "augment", "dungeon", "legacy",
+    "augment", "charm", "dungeon", "legacy",
     "mastery_tome", "mount", "potion", "pouch",
     "scroll", "tool", "ward",
 ]

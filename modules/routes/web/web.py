@@ -50,6 +50,12 @@ SUBTYPE_OPTIONS = {
         ("PurpleWard", "Purple"),
         ("RedWard", "Red"),
         ("YellowWard", "Yellow")
+    ],
+    "GatheringToolItem": [
+        ("AXE", "Axe"),
+        ("PICKAXE", "Pickaxe"),
+        ("FISHING_ROD", "Fishing Rod"),
+        ("SCYTHE", "Scythe")
     ]
 }
 
