@@ -184,7 +184,7 @@ Submit one or more trade market listings from the game mod. Each listing represe
 |-------|------|-------------|
 | `name` | string | Item name as it appears in Wynncraft |
 | `rarity` | string | e.g. `"Normal"`, `"Unique"`, `"Rare"`, `"Legendary"`, `"Fabled"`, `"Mythic"`, `"Set"` |
-| `itemType` | string | Broad category: `"Weapon"`, `"Armour"`, `"Accessory"`, `"MaterialItem"`, `"PowderItem"`, `"AmplifierItem"`, `"EmeraldPouchItem"` |
+| `itemType` | string | Broad category: `"Weapon"`, `"Armour"`, `"Accessory"`, `"MaterialItem"`, `"PowderItem"`, `"AmplifierItem"`, `"EmeraldPouchItem"`, `"WardItem"` |
 | `type` | string | Sub-type within the category (e.g. `"Bow"`, `"Helmet"`, `"Ring"`) |
 | `tier` | integer or null | Tier level. Used only for tiered item types (`MaterialItem`, `PowderItem`, `AmplifierItem`, `EmeraldPouchItem`). `null` for all other types. |
 | `unidentified` | boolean | Whether the item is unidentified |
@@ -1130,6 +1130,7 @@ Loot pool and raid pool data follow a simpler flow. The mod submits a raw payloa
 | `PowderItem` | Elemental powders. Uses `tier` field (tier 1–6). |
 | `AmplifierItem` | Powder amplifiers. Uses `tier` field. |
 | `EmeraldPouchItem` | Emerald storage pouches. Uses `tier` field. |
+| `WardItem` | Raid and lootrun Wards. Non-tiered (`tier` is `null`); `type` holds the colour, e.g. `BlueWard`. |
 
 ### Weapon Sub-types (`type`)
 

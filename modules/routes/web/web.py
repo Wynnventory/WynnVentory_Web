@@ -41,6 +41,15 @@ SUBTYPE_OPTIONS = {
         ("AzRune", "Az"),
         ("NiiRune", "Nii"),
         ("TolRune", "Tol")
+    ],
+    "WardItem": [
+        ("BlueWard", "Blue"),
+        ("GreenWard", "Green"),
+        ("OrangeWard", "Orange"),
+        ("PinkWard", "Pink"),
+        ("PurpleWard", "Purple"),
+        ("RedWard", "Red"),
+        ("YellowWard", "Yellow")
     ]
 }
 
