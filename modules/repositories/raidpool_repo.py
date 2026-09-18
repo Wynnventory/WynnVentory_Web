@@ -180,7 +180,8 @@ def fetch_raidpool():
                                                     "then": "Aspects"
                                                 },
                                                 {
-                                                    "case": {"$eq": ["$$item.itemType", "GearItem"]},
+                                                    # Charms roll like gear, so they sit with it
+                                                    "case": {"$in": ["$$item.itemType", ["GearItem", "CharmItem"]]},
                                                     "then": "Gear"
                                                 },
                                                 {
