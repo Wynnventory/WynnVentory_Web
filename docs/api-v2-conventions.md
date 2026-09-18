@@ -26,7 +26,7 @@ X-API-Key: <your-key>
 | 401 | `missing_api_key` | No key provided (`WWW-Authenticate: Api-Key` is set) |
 | 401 | `invalid_api_key` | Key unknown or revoked (`WWW-Authenticate: Api-Key` is set) |
 | 403 | `missing_scope` | Valid key without the required scope |
-| 403 | `forbidden` | The shared mod key (it is pinned to the v1 surface) |
+| 403 | `forbidden` | The shared mod key on any route other than the four reads the game mod performs (`/market/items/{name}/price`, `/market/items/{name}/history/latest`, `/lootpools/current`, `/raidpools/current`); it is otherwise pinned to the v1 surface |
 
 Note: v1 returns 403 for invalid keys; v2 deliberately uses 401 for both
 missing and invalid credentials.

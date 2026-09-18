@@ -1,6 +1,7 @@
 """/api/v2/lootpools, /api/v2/raidpools, /api/v2/gambits — weekly pool data."""
 from flask import Blueprint
 
+from modules.auth import mod_allowed
 from modules.models.collection_types import Collection
 from modules.repositories.base_pool_repo import count_pool_weeks
 from modules.routes.api.v2.auth import require_scope_v2
@@ -58,6 +59,7 @@ def _build_pool_blueprint(name, collection_type, scope, week_fn):
         )
 
     @bp.get('/current')
+    @mod_allowed  # read by the game mod's reward screen (lootpools and raidpools)
     @require_scope_v2(scope)
     @validate(query=EmptyQuery)
     def current_pool():
