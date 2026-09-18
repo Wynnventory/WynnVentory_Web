@@ -620,6 +620,21 @@ def get_trademarket_item_price(
         return {}
 
 
+def _stored_item_name(item_name: str) -> Optional[str]:
+    """The stored spelling of item_name, resolved case-insensitively.
+
+    The archive holds millions of rows indexed on the exact name; a
+    case-insensitive regex there cannot use that index and scans it (seconds
+    per call in prod). The averages collection is tiny, so the regex is cheap
+    there, and both collections spell names identically.
+    """
+    doc = get_collection(ColEnum.MARKET_AVERAGES).find_one(
+        {'name': {'$regex': f'^{re.escape(item_name)}$', '$options': 'i'}},
+        {'_id': False, 'name': True},
+    )
+    return doc['name'] if doc else None
+
+
 def get_price_history(
         item_name: str,
         shiny: bool = False,
@@ -645,7 +660,7 @@ def get_price_history(
     exclusive_end = end_date + timedelta(days=1)
 
     query_filter: Dict[str, Any] = {
-        'name': {'$regex': f'^{re.escape(item_name)}$', '$options': 'i'},
+        'name': item_name,  # exact: uses the archive's name index
         'shiny': shiny,
         '$or': [
             {'item_type': {'$nin': TIERED_TYPES}},
@@ -657,12 +672,20 @@ def get_price_history(
         }
     }
 
-    cursor = get_collection(ColEnum.MARKET_ARCHIVE).find(
-        filter=query_filter,
-        sort=[('timestamp', 1)],
-        projection={'_id': 0}
-    )
-    return list(cursor)
+    def run(name: str) -> List[Dict[str, Any]]:
+        cursor = get_collection(ColEnum.MARKET_ARCHIVE).find(
+            filter={**query_filter, 'name': name},
+            sort=[('timestamp', 1)],
+            projection={'_id': 0}
+        )
+        return list(cursor)
+
+    rows = run(item_name)
+    if not rows:
+        stored = _stored_item_name(item_name)
+        if stored and stored != item_name:
+            rows = run(stored)
+    return rows
 
 
 def get_historic_average(
@@ -695,7 +718,7 @@ def get_historic_average(
 
     # base query
     query: Dict[str, Any] = {
-        'name': {'$regex': f'^{re.escape(item_name)}$', '$options': 'i'},
+        'name': item_name,  # exact: uses the archive's name index
         'shiny': shiny,
         '$or': [
             {'item_type': {'$nin': TIERED_TYPES}},
@@ -759,10 +782,18 @@ def get_historic_average(
         }}
     ]
 
-    result = list(
-        get_collection(ColEnum.MARKET_ARCHIVE)
-        .aggregate(pipeline, allowDiskUse=False)
-    )
+    def run(name: str) -> List[Dict[str, Any]]:
+        stages = [{'$match': {**query, 'name': name}}, *pipeline[1:]]
+        return list(
+            get_collection(ColEnum.MARKET_ARCHIVE)
+            .aggregate(stages, allowDiskUse=False)
+        )
+
+    result = run(item_name)
+    if not result:
+        stored = _stored_item_name(item_name)
+        if stored and stored != item_name:
+            result = run(stored)
     return result[0] if result else {}
 
 

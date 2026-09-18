@@ -111,20 +111,65 @@ class TestTierOnOtherMarketRoutes(ApiTestBase):
         self.assertEqual(resp.status_code, 400)
 
 
-class TestHistoricAverageNameMatching(ApiTestBase):
-    def test_latest_history_matches_name_case_insensitively(self):
-        # Regression: get_historic_average used an exact name match while the
-        # sibling price/history queries were case-insensitive.
-        coll = shared_collection_mock()
-        coll.aggregate.return_value = iter([])
+class TestArchiveNameMatching(ApiTestBase):
+    """The ~3M-row archive is queried by exact (indexed) name; a case
+    mismatch is resolved through the small averages collection instead of a
+    case-insensitive regex, which cannot use the archive's name index and
+    scanned it on every history/latest call (2.5-4.5 s in prod)."""
 
-        from modules.repositories.market_repo import get_historic_average
-        get_historic_average(item_name='divzer')
+    def setUp(self):
+        super().setUp()
+        from modules.repositories.market_repo import get_historic_average, get_price_history
+        self.get_historic_average = get_historic_average
+        self.get_price_history = get_price_history
+        # The collection mock is shared process-wide; isolate call history
+        # and the side effects these tests set.
+        self.coll = shared_collection_mock()
+        self.coll.reset_mock(return_value=True, side_effect=True)
+        self.addCleanup(self.coll.reset_mock, return_value=True, side_effect=True)
+        self.stats = {'name': 'Divzer', 'average_price': 100.0}
 
-        pipeline = coll.aggregate.call_args.args[0]
-        name_filter = pipeline[0]['$match']['name']
-        self.assertEqual(name_filter,
-                         {'$regex': '^divzer$', '$options': 'i'})
+    # --- history/latest (aggregate) --------------------------------------
+    def test_latest_history_matches_name_exactly_on_the_archive(self):
+        self.coll.aggregate.return_value = iter([self.stats])
+        result = self.get_historic_average(item_name='Divzer')
+        self.assertEqual(result, self.stats)
+        self.coll.aggregate.assert_called_once()
+        self.assertEqual(self.coll.aggregate.call_args.args[0][0]['$match']['name'], 'Divzer')
+        self.coll.find_one.assert_not_called()
+
+    def test_latest_history_resolves_a_case_mismatch_via_stored_spelling(self):
+        self.coll.aggregate.side_effect = [iter([]), iter([self.stats])]
+        self.coll.find_one.return_value = {'name': 'Divzer'}
+        result = self.get_historic_average(item_name='divzer')
+        self.assertEqual(result, self.stats)
+        lookup = self.coll.find_one.call_args.args[0]['name']
+        self.assertEqual(lookup, {'$regex': '^divzer$', '$options': 'i'})
+        names = [c.args[0][0]['$match']['name'] for c in self.coll.aggregate.call_args_list]
+        self.assertEqual(names, ['divzer', 'Divzer'])
+
+    def test_latest_history_for_an_unknown_name_stops_after_one_lookup(self):
+        self.coll.aggregate.return_value = iter([])
+        self.coll.find_one.return_value = None
+        self.assertEqual(self.get_historic_average(item_name='nope'), {})
+        self.coll.aggregate.assert_called_once()
+
+    # --- history (find) ----------------------------------------------------
+    def test_history_matches_name_exactly_on_the_archive(self):
+        self.coll.find.return_value = iter([self.stats])
+        result = self.get_price_history(item_name='Divzer')
+        self.assertEqual(result, [self.stats])
+        self.coll.find.assert_called_once()
+        self.assertEqual(self.coll.find.call_args.kwargs['filter']['name'], 'Divzer')
+        self.coll.find_one.assert_not_called()
+
+    def test_history_resolves_a_case_mismatch_via_stored_spelling(self):
+        self.coll.find.side_effect = [iter([]), iter([self.stats])]
+        self.coll.find_one.return_value = {'name': 'Divzer'}
+        result = self.get_price_history(item_name='divzer')
+        self.assertEqual(result, [self.stats])
+        names = [c.kwargs['filter']['name'] for c in self.coll.find.call_args_list]
+        self.assertEqual(names, ['divzer', 'Divzer'])
 
 
 class TestPoolPageSize(ApiTestBase):
