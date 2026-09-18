@@ -196,7 +196,8 @@ def fetch_raidpool():
                                                 {
                                                     "case": {
                                                         "$in": ["$$item.itemType",
-                                                                ["PowderItem", "EmeraldItem", "AmplifierItem"]]
+                                                                ["PowderItem", "EmeraldItem", "AmplifierItem",
+                                                                 "WardItem"]]
                                                     },
                                                     "then": "Misc"
                                                 }
