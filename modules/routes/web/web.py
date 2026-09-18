@@ -41,6 +41,21 @@ SUBTYPE_OPTIONS = {
         ("AzRune", "Az"),
         ("NiiRune", "Nii"),
         ("TolRune", "Tol")
+    ],
+    "WardItem": [
+        ("BlueWard", "Blue"),
+        ("GreenWard", "Green"),
+        ("OrangeWard", "Orange"),
+        ("PinkWard", "Pink"),
+        ("PurpleWard", "Purple"),
+        ("RedWard", "Red"),
+        ("YellowWard", "Yellow")
+    ],
+    "GatheringToolItem": [
+        ("AXE", "Axe"),
+        ("PICKAXE", "Pickaxe"),
+        ("FISHING_ROD", "Fishing Rod"),
+        ("SCYTHE", "Scythe")
     ]
 }
 
