@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
-from modules.repositories.raidpool_repo import save, save_gambits
+from modules.repositories.raidpool_repo import fetch_raidpool, save, save_gambits
 from tests.test_base import BaseTestCase
 
 
@@ -295,6 +295,24 @@ class TestRaidpoolRepo(BaseTestCase):
         ]
         expected_ts = datetime(2025, 5, 7, 18, 0, 43, tzinfo=timezone.utc)
         self.verify_insert_one(self.create_expected_doc(gambits=expected_gambits, timestamp=expected_ts))
+
+
+    def _group_branches(self):
+        """Run fetch_raidpool against the mocked collection and return the
+        group $switch branches as {group: itemType-list-or-None}."""
+        self.mock_collection.aggregate.return_value = iter([])
+        with patch('modules.repositories.raidpool_repo.get_raidpool_week', return_value=(2025, 19)):
+            fetch_raidpool()
+        pipeline = self.mock_collection.aggregate.call_args.args[0]
+        switch = pipeline[1]['$addFields']['items']['$map']['in']['$mergeObjects'][1]['group']['$switch']
+        return {b['then']: b['case'].get('$in', [None, None])[1] for b in switch['branches']}
+
+    def test_fetch_raidpool_groups_charms_with_gear(self):
+        groups = self._group_branches()
+        self.assertIn('CharmItem', groups['Gear'])
+        self.assertIn('GearItem', groups['Gear'])
+        self.assertIn('WardItem', groups['Misc'])
+        self.assertNotIn('CharmItem', groups['Misc'])
 
 
 if __name__ == "__main__":

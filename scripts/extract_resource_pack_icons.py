@@ -60,6 +60,7 @@ BASIC_MAP = {
 
 SKIP_DIRS = {"gui", "jigsaw", "signage", "housing", "prop", "spell", "loot"}
 
+# Charms have no texture directory; they are model-defined (see extract_charms).
 GENERIC_CATEGORIES = [
     "augment", "dungeon", "legacy",
     "mastery_tome", "mount", "potion", "pouch",
@@ -664,6 +665,61 @@ def extract_ingredients(
 
 
 # ---------------------------------------------------------------------------
+# Charm extraction (model JSON -> vanilla texture)
+# ---------------------------------------------------------------------------
+
+def extract_charms(
+    src: Path, out: Path, vanilla: Path, dry_run: bool, skip_existing: bool
+):
+    """
+    Charms have no textures/wynn/charm/ directory: each
+    models/item/wynn/charm/<name>.json just points at a vanilla item or block.
+    Flat item parents are extracted here as charm.<name>.webp; block parents
+    are left to render_3d_icons.py, which renders them like block ingredients.
+    """
+    wynn_base = src.parent.parent  # minecraft/
+    charm_model_dir = wynn_base / "models" / "item" / "wynn" / "charm"
+
+    if not charm_model_dir.exists():
+        return
+    print("\n== Charms (model JSON) ==")
+
+    json_files = sorted(
+        f for f in charm_model_dir.iterdir()
+        if f.is_file() and f.suffix == ".json"
+    )
+
+    for jf in json_files:
+        with open(jf, "r") as f:
+            data = json.load(f)
+
+        name = snake_to_camel(jf.stem)
+        dest = out / f"charm.{name}.webp"
+
+        if should_skip(dest, skip_existing):
+            continue
+
+        parent = data.get("parent", "").replace("minecraft:", "")
+        if parent.startswith("block/"):
+            print(f"  skip  {dest.name} (block model, render with render_3d_icons.py)")
+            stats.skipped += 1
+            continue
+
+        tex_paths = _resolve_ingredient_textures(data, wynn_base, vanilla)
+        if not tex_paths:
+            print(f"  warn  unresolved texture: {jf.name} (parent={parent})")
+            stats.warnings += 1
+            continue
+
+        if len(tex_paths) > 1:
+            img = composite_layers(tex_paths)
+        else:
+            img = first_frame(Image.open(tex_paths[0]).convert("RGBA"))
+
+        save_icon(img, dest, dry_run)
+
+
+# ---------------------------------------------------------------------------
 # Root-level wynn/ textures
 # ---------------------------------------------------------------------------
 
@@ -708,6 +764,7 @@ def extract_all(src: Path, out: Path, vanilla: Path, dry_run: bool,
     extract_runes(src, out, dry_run, skip_existing)
     extract_emeralds(src, out, dry_run, skip_existing)
     extract_ingredients(src, out, vanilla, dry_run, skip_existing)
+    extract_charms(src, out, vanilla, dry_run, skip_existing)
 
     for cat in GENERIC_CATEGORIES:
         extract_generic(src, out, cat, dry_run, skip_existing)

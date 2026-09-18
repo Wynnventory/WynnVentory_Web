@@ -1,7 +1,7 @@
 import hashlib
 from functools import wraps
 
-from flask import request, jsonify, g
+from flask import current_app, request, jsonify, g
 
 from modules.config import Config
 from modules.db import get_collection
@@ -12,22 +12,42 @@ from modules.utils.queue_worker import enqueue
 # This should already be the SHA-256 hash of your baked-in mod key:
 _MOD_KEY_HASH = Config.MOD_API_KEY
 
-# Public endpoints (no key required)
-_public_endpoints = set()
-# Whitelist of view-function names the mod key may call
-_mod_allowed_endpoints = set()
-
 
 def public_endpoint(f):
     """Mark a view as public (skip auth entirely)."""
-    _public_endpoints.add(f.__name__)
+    f._wv_public = True
     return f
 
 
 def mod_allowed(f):
     """Mark this view as allowed for the mod key."""
-    _mod_allowed_endpoints.add(f.__name__)
+    f._wv_mod_allowed = True
     return f
+
+
+def _current_view():
+    """Resolve the registered view function for the current request, if any."""
+    if not request.endpoint:
+        return None
+    return current_app.view_functions.get(request.endpoint)
+
+
+def extract_token():
+    """Pull the raw API key from the Authorization or X-API-Key header."""
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Api-Key "):
+        return auth.split(None, 1)[1].strip()
+    return request.headers.get("X-API-Key", "")
+
+
+def lookup_key(token):
+    """Hash a raw token and return its key document, or None."""
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    key_doc = get_collection(Collection.API_KEYS).find_one(
+        {"key_hash": token_hash, "revoked": False},
+        {"owner": 1, "scopes": 1}
+    )
+    return token_hash, key_doc
 
 
 def require_api_key():
@@ -37,30 +57,21 @@ def require_api_key():
     3) Stash g.owner, g.scopes
     4) Flag g.is_mod_key
     5) If it *is* the mod key, enforce default-deny on everything
-       except what's in _mod_allowed_endpoints
+       not marked @mod_allowed
     """
+    view = _current_view()
+
     # 1) public?
-    if request.endpoint and '.' in request.endpoint:
-        _, ep = request.endpoint.split('.', 1)
-        if ep in _public_endpoints:
-            return None
+    if view is not None and getattr(view, "_wv_public", False):
+        return None
 
     # 2) pull the raw key
-    auth = request.headers.get("Authorization", "")
-    if auth.startswith("Api-Key "):
-        token = auth.split(None, 1)[1].strip()
-    else:
-        token = request.headers.get("X-API-Key", "")
-
+    token = extract_token()
     if not token:
         return jsonify({"error": "Missing API key"}), 401
 
     # 2b) hash & look up
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
-    key_doc = get_collection(Collection.API_KEYS).find_one(
-        {"key_hash": token_hash, "revoked": False},
-        {"owner": 1, "scopes": 1}
-    )
+    token_hash, key_doc = lookup_key(token)
     if not key_doc:
         return jsonify({"error": "Invalid or revoked API key"}), 403
 
@@ -74,12 +85,7 @@ def require_api_key():
 
     # 5) default-deny for mod
     if g.is_mod_key:
-        # request.endpoint is like "market_bp.get_item_price"
-        if request.endpoint and '.' in request.endpoint:
-            _, ep = request.endpoint.split('.', 1)
-        else:
-            ep = request.endpoint or ""
-        if ep not in _mod_allowed_endpoints:
+        if view is None or not getattr(view, "_wv_mod_allowed", False):
             return jsonify({
                 "error": "Forbidden, mod key not allowed on this endpoint"
             }), 403

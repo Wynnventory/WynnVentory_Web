@@ -2,6 +2,7 @@ from flask import Blueprint, request
 from pydantic import ValidationError
 
 from modules.auth import public_endpoint
+from modules.routes.api.wynncraft_api import UpstreamError
 from modules.schemas.item_search import ItemSearchRequest
 from modules.services import item_service
 from modules.utils.param_utils import api_response, handle_request_error
@@ -12,7 +13,11 @@ item_bp = Blueprint('item', __name__, url_prefix='/api')
 @item_bp.get('/item/<item_name>')
 @public_endpoint
 def get_item(item_name):
-    data = item_service.fetch_item(item_name)
+    try:
+        data = item_service.fetch_item(item_name)
+    except UpstreamError:
+        # Legacy behavior: an unreachable upstream looks like a missing item.
+        data = None
 
     if data:
         return api_response(data)

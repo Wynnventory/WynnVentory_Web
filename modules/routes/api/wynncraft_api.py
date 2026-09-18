@@ -66,6 +66,13 @@ def cached(ttl: int = 300):
     return decorator
 
 
+class UpstreamError(Exception):
+    """The Wynncraft API could not be reached or answered with an error.
+
+    Distinct from a None return, which means the upstream answered but the
+    requested resource does not exist."""
+
+
 def api_request(func):
     """Decorator to handle API requests and error handling"""
 
@@ -75,28 +82,15 @@ def api_request(func):
             return func(*args, **kwargs)
         except requests.exceptions.HTTPError as http_err:
             logging.error(f"HTTP error occurred: {http_err}")
-        except requests.exceptions.Timeout:
+            raise UpstreamError(str(http_err)) from http_err
+        except requests.exceptions.Timeout as timeout_err:
             logging.error("Request timed out")
+            raise UpstreamError("Wynncraft API request timed out") from timeout_err
         except Exception as err:
             logging.error(f"Other error occurred: {err}")
-        return None
+            raise UpstreamError(str(err)) from err
 
     return wrapper
-
-
-@cached(ttl=3600)  # Cache for 1 hour
-@api_request
-def get_item_database():
-    url = f"{BASE_URL}/item/database?fullResult"
-    # Add timeout to prevent hanging requests
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    data = response.json()
-    if isinstance(data, dict):
-        return data
-    else:
-        logging.warning("Unexpected data format received: %s", type(data))
-        return None
 
 
 @cached(ttl=300)  # Cache for 5 minutes
@@ -115,13 +109,28 @@ def quick_search_item(item_name):
     url = f"{BASE_URL}/item/search"
     response = requests.get(f"{url}/{item_name}", timeout=10)
 
+    if response.status_code in (400, 404):
+        # Wynncraft answers 400/404 for a search with no matches — a genuine
+        # missing resource, not an upstream failure.
+        return None
+    # Anything else non-2xx (429, 5xx, ...) is an upstream failure and must
+    # not masquerade as "item not found".
+    response.raise_for_status()
     if response.status_code != 200:
         return None
 
     data = response.json()
     normalized_target = clean_name(item_name)
 
-    for key, obj in data.items():
+    # Wynncraft v3 answers with an array of item objects; older revisions
+    # used a name-keyed map. Accept both.
+    if isinstance(data, dict):
+        entries = data.items()
+    else:
+        entries = ((obj.get('displayName') or obj.get('internalName') or '',
+                    obj) for obj in data)
+
+    for key, obj in entries:
         if clean_name(key) == normalized_target:
             obj['item_name'] = key
             return obj
@@ -138,8 +147,16 @@ def get_aspect_by_name(class_name, aspect_name):
     response.raise_for_status()
     data = response.json()
 
-    if aspect_name in data:
-        return data[aspect_name]
+    # Wynncraft v3 answers with an array of aspect objects; older revisions
+    # used a name-keyed map. Accept both.
+    if isinstance(data, dict):
+        if aspect_name in data:
+            return data[aspect_name]
+    else:
+        target = clean_name(aspect_name)
+        for aspect in data:
+            if clean_name(aspect.get('name', '')) == target:
+                return aspect
 
     logging.warning(f"Aspect not found: {aspect_name}")
     return None

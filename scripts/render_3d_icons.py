@@ -36,15 +36,15 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 DEFAULT_MODELS = Path(
-    r"C:\Users\domin\Downloads\play.wynncraft.com"
+    r"C:\Users\timki\Downloads\play.wynncraft.com"
     r"\play.wynncraft.com\assets\minecraft\models\item\wynn"
 )
 DEFAULT_TEXTURES = Path(
-    r"C:\Users\domin\Downloads\play.wynncraft.com"
+    r"C:\Users\timki\Downloads\play.wynncraft.com"
     r"\play.wynncraft.com\assets\minecraft\textures"
 )
 DEFAULT_VANILLA = Path(
-    r"C:\Users\domin\Downloads\1.21.11\assets\minecraft"
+    r"C:\Users\timki\Downloads\1.21.11\assets\minecraft"
 )
 DEFAULT_OUT = (
     Path(__file__).resolve().parent.parent
@@ -53,8 +53,12 @@ DEFAULT_OUT = (
 
 SKIP_CATEGORIES = {
     "housing", "jigsaw", "gui", "template", "emotes", "outer_void",
-    "skin", "charm", "accessory", "armor",
+    "skin", "accessory", "armor",
 }
+
+# Categories whose block-parent models are rendered as 3D icons. Their flat
+# item-parent models are extracted by extract_resource_pack_icons.py instead.
+BLOCK_ICON_CATEGORIES = {"ingredient", "charm"}
 RENDER_SIZE = 128
 
 TIER_MAP = {"a": "1", "b": "2", "c": "3"}
@@ -734,7 +738,7 @@ def main():
         rel = model_path.relative_to(args.models)
         cat = rel.parts[0] if len(rel.parts) > 1 else ""
 
-        if cat != "ingredient":
+        if cat not in BLOCK_ICON_CATEGORIES:
             continue
 
         if not _is_block_model(model_path, args.models, vanilla_models):

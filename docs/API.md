@@ -1,6 +1,15 @@
-# WynnVentory API Documentation
+# WynnVentory API Documentation (v1 — legacy)
+
+> **v1 is frozen.** These endpoints keep working for the WynnVentory game mod
+> and the website, but receive no new features. New integrations should use
+> the standardized **[API v2](API_V2.md)** (`/api/v2/...`) — see the
+> [migration guide](API_V2_MIGRATION.md).
 
 WynnVentory is a data aggregation service for the Wynncraft MMORPG. It collects trade market listings, loot pools, and raid pools submitted by the WynnVentory game mod, computes price statistics, and exposes all data through a REST API.
+
+> **Timestamp format note:** v1 responses serialize datetimes in RFC 1123
+> HTTP-date format (`"Fri, 14 Mar 2026 12:00:00 GMT"`), not ISO-8601 as some
+> examples below show. API v2 uses ISO-8601 UTC.
 
 ---
 
@@ -184,7 +193,7 @@ Submit one or more trade market listings from the game mod. Each listing represe
 |-------|------|-------------|
 | `name` | string | Item name as it appears in Wynncraft |
 | `rarity` | string | e.g. `"Normal"`, `"Unique"`, `"Rare"`, `"Legendary"`, `"Fabled"`, `"Mythic"`, `"Set"` |
-| `itemType` | string | Broad category: `"Weapon"`, `"Armour"`, `"Accessory"`, `"MaterialItem"`, `"PowderItem"`, `"AmplifierItem"`, `"EmeraldPouchItem"` |
+| `itemType` | string | Broad category: `"Weapon"`, `"Armour"`, `"Accessory"`, `"MaterialItem"`, `"PowderItem"`, `"AmplifierItem"`, `"EmeraldPouchItem"`, `"WardItem"`, `"CharmItem"`, `"GatheringToolItem"` |
 | `type` | string | Sub-type within the category (e.g. `"Bow"`, `"Helmet"`, `"Ring"`) |
 | `tier` | integer or null | Tier level. Used only for tiered item types (`MaterialItem`, `PowderItem`, `AmplifierItem`, `EmeraldPouchItem`). `null` for all other types. |
 | `unidentified` | boolean | Whether the item is unidentified |
@@ -244,7 +253,7 @@ curl -X POST https://wynnventory.com/api/trademarket/items \
 
 ### GET /api/trademarket/listings/{item_name}
 
-Retrieve paginated live trade market listings. Both routes are identical in behavior; providing `item_name` in the path is equivalent to filtering by `item_name` as a query parameter and is offered for convenience.
+Retrieve paginated live trade market listings. Filtering by name is done via the `item_name` **path** segment (there is no `item_name` query parameter on v1; API v2 provides one).
 
 **Auth:** `read:market` scope required. The Mod Key is not accepted on this endpoint.
 
@@ -266,7 +275,7 @@ Retrieve paginated live trade market listings. Both routes are identical in beha
 | `subType` | string | — | Filter by sub-type (e.g. `"Bow"`, `"Spear"`, `"Helmet"`) |
 | `sort` | string | `timestamp_desc` | Sort order. See table below. |
 | `page` | integer | `1` | Page number. Minimum value: `1`. |
-| `page_size` | integer | `50` | Results per page. Maximum value: `1000`. |
+| `page_size` | integer | `50` | Results per page. Clamped to the range 1–1000. |
 
 **Sort options:**
 
@@ -328,10 +337,18 @@ curl "https://wynnventory.com/api/trademarket/listings/Divzer?rarity=Legendary&s
 ```
 
 ```bash
-# Equivalent using query parameter
-curl "https://wynnventory.com/api/trademarket/listings?item_name=divzer&rarity=Legendary" \
+# Unfiltered, with a rarity filter
+curl "https://wynnventory.com/api/trademarket/listings?rarity=Legendary" \
   -H "Authorization: Api-Key YOUR_KEY"
 ```
+
+**Error responses:**
+
+| Status | Body | Cause |
+|--------|------|-------|
+| `400` | `{ "error": "Invalid tier. Must be an integer." }` | Non-integer `tier` value |
+| `400` | `{ "error": "Invalid sort option. Allowed values: ..." }` | Unknown `sort` value (v1 used to answer 500) |
+| `500` | `{ "error": "Internal server error" }` | Unexpected failure |
 
 ---
 
@@ -389,6 +406,7 @@ For descriptions of all price fields, see the [Price Fields Reference](#price-fi
 | Status | Body | Cause |
 |--------|------|-------|
 | `400` | `{ "message": "No item name provided" }` | `item_name` path parameter was empty |
+| `400` | `{ "error": "Invalid tier. Must be an integer." }` | Non-integer `tier` value |
 | `500` | `{ "error": "Internal server error" }` | Unexpected failure |
 
 **Example curl:**
@@ -469,6 +487,7 @@ Returns raw daily archive snapshots for an item over a date range. Each element 
 |--------|------|-------|
 | `400` | `{ "message": "No item name provided" }` | Empty `item_name` |
 | `400` | `{ "error": "Invalid date format. Use YYYY-MM-DD." }` | Malformed date string |
+| `400` | `{ "error": "Invalid tier. Must be an integer." }` | Non-integer `tier` value |
 | `500` | `{ "error": "Internal server error" }` | Unexpected failure |
 
 **Example curl:**
@@ -523,9 +542,9 @@ Returns aggregated price statistics averaged across all archive documents in the
 | Field | Type | Description |
 |-------|------|-------------|
 | `document_count` | integer | Number of daily archive documents included in the aggregation |
-| `lowest_price` | float | Lowest single listing price seen across the date range |
-| `highest_price` | float | Highest single listing price seen across the date range |
-| `average_price` | float | Mean of all listing prices across the date range |
+| `lowest_price` | float | Mean of each archive day's lowest listing price |
+| `highest_price` | float | Mean of each archive day's highest listing price |
+| `average_price` | float | Mean of the daily average listing prices |
 | `average_mid_80_percent_price` | float | Mean of the middle-80% trimmed price averaged across archive days |
 | `total_count` | integer | Total number of listings observed across the date range |
 | `unidentified_*` | float or null | Same statistics for unidentified variants |
@@ -542,6 +561,13 @@ curl "https://wynnventory.com/api/trademarket/history/Divzer/price?start_date=20
 curl "https://wynnventory.com/api/trademarket/history/Divzer/latest?start_date=2026-03-07&end_date=2026-03-13" \
   -H "Authorization: Api-Key YOUR_KEY"
 ```
+
+**Error responses:**
+
+| Status | Body | Cause |
+|--------|------|-------|
+| `400` | `{ "error": "Invalid tier. Must be an integer." }` | Non-integer `tier` value |
+| `500` | `{ "error": "Internal server error" }` | Unexpected failure |
 
 ---
 
@@ -705,7 +731,7 @@ curl -X POST "https://wynnventory.com/api/items" \
 
 ### GET /api/aspect/{class_name}/{aspect_name}
 
-Fetch data for a specific class aspect from the Wynncraft v3 aspects API. Results are cached for 30 minutes. This endpoint carries no authentication decorator in the current implementation and behaves as effectively public.
+Fetch data for a specific class aspect from the Wynncraft v3 aspects API. Results are cached for 30 minutes. This endpoint is explicitly marked public (the website's JS fetches aspects without an API key).
 
 **Auth:** None required.
 
@@ -1130,6 +1156,9 @@ Loot pool and raid pool data follow a simpler flow. The mod submits a raw payloa
 | `PowderItem` | Elemental powders. Uses `tier` field (tier 1–6). |
 | `AmplifierItem` | Powder amplifiers. Uses `tier` field. |
 | `EmeraldPouchItem` | Emerald storage pouches. Uses `tier` field. |
+| `WardItem` | Raid and lootrun Wards. Non-tiered (`tier` is `null`); `type` holds the colour, e.g. `BlueWard`. |
+| `CharmItem` | Lootrun Charms. Non-tiered; `type` is `CHARM`. Carries the gear roll fields (`unidentified`, `rerollCount`, `overallRollPercentage`, `actualStatsWithPercentage`). |
+| `GatheringToolItem` | Profession gathering tools. Non-tiered: the tool tier is part of the name (e.g. `Bronze Axe T4`); `type` is the tool kind (`AXE`, `PICKAXE`, `FISHING_ROD`, `SCYTHE`). |
 
 ### Weapon Sub-types (`type`)
 
