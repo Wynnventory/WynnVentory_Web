@@ -1,6 +1,7 @@
 """/api/v2/market — trade market listings, prices, history, and rankings."""
 from flask import Blueprint
 
+from modules.auth import mod_allowed
 from modules.routes.api.v2.auth import require_scope_v2
 from modules.routes.api.v2.errors import ApiError
 from modules.routes.api.v2.responses import envelope, paginated
@@ -62,6 +63,7 @@ def listings(query: ListingsQuery):
 
 
 @market_v2_bp.get('/items/<item_name>/price')
+@mod_allowed  # read by the game mod's price tooltips
 @require_scope_v2('read:market')
 @validate(query=PriceQuery)
 def item_price(item_name, query: PriceQuery):
@@ -92,6 +94,7 @@ def item_history(item_name, query: HistoryQuery):
 
 
 @market_v2_bp.get('/items/<item_name>/history/latest')
+@mod_allowed  # read by the game mod's price tooltips
 @require_scope_v2('read:market_archive')
 @validate(query=HistoryLatestQuery)
 def item_history_latest(item_name, query: HistoryLatestQuery):

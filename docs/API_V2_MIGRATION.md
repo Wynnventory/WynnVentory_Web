@@ -77,6 +77,12 @@ on v2. Self-service keys from `wynnventory.com/developer/api-key` already
 carry every read scope; item/aspect endpoints need no scope at all, just a
 valid key.
 
+The shared game-mod key is the one exception to "every key gets every read":
+it is accepted only on the four v2 reads the mod performs
+(`/market/items/{name}/price`, `/market/items/{name}/history/latest`,
+`/lootpools/current`, `/raidpools/current`) and is `403 forbidden` on every
+other v2 route.
+
 ### 4. Timestamps are ISO-8601 UTC
 
 ```

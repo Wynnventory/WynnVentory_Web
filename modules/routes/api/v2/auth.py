@@ -3,7 +3,8 @@
 Differences from v1 (modules/auth.py):
 - missing AND invalid keys both return 401 (v1 returns 403 for invalid);
 - there are no public v2 endpoints — every route needs a valid key;
-- the shared mod key is denied on all of v2 (it is pinned to the v1 paths);
+- the shared mod key is accepted only on views marked @mod_allowed (the four
+  reads the game mod performs) and denied everywhere else on v2;
 - CORS preflight (OPTIONS) bypasses authentication.
 """
 from functools import wraps
@@ -32,7 +33,10 @@ def require_api_key_v2():
     g.is_mod_key = (token_hash == v1_auth._MOD_KEY_HASH)
 
     if g.is_mod_key:
-        raise ApiError('forbidden', 'The mod key cannot access /api/v2', 403)
+        view = v1_auth._current_view()
+        if view is None or not getattr(view, '_wv_mod_allowed', False):
+            raise ApiError('forbidden',
+                           'The mod key is not allowed on this endpoint', 403)
 
     return None
 
