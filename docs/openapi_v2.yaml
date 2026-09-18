@@ -463,6 +463,15 @@ components:
       type: string
       format: date-time
       description: ISO-8601 UTC with Z suffix, e.g. 2026-08-31T12:00:00Z.
+    Icon:
+      type: [object, 'null']
+      description: >
+        Icon reference as submitted by the game mod: a format discriminator
+        and the icon value it applies to.
+      properties:
+        format: { type: string }
+        value: { type: string }
+      additionalProperties: true
     Pagination:
       type: object
       properties:
@@ -505,7 +514,7 @@ components:
         reroll_count: { type: [integer, 'null'] }
         amount: { type: integer }
         listing_price: { type: integer }
-        icon: { type: [string, 'null'] }
+        icon: { $ref: '#/components/schemas/Icon' }
         timestamp: { $ref: '#/components/schemas/Timestamp' }
     PriceStats:
       type: object
@@ -517,7 +526,7 @@ components:
         tier: { type: [integer, 'null'] }
         shiny: { type: boolean }
         item_type: { type: [string, 'null'] }
-        icon: { type: [string, 'null'] }
+        icon: { $ref: '#/components/schemas/Icon' }
         lowest_price: { type: [number, 'null'] }
         highest_price: { type: [number, 'null'] }
         average_price: { type: [number, 'null'] }
@@ -582,7 +591,7 @@ components:
         tier: { type: [integer, 'null'] }
         shiny: { type: boolean }
         shiny_stat: { type: [object, 'null'] }
-        icon: { type: [string, 'null'] }
+        icon: { $ref: '#/components/schemas/Icon' }
     Pool:
       type: object
       properties:
@@ -631,7 +640,7 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
     Forbidden:
-      description: The key lacks the required scope, or the mod key was used.
+      description: The key lacks the required scope, or the mod key was used on a route it is not allowlisted for.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
