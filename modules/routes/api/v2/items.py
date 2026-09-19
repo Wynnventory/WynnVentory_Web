@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from flask import Blueprint
 
+from modules.routes.api.v2.auth import site_allowed
 from modules.routes.api.v2.errors import ApiError
 from modules.routes.api.v2.responses import envelope
 from modules.routes.api.v2.validation import validate
@@ -34,6 +35,7 @@ def _upstream_unavailable():
 
 
 @items_v2_bp.get('/<item_name>')
+@site_allowed  # item tooltips on the website
 @validate(query=EmptyQuery)
 def get_item(item_name):
     try:

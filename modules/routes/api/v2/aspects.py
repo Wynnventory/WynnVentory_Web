@@ -5,6 +5,7 @@ existing keys carry no aspect-specific scope).
 """
 from flask import Blueprint
 
+from modules.routes.api.v2.auth import site_allowed
 from modules.routes.api.v2.errors import ApiError
 from modules.routes.api.v2.responses import envelope
 from modules.routes.api.v2.validation import validate
@@ -16,6 +17,7 @@ aspects_v2_bp = Blueprint('aspects', __name__, url_prefix='/aspects')
 
 
 @aspects_v2_bp.get('/<class_name>/<aspect_name>')
+@site_allowed  # aspect tooltips on the website
 @validate(query=EmptyQuery)
 def get_aspect(class_name, aspect_name):
     try:

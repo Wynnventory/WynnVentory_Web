@@ -2,7 +2,7 @@
 from flask import Blueprint
 
 from modules.auth import mod_allowed
-from modules.routes.api.v2.auth import require_scope_v2
+from modules.routes.api.v2.auth import require_scope_v2, site_allowed
 from modules.routes.api.v2.errors import ApiError
 from modules.routes.api.v2.responses import envelope, paginated
 from modules.routes.api.v2.serializers.common import (
@@ -74,6 +74,7 @@ def item_price(item_name, query: PriceQuery):
 
 
 @market_v2_bp.get('/items/<item_name>/history')
+@site_allowed  # the website's price history page
 @require_scope_v2('read:market')
 @validate(query=HistoryQuery)
 def item_history(item_name, query: HistoryQuery):
@@ -112,6 +113,7 @@ def item_history_latest(item_name, query: HistoryLatestQuery):
 
 
 @market_v2_bp.get('/rankings')
+@site_allowed  # the website's price ranking page
 @require_scope_v2('read:market')
 @validate(query=RankingsQuery)
 def rankings(query: RankingsQuery):

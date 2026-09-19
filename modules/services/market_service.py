@@ -1,4 +1,6 @@
 import logging
+import threading
+import time
 from datetime import datetime
 from typing import List, Optional, Any
 
@@ -147,11 +149,38 @@ def get_item_listings(
         page_size=page_size)
 
 
+# The ranking aggregates the whole archive (~1 s) and callers page through it
+# 200 rows at a time, so each date range is kept briefly. The archive only
+# changes daily, so a short TTL costs nothing in freshness. Per process.
+RANKING_CACHE_TTL_SECONDS = 300
+_ranking_cache: dict = {}
+_ranking_cache_lock = threading.Lock()
+
+
+def clear_ranking_cache() -> None:
+    with _ranking_cache_lock:
+        _ranking_cache.clear()
+
+
 def get_ranking(
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None
 ) -> List[dict]:
     """
     Retrieve a ranking of items based on archived price data.
+
+    Cached per (start_date, end_date) for RANKING_CACHE_TTL_SECONDS; treat
+    the returned list as read-only.
     """
-    return get_all_items_ranking(start_date=start_date, end_date=end_date)
+    key = (start_date, end_date)
+    now = time.monotonic()
+    with _ranking_cache_lock:
+        cached = _ranking_cache.get(key)
+        if cached and cached[0] > now:
+            return cached[1]
+
+    ranking = get_all_items_ranking(start_date=start_date, end_date=end_date)
+
+    with _ranking_cache_lock:
+        _ranking_cache[key] = (now + RANKING_CACHE_TTL_SECONDS, ranking)
+    return ranking

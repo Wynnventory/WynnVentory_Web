@@ -16,6 +16,8 @@ def make_test_app():
     # render developer/api_key.html and the shared base template.
     app = Flask(__name__)
     app.config["TESTING"] = True
+    # web_bp signs the site session cookie on every page render.
+    app.secret_key = "test-secret"
     app.register_blueprint(web_bp)
     return app
 

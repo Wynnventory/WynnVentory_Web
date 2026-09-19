@@ -196,10 +196,18 @@
             }
             currentStart = s;
             currentEnd = e;
-            const params = new URLSearchParams({start_date: s, end_date: e});
-            const res = await fetch('/api/trademarket/ranking?' + params);
-            const data = await res.json();
-            displayRanking(data || []);
+            // v2 rejects blank values, so only send the dates that are set
+            const params = new URLSearchParams();
+            if (s) params.append('start_date', s);
+            if (e) params.append('end_date', e);
+            let data = [];
+            try {
+                // The ranking covers every item, so this walks all v2 pages.
+                data = await wvFetchAllPages('/api/v2/market/rankings?' + params);
+            } catch (err) {
+                console.error('Failed to load ranking', err);
+            }
+            displayRanking(data);
         }
 
         // DataTable instance variable
@@ -234,7 +242,7 @@
                 }
 
                 const qs = params.toString();
-                const fullName = it.name + (it.tier && it.itemType !== "IngredientItem" ? " " + it.tier : "");
+                const fullName = it.name + (it.tier && it.item_type !== "ingredient" ? " " + it.tier : "");
                 const href = `/history/${encodeURIComponent(fullName)}` + (qs ? `?${qs}` : '');
 
                 const tr = document.createElement('tr');

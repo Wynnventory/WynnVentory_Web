@@ -1,8 +1,11 @@
 import unittest
+from datetime import datetime
+from unittest.mock import patch
 
 from modules.repositories.market_repo import TIERED_TYPES
 from modules.routes.web.web import SUBTYPE_OPTIONS
-from modules.services.market_service import _format_item_for_db
+from modules.services import market_service
+from modules.services.market_service import _format_item_for_db, get_ranking
 from tests.test_base import BaseTestCase
 
 
@@ -112,6 +115,41 @@ class TestMarketServiceItemTypes(BaseTestCase):
             ["BlueWard", "GreenWard", "OrangeWard", "PinkWard", "PurpleWard", "RedWard", "YellowWard"],
             values,
         )
+
+
+class TestRankingCache(BaseTestCase):
+    """get_ranking recomputes the whole archive ranking; v2 pages through it
+    200 rows at a time, so the result is cached briefly per date range."""
+
+    def setUp(self):
+        super().setUp()
+        market_service.clear_ranking_cache()
+        self.repo = self.create_patch('modules.services.market_service.get_all_items_ranking')
+        self.repo.return_value = [{'rank': 1, 'name': 'Slayer'}]
+        self.start = datetime(2026, 9, 10)
+        self.end = datetime(2026, 9, 17)
+
+    def test_same_date_range_is_computed_once(self):
+        first = get_ranking(start_date=self.start, end_date=self.end)
+        second = get_ranking(start_date=self.start, end_date=self.end)
+        self.assertEqual(first, second)
+        self.repo.assert_called_once_with(start_date=self.start, end_date=self.end)
+
+    def test_different_date_range_is_computed_again(self):
+        get_ranking(start_date=self.start, end_date=self.end)
+        get_ranking(start_date=self.start, end_date=datetime(2026, 9, 18))
+        self.assertEqual(self.repo.call_count, 2)
+
+    def test_cached_ranking_expires(self):
+        with patch('modules.services.market_service.time.monotonic') as clock:
+            clock.return_value = 1000.0
+            get_ranking(start_date=self.start, end_date=self.end)
+            clock.return_value = 1000.0 + market_service.RANKING_CACHE_TTL_SECONDS - 1
+            get_ranking(start_date=self.start, end_date=self.end)
+            self.assertEqual(self.repo.call_count, 1)
+            clock.return_value = 1000.0 + market_service.RANKING_CACHE_TTL_SECONDS + 1
+            get_ranking(start_date=self.start, end_date=self.end)
+            self.assertEqual(self.repo.call_count, 2)
 
 
 if __name__ == "__main__":

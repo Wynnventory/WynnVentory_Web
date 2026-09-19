@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, session
 
 from modules.models.collection_types import Collection
 from modules.models.sort_options import SortOption
@@ -65,6 +65,14 @@ web_bp = Blueprint(
     static_folder='static',
     static_url_path='/static'
 )
+
+
+@web_bp.before_request
+def start_site_session():
+    # The browser-side fetches on our pages call /api/v2 without an API key;
+    # this signed cookie is what v2 auth accepts instead (routes/api/v2/auth.py).
+    if not session.get("site"):
+        session["site"] = True
 
 
 @web_bp.route("/")
