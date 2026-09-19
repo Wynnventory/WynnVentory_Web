@@ -8,7 +8,7 @@ aspect_bp = Blueprint('aspect', __name__, url_prefix='/api')
 
 
 @aspect_bp.get('/aspect/<class_name>/<aspect_name>')
-@public_endpoint  # the website's JS fetches aspects without an API key
+@public_endpoint  # public on v1 for compatibility; the website uses /site/aspect
 def get_item(class_name, aspect_name):
     try:
         data = aspect_service.fetch_aspect(class_name, aspect_name)

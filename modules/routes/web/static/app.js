@@ -172,11 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 })
 
-// ---- /api/v2 helpers ------------------------------------------------------
-// Our pages call v2 with the site session cookie (no API key). Every v2
-// success is {"data": ...}; collections add "pagination" (page_size <= 200).
-
-const WV_V2_PAGE_SIZE = 200;
+// ---- /site/* helpers -------------------------------------------------------
+// JSON the site fetches after page load comes from the web blueprint's own
+// /site/* routes (see routes/web/web.py), not the public API.
 
 class WvHttpError extends Error {
     constructor(status, url) {
@@ -191,27 +189,14 @@ async function wvFetchJson(url) {
     return response.json();
 }
 
-// GET one v2 resource; null when it does not exist.
-async function wvFetchV2(url) {
+// GET one resource; null when it does not exist.
+async function wvFetchOrNull(url) {
     try {
-        return (await wvFetchJson(url)).data;
+        return await wvFetchJson(url);
     } catch (err) {
         if (err instanceof WvHttpError && err.status === 404) return null;
         throw err;
     }
-}
-
-// GET every page of a v2 collection, concatenated. `url` may already carry
-// a query string but must not set page/page_size.
-async function wvFetchAllPages(url) {
-    const pageUrl = page =>
-        `${url}${url.includes('?') ? '&' : '?'}page=${page}&page_size=${WV_V2_PAGE_SIZE}`;
-    const first = await wvFetchJson(pageUrl(1));
-    const totalPages = (first.pagination && first.pagination.total_pages) || 1;
-    const restUrls = [];
-    for (let page = 2; page <= totalPages; page++) restUrls.push(pageUrl(page));
-    const rest = await Promise.all(restUrls.map(wvFetchJson));
-    return rest.reduce((all, body) => all.concat(body.data), first.data);
 }
 
 function displayItem(e, encodedItemName) {
@@ -228,7 +213,7 @@ function displayItem(e, encodedItemName) {
 }
 
 async function fetchItemStats(itemName) {
-    return wvFetchV2(`/api/v2/items/${encodeURIComponent(itemName)}`);
+    return wvFetchOrNull(`/site/item/${encodeURIComponent(itemName)}`);
 }
 
 function displayAspect(event, encodedAspectClass, encodedItemName) {
@@ -251,7 +236,7 @@ function displayAspect(event, encodedAspectClass, encodedItemName) {
 }
 
 async function fetchAspectStats(className, aspectName) {
-    return wvFetchV2(`/api/v2/aspects/${encodeURIComponent(className)}/${encodeURIComponent(aspectName)}`);
+    return wvFetchOrNull(`/site/aspect/${encodeURIComponent(className)}/${encodeURIComponent(aspectName)}`);
 }
 
 function showTooltipAspect(e, aspectStats, clickX, clickY) {

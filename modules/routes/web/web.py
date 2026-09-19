@@ -1,17 +1,19 @@
 from datetime import datetime, timezone
 
-from flask import Blueprint, render_template, jsonify, request, session
+from flask import Blueprint, render_template, jsonify, request
 
 from modules.models.collection_types import Collection
 from modules.models.sort_options import SortOption
 from modules.repositories.market_repo import TIERED_TYPES
-from modules.services import base_pool_service, market_service, raidpool_service
+from modules.routes.api.wynncraft_api import UpstreamError
+from modules.services import aspect_service, base_pool_service, item_service, market_service, raidpool_service
 from modules.services.api_key_service import (
     SELF_SERVICE_SCOPES,
     SELF_SERVICE_SCOPE_DETAILS,
     generate_and_store_key,
     is_valid_email,
 )
+from modules.utils.param_utils import parse_boolean_param, parse_date_params, parse_tier_param
 from modules.utils.time_validation import get_week_range
 
 SUBTYPE_OPTIONS = {
@@ -67,14 +69,6 @@ web_bp = Blueprint(
 )
 
 
-@web_bp.before_request
-def start_site_session():
-    # The browser-side fetches on our pages call /api/v2 without an API key;
-    # this signed cookie is what v2 auth accepts instead (routes/api/v2/auth.py).
-    if not session.get("site"):
-        session["site"] = True
-
-
 @web_bp.route("/")
 @web_bp.route("/index")
 def index():
@@ -123,6 +117,70 @@ def ranking():
 @web_bp.route("/emerald_calculator")
 def emerald_calculator():
     return render_template("emerald_calculator.html")
+
+
+# ---- /site/* — JSON for the site's own JavaScript --------------------------
+# The history and ranking pages and the item/aspect tooltips fetch after the
+# page has loaded. These routes call the service layer directly, like the
+# server-rendered pages do; they are not part of the public API (that lives
+# under /api/v2 and requires a key).
+
+def _parse_dates_and_tier():
+    """(start_date, end_date, tier, error_response) from the query string."""
+    start_date, end_date, error = parse_date_params(
+        request.args.get("start_date"), request.args.get("end_date"))
+    if error:
+        return None, None, None, (jsonify(error), 400)
+    tier, error = parse_tier_param(request.args.get("tier"))
+    if error:
+        return None, None, None, (jsonify(error), 400)
+    return start_date, end_date, tier, None
+
+
+@web_bp.get("/site/history/<item_name>")
+def site_history(item_name):
+    start_date, end_date, tier, error = _parse_dates_and_tier()
+    if error:
+        return error
+    return jsonify(market_service.get_history(
+        item_name=item_name,
+        shiny=parse_boolean_param(request.args.get("shiny")),
+        tier=tier,
+        start_date=start_date,
+        end_date=end_date,
+    ))
+
+
+@web_bp.get("/site/ranking")
+def site_ranking():
+    start_date, end_date, _tier, error = _parse_dates_and_tier()
+    if error:
+        return error
+    return jsonify(market_service.get_ranking(start_date=start_date, end_date=end_date))
+
+
+def _wynncraft_lookup(fetch):
+    """Run a Wynncraft-proxy lookup for a tooltip: 404 when unknown, 502 when
+    the upstream API is unreachable."""
+    try:
+        data = fetch()
+    except UpstreamError:
+        return jsonify({"error": "The Wynncraft API is currently unavailable"}), 502
+    except ValueError:
+        data = None  # known to Wynncraft, but an item type this site cannot process
+    if not data:
+        return jsonify({"error": "Not found"}), 404
+    return jsonify(data)
+
+
+@web_bp.get("/site/item/<item_name>")
+def site_item(item_name):
+    return _wynncraft_lookup(lambda: item_service.fetch_item(item_name))
+
+
+@web_bp.get("/site/aspect/<class_name>/<aspect_name>")
+def site_aspect(class_name, aspect_name):
+    return _wynncraft_lookup(lambda: aspect_service.fetch_aspect(class_name, aspect_name))
 
 
 @web_bp.route("/developer/api-key", methods=["GET", "POST"])

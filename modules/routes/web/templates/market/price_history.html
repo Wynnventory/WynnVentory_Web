@@ -548,16 +548,15 @@
                     s = begin.toISOString().split('T')[0];
                 }
 
-                // v2 rejects blank values, so only send the dates that are set
                 const q = new URLSearchParams();
                 if (s) q.append('start_date', s);
                 if (e) q.append('end_date', e);
                 if (tier) q.append('tier', tier);
                 const shinyParam = params.get('shiny');
                 if (shinyParam) q.append('shiny', shinyParam);
-                const url = '/api/v2/market/items/' + encodeURIComponent(base) + '/history?' + q;
-                const data = await wvFetchAllPages(url);
-                if (data.length === 0) {
+                const url = '/site/history/' + encodeURIComponent(base) + '?' + q;
+                const data = await wvFetchJson(url);
+                if (!Array.isArray(data) || data.length === 0) {
                     showEmpty();
                     return;
                 }

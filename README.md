@@ -36,7 +36,6 @@ MIN_SUPPORTED_VERSION=1.0.0
 PROD_MONGO_URI=mongodb+srv://<user>:<password>@wynnventory.9axarep.mongodb.net/wynnventory
 DEV_MONGO_URI=mongodb+srv://<user>:<password>@wynnventory.9axarep.mongodb.net/wynnventory_DEV
 ADMIN_MONGO_URI=mongodb+srv://<user>:<password>@wynnventory.9axarep.mongodb.net/wynnventory_admin
-SECRET_KEY=<random string; signs the website's session cookie — required outside dev>
 ```
 
 ## Wynnventory Mod

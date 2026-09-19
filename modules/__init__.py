@@ -5,7 +5,7 @@ from typing import Any
 from flask import Flask, redirect, request, url_for
 
 from modules.auth import require_api_key, record_api_usage
-from modules.config import Config, resolve_secret_key
+from modules.config import Config
 
 UTC = timezone.utc
 
@@ -14,15 +14,6 @@ def create_app():
                 static_url_path='',
                 static_folder='modules/routes/web/static',
                 template_folder='modules/routes/web/templates')
-
-    # The website's pages carry a signed session that /api/v2 accepts on the
-    # routes the site calls (see routes/api/v2/auth.py).
-    app.secret_key = resolve_secret_key(Config.ENVIRONMENT, Config.SECRET_KEY)
-    app.config.update(
-        SESSION_COOKIE_HTTPONLY=True,
-        SESSION_COOKIE_SAMESITE='Lax',
-        SESSION_COOKIE_SECURE=Config.ENVIRONMENT != 'dev',
-    )
 
     # WEB ROUTES
     from modules.routes.web.web import web_bp
