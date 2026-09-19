@@ -123,183 +123,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }
 });
 
-// Initialize selected filters array
-const selectedFilters = [];
-
-// Toggle filter button and update selected filters
-function toggleFilter(button, filterTypes) {
-    const filters = filterTypes.split(',').map(filter => filter.trim());
-    const isActive = button.classList.toggle('active');
-
-    filters.forEach(filter => {
-        if (isActive) {
-            if (!selectedFilters.includes(filter)) {
-                selectedFilters.push(filter);
-            }
-        } else {
-            const index = selectedFilters.indexOf(filter);
-            if (index > -1) {
-                selectedFilters.splice(index, 1);
-            }
-        }
-    });
-}
-
-// Submit search query to the server
-function submitSearch(event) {
-    if (event) event.preventDefault();  // Prevent form reload
-
-    const query = document.getElementById('search-query').value;
-    const payload = {
-        query: query,
-        type: selectedFilters.length > 0 ? selectedFilters : ['weapon', 'helmet', 'chestplate', 'leggings', 'boots', 'necklace', 'bracelet', 'ring'],
-        tier: [],
-        attackSpeed: [],
-        levelRange: [0, 110],
-        professions: [],
-        identifications: [],
-        majorIds: []
-    };
-    fetchItems(payload);
-}
-
-// Fetch items from the server
-async function fetchItems(payload) {
-    const response = await fetch('/api/items', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    });
-    if (response.ok) {
-        const data = await response.json();
-        displayItems(data.items);
-    } else {
-        console.error('Failed to fetch items');
-    }
-}
-
-// Display items inside the items-container
-function displayItems(items) {
-    const container = document.querySelector('#items-container .row-cols-1');
-    container.innerHTML = ''; // Clear previous items
-
-    items.forEach(itemStats => {
-        const {
-            base,
-            identifications,
-            requirements,
-            powder_slots,
-            rarity,
-            item_type,
-            attack_speed,
-            class_req,
-            name
-        } = itemStats;
-        let requirementsHTML = '';
-        if (item_type === 'weapon') {
-            requirementsHTML = `<div>Class Req: ${class_req}<br>Combat Lv. Min: ${requirements.Level}<br>`;
-            for (const [key, value] of Object.entries(requirements)) {
-                if (key !== 'Level' && key !== 'Classrequirement') {
-                    requirementsHTML += `${key} Min: ${value}<br>`;
-                }
-            }
-            requirementsHTML += '</div>';
-        } else {
-            requirementsHTML = `<div>Combat Lv. Min: ${requirements.Level}<br>`;
-            for (const [key, value] of Object.entries(requirements)) {
-                if (key === 'class_req' && key !== 'Classrequirement') {
-                    requirementsHTML += `Class Req: ${value}<br>`;
-                } else if (key !== 'Level') {
-                    requirementsHTML += `${key} Min: ${value}<br>`;
-                }
-            }
-            requirementsHTML += '</div>';
-        }
-
-        let rawIdentificationsHTML = '';
-        let otherIdentificationsHTML = '';
-
-        for (const [key, value] of Object.entries(identifications)) {
-            const minValue = value.min_value !== undefined ? value.min_value : value;
-            const maxValue = value.max_value !== undefined ? value.max_value_readable : value;
-            const rawValue = value.raw !== undefined ? value.raw_readable : value;
-            const colorClass = value.raw >= 0 ? 'positive' : 'negative';
-            const toColorClass = value.raw >= 0 ? 'positive-to' : 'negative-to';
-
-            const identificationHTML = minValue !== null && maxValue !== null
-                ? `
-                    <span class="${colorClass}">${minValue}</span>
-                    <span class="${toColorClass}"> to </span>
-                    <span class="${colorClass}">${maxValue}</span>
-                    <span class="stat-name"> ${value.readable_name}</span><br>
-                `
-                : `
-                    <span class="${colorClass}">${rawValue}</span>
-                    <span class="stat-name"> ${value.readable_name}</span><br>
-                `;
-
-            if (key.startsWith('raw')) {
-                rawIdentificationsHTML += identificationHTML;
-            } else {
-                otherIdentificationsHTML += identificationHTML;
-            }
-        }
-
-        const itemCardHTML = `
-            <div class="col item-stats-tooltip ${rarity} items-handle">
-                <div class="item-card">
-                    <div class="item-header">
-                        <h5 class="${rarity}">${name}</h5>
-                        ${item_type === 'weapon' ? `<span class="attack-speed item-text">${attack_speed} Attack Speed</span>` : ''}
-                    </div>
-                    <div class="item-infobox defence item-text">
-                        ${item_type === 'weapon' ? `
-                            ${base.damage ? `<span class="item-text neutral"><span>Neutral</span> Damage: </span><span class="${base.damage >= 0 ? 'positive' : 'negative'}">${base.damage.min}-${base.damage.max}</span><br>` : ''}
-                            ${base.air_damage ? `<span class="item-text air"><span>Air</span> Damage: </span><span class="${base.air_damage >= 0 ? 'positive' : 'negative'}">${base.air_damage.min}-${base.air_damage.max}</span><br>` : ''}
-                            ${base.earth_damage ? `<span class="item-text earth"><span>Earth</span> Damage: </span><span class="${base.earth_damage >= 0 ? 'positive' : 'negative'}">${base.earth_damage.min}-${base.earth_damage.max}</span><br>` : ''}
-                            ${base.fire_damage ? `<span class="item-text fire"><span>Fire</span> Damage: </span><span class="${base.fire_damage >= 0 ? 'positive' : 'negative'}">${base.fire_damage.min}-${base.fire_damage.max}</span><br>` : ''}
-                            ${base.thunder_damage ? `<span class="item-text thunder"><span>Thunder</span> Damage: </span><span class="${base.thunder_damage >= 0 ? 'positive' : 'negative'}">${base.thunder_damage.min}-${base.thunder_damage.max}</span><br>` : ''}
-                            ${base.water_damage ? `<span class="item-text water"><span>Water</span> Damage: </span><span class="${base.water_damage >= 0 ? 'positive' : 'negative'}">${base.water_damage.min}-${base.water_damage.max}</span><br>` : ''}
-                            <span class="item-text-dark">Average DPS: <span class="item-text">${base.average_dps}</span></span>
-                        ` : `
-                            ${base.health ? `<span class="item-health">Health: <span class="${base.health >= 0 ? 'positive' : 'negative'}">${base.health} </span></span><br>` : ''}
-                            ${base.fire_defence ? `<span class="item-text fire"><span>Fire</span> Defence: </span><span class="item-text ${base.fire_defence >= 0 ? 'positive' : 'negative'}">${base.fire_defence}</span><br>` : ''}
-                            ${base.water_defence ? `<span class="item-text water"><span>Water</span> Defence: </span><span class="item-text ${base.water_defence >= 0 ? 'positive' : 'negative'}">${base.water_defence}</span><br>` : ''}
-                            ${base.air_defence ? `<span class="item-text air"><span>Air</span> Defence: </span><span class="item-text ${base.air_defence >= 0 ? 'positive' : 'negative'}">${base.air_defence}</span><br>` : ''}
-                            ${base.thunder_defence ? `<span class="item-text thunder"><span>Thunder</span> Defence: </span><span class="item-text ${base.thunder_defence >= 0 ? 'positive' : 'negative'}">${base.thunder_defence}</span><br>` : ''}
-                            ${base.earth_defence ? `<span class="item-text earth"><span>Earth</span> Defence: </span><span class="item-text ${base.earth_defence >= 0 ? 'positive' : 'negative'}">${base.earth_defence}</span><br>` : ''}
-                        `}
-                    </div>
-                    <div class="item-infobox item-text">
-                        ${requirementsHTML}
-                    </div>
-                    <div class="item-infobox item-text">
-                        ${rawIdentificationsHTML}
-                    </div>
-                    <div class="item-infobox item-text">
-                        ${otherIdentificationsHTML}
-                    </div>
-                    ${item_type === 'accessory' ? `
-                    <div class="item-infobox ${rarity}">
-                        ${rarity} Item
-                    </div>
-                    ` : `
-                    <div class="item-infobox item-text">
-                        [0/${powder_slots}] Powder Slots
-                    </div>
-                    <div class="${rarity}">
-                        ${rarity} Item
-                    </div>
-                    `}
-                </div>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', itemCardHTML);
-    });
-}
-
 if (document.getElementById('collapse-button')) {
     document.getElementById('collapse-button').addEventListener('click', function () {
         const filterContainer = document.getElementById('filter-sidebar');
@@ -349,10 +172,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 })
 
+// ---- /site/* helpers -------------------------------------------------------
+// JSON the site fetches after page load comes from the web blueprint's own
+// /site/* routes (see routes/web/web.py), not the public API.
+
+class WvHttpError extends Error {
+    constructor(status, url) {
+        super(`HTTP ${status} for ${url}`);
+        this.status = status;
+    }
+}
+
+async function wvFetchJson(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new WvHttpError(response.status, url);
+    return response.json();
+}
+
+// GET one resource; null when it does not exist.
+async function wvFetchOrNull(url) {
+    try {
+        return await wvFetchJson(url);
+    } catch (err) {
+        if (err instanceof WvHttpError && err.status === 404) return null;
+        throw err;
+    }
+}
+
 function displayItem(e, encodedItemName) {
     e.preventDefault();
     // allow both click and touchstart
-    const touch = (e.touches && e.touches[0]);
+    const touch = e.touches?.[0];
     const clickX = touch ? touch.clientX : e.clientX;
     const clickY = touch ? touch.clientY : e.clientY;
 
@@ -363,21 +213,14 @@ function displayItem(e, encodedItemName) {
 }
 
 async function fetchItemStats(itemName) {
-    const response = await fetch(`/api/item/${encodeURIComponent(itemName)}`);
-    if (response.ok) {
-        const data = await response.json();
-        return data;
-    } else {
-        console.error('Failed to fetch item stats');
-        return null;
-    }
+    return wvFetchOrNull(`/site/item/${encodeURIComponent(itemName)}`);
 }
 
 function displayAspect(event, encodedAspectClass, encodedItemName) {
     const aspectClass = decodeURIComponent(encodedAspectClass).replace('Aspect', '').toLowerCase();
     const aspectName = decodeURIComponent(encodedItemName);
 
-    const touch = (event.touches && event.touches[0]);
+    const touch = event.touches?.[0];
     const clickX = touch ? touch.clientX : event.clientX;
     const clickY = touch ? touch.clientY : event.clientY;
 
@@ -393,14 +236,7 @@ function displayAspect(event, encodedAspectClass, encodedItemName) {
 }
 
 async function fetchAspectStats(className, aspectName) {
-    const response = await fetch(`/api/aspect/${encodeURIComponent(className)}/${encodeURIComponent(aspectName)}`);
-    if (response.ok) {
-        const data = await response.json();
-        return data;
-    } else {
-        console.error('Failed to fetch item stats');
-        return null;
-    }
+    return wvFetchOrNull(`/site/aspect/${encodeURIComponent(className)}/${encodeURIComponent(aspectName)}`);
 }
 
 function showTooltipAspect(e, aspectStats, clickX, clickY) {

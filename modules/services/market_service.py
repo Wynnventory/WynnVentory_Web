@@ -1,4 +1,6 @@
 import logging
+import threading
+import time
 from datetime import datetime
 from typing import List, Optional, Any
 
@@ -147,11 +149,55 @@ def get_item_listings(
         page_size=page_size)
 
 
+# The ranking aggregates the whole archive (~1 s) and callers page through it
+# 200 rows at a time, so each date range is kept briefly. The archive only
+# changes daily, so a short TTL costs nothing in freshness. Per process.
+#
+# The cache is keyed by the day range the repository actually queries (it
+# truncates timestamps to midnight), and bounded: unauthenticated callers can
+# request arbitrary ranges, so entries are evicted once expired and the
+# oldest is dropped when the table is full.
+RANKING_CACHE_TTL_SECONDS = 300
+RANKING_CACHE_MAX_ENTRIES = 16
+_ranking_cache: dict = {}  # (start_day, end_day) -> (expires_at, ranking); insertion-ordered
+_ranking_cache_lock = threading.Lock()
+
+
+def clear_ranking_cache() -> None:
+    with _ranking_cache_lock:
+        _ranking_cache.clear()
+
+
+def _ranking_cache_key(start_date: Optional[datetime], end_date: Optional[datetime]):
+    def day(value):
+        return value.replace(hour=0, minute=0, second=0, microsecond=0) if value else None
+    return day(start_date), day(end_date)
+
+
 def get_ranking(
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None
 ) -> List[dict]:
     """
     Retrieve a ranking of items based on archived price data.
+
+    Cached per day range for RANKING_CACHE_TTL_SECONDS; treat the returned
+    list as read-only.
     """
-    return get_all_items_ranking(start_date=start_date, end_date=end_date)
+    key = _ranking_cache_key(start_date, end_date)
+    now = time.monotonic()
+    with _ranking_cache_lock:
+        cached = _ranking_cache.get(key)
+        if cached and cached[0] > now:
+            return cached[1]
+
+    ranking = get_all_items_ranking(start_date=start_date, end_date=end_date)
+
+    with _ranking_cache_lock:
+        for stale in [k for k, (expires_at, _) in _ranking_cache.items() if expires_at <= now]:
+            del _ranking_cache[stale]
+        _ranking_cache.pop(key, None)
+        while len(_ranking_cache) >= RANKING_CACHE_MAX_ENTRIES:
+            del _ranking_cache[next(iter(_ranking_cache))]
+        _ranking_cache[key] = (now + RANKING_CACHE_TTL_SECONDS, ranking)
+    return ranking

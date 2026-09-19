@@ -8,7 +8,10 @@ Usage:
     python scripts/extract_resource_pack_icons.py --overwrite
 
 Requires: Pillow (pip install Pillow)
-See docs/icon_extraction_plan.md for the full extraction plan.
+
+The pack the client caches (.minecraft/downloads/<uuid>/<sha>) is mangled so
+normal tools cannot open it; unpack it first with scripts/unpack_wynn_pack.py
+and point --src at <out-dir>/assets/minecraft/textures/wynn.
 """
 
 import argparse

@@ -548,19 +548,14 @@
                     s = begin.toISOString().split('T')[0];
                 }
 
-                const q = new URLSearchParams({ start_date: s, end_date: e });
+                const q = new URLSearchParams();
+                if (s) q.append('start_date', s);
+                if (e) q.append('end_date', e);
                 if (tier) q.append('tier', tier);
                 const shinyParam = params.get('shiny');
                 if (shinyParam) q.append('shiny', shinyParam);
-                const url = '/api/trademarket/history/' + encodeURIComponent(base) + '?' + q;
-                const res = await fetch(url);
-
-                if (!res.ok) {
-                    showError('Failed to load price data (HTTP ' + res.status + ')');
-                    return;
-                }
-
-                const data = await res.json();
+                const url = '/site/history/' + encodeURIComponent(base) + '?' + q;
+                const data = await wvFetchJson(url);
                 if (!Array.isArray(data) || data.length === 0) {
                     showEmpty();
                     return;
@@ -573,7 +568,7 @@
                 renderCharts(data, s, e);
             } catch (err) {
                 console.error(err);
-                showError('Failed to load price data');
+                showError('Failed to load price data' + (err.status ? ' (HTTP ' + err.status + ')' : ''));
             }
         }
 

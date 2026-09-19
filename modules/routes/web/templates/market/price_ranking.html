@@ -196,10 +196,16 @@
             }
             currentStart = s;
             currentEnd = e;
-            const params = new URLSearchParams({start_date: s, end_date: e});
-            const res = await fetch('/api/trademarket/ranking?' + params);
-            const data = await res.json();
-            displayRanking(data || []);
+            const params = new URLSearchParams();
+            if (s) params.append('start_date', s);
+            if (e) params.append('end_date', e);
+            let data = [];
+            try {
+                data = await wvFetchJson('/site/ranking?' + params);
+            } catch (err) {
+                console.error('Failed to load ranking', err);
+            }
+            displayRanking(data);
         }
 
         // DataTable instance variable
