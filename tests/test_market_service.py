@@ -140,6 +140,32 @@ class TestRankingCache(BaseTestCase):
         get_ranking(start_date=self.start, end_date=datetime(2026, 9, 18))
         self.assertEqual(self.repo.call_count, 2)
 
+    def test_sub_day_timestamps_share_the_day_range_entry(self):
+        # v1 accepts arbitrary ISO timestamps; the repository normalises them
+        # to day boundaries, so they must not mint distinct cache entries.
+        get_ranking(start_date=datetime(2026, 9, 10, 8, 15), end_date=datetime(2026, 9, 17, 23, 59, 59))
+        get_ranking(start_date=datetime(2026, 9, 10, 0, 0, 1), end_date=datetime(2026, 9, 17, 12, 0))
+        self.repo.assert_called_once()
+        self.assertEqual(len(market_service._ranking_cache), 1)
+
+    def test_cache_size_is_bounded(self):
+        limit = market_service.RANKING_CACHE_MAX_ENTRIES
+        for day in range(1, limit + 6):
+            get_ranking(start_date=datetime(2026, 1, day), end_date=datetime(2026, 2, day))
+        self.assertEqual(len(market_service._ranking_cache), limit)
+        # the most recent range is still served from the cache
+        self.repo.reset_mock()
+        get_ranking(start_date=datetime(2026, 1, limit + 5), end_date=datetime(2026, 2, limit + 5))
+        self.repo.assert_not_called()
+
+    def test_expired_entries_are_evicted_on_store(self):
+        with patch('modules.services.market_service.time.monotonic') as clock:
+            clock.return_value = 1000.0
+            get_ranking(start_date=self.start, end_date=self.end)
+            clock.return_value = 1000.0 + market_service.RANKING_CACHE_TTL_SECONDS + 1
+            get_ranking(start_date=self.start, end_date=datetime(2026, 9, 18))
+        self.assertEqual(len(market_service._ranking_cache), 1)
+
     def test_cached_ranking_expires(self):
         with patch('modules.services.market_service.time.monotonic') as clock:
             clock.return_value = 1000.0

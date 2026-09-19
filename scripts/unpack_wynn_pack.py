@@ -77,14 +77,18 @@ class WynnPack:
         raise zipfile.BadZipFile(f"unsupported compression {info.compress_type} for {name}")
 
     def extract_all(self, out: Path, only: str = "") -> int:
+        out = out.resolve()
         written = 0
         for name, info in self.infos.items():
             if info.is_dir() or not name.startswith(only):
                 continue
+            dest = (out / name).resolve()
+            if out not in dest.parents:
+                # zip-slip: an entry like ../x must never escape the output dir
+                raise ValueError(f"refusing entry outside the output directory: {name}")
             data = self.read(name)
             if name.lower().endswith(".png"):
                 data = repair_png(data)
-            dest = out / name
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(data)
             written += 1

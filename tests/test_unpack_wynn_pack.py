@@ -108,8 +108,9 @@ class TestRepairPng(unittest.TestCase):
     def test_fixture_is_mangled(self):
         mangled = mangle_png(VALID_PNG)
         self.assertFalse(any(ok for _, _, ok in png_chunks(mangled)))
+        idat = next(b for t, b, _ in png_chunks(mangled) if t == b"IDAT")
         with self.assertRaises(zlib.error):
-            zlib.decompress(next(b for t, b, _ in png_chunks(mangled) if t == b"IDAT"))
+            zlib.decompress(idat)
 
     def test_repair_restores_crcs_and_a_valid_idat_stream(self):
         repaired = repair_png(mangle_png(VALID_PNG))
@@ -154,6 +155,20 @@ class TestWynnPack(unittest.TestCase):
         self.assertEqual(sorted(p.name for p in (out / "assets/minecraft/textures/wynn/tool").iterdir()),
                          ["bronze_axe.png", "void_rod.png"])
         self.assertFalse((out / "pack.mcmeta").exists())
+
+    def test_extract_all_refuses_entries_that_escape_the_output_dir(self):
+        # zip-slip: an entry named ../x must not be written outside `out`
+        evil = Path(self.tmp.name) / "evil.zip"
+        with zipfile.ZipFile(evil, "w") as z:
+            z.writestr("assets/ok.txt", b"fine")
+            z.writestr("../escaped.txt", b"nope")
+            z.writestr("assets/../../escaped2.txt", b"nope")
+        out = Path(self.tmp.name) / "out"
+        with WynnPack(evil) as pack:
+            with self.assertRaises(ValueError):
+                pack.extract_all(out)
+        self.assertFalse((Path(self.tmp.name) / "escaped.txt").exists())
+        self.assertFalse((Path(self.tmp.name) / "escaped2.txt").exists())
 
     def test_extract_all_repairs_pngs_on_the_way_out(self):
         out = Path(self.tmp.name) / "out"

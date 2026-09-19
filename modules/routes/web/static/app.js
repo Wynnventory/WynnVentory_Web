@@ -202,7 +202,7 @@ async function wvFetchOrNull(url) {
 function displayItem(e, encodedItemName) {
     e.preventDefault();
     // allow both click and touchstart
-    const touch = (e.touches && e.touches[0]);
+    const touch = e.touches?.[0];
     const clickX = touch ? touch.clientX : e.clientX;
     const clickY = touch ? touch.clientY : e.clientY;
 
@@ -220,7 +220,7 @@ function displayAspect(event, encodedAspectClass, encodedItemName) {
     const aspectClass = decodeURIComponent(encodedAspectClass).replace('Aspect', '').toLowerCase();
     const aspectName = decodeURIComponent(encodedItemName);
 
-    const touch = (event.touches && event.touches[0]);
+    const touch = event.touches?.[0];
     const clickX = touch ? touch.clientX : event.clientX;
     const clickY = touch ? touch.clientY : event.clientY;
 
